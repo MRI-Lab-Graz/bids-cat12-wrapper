@@ -1,0 +1,80 @@
+{
+  "longmodel": {
+    "value": "small",
+    "description": "Type of longitudinal model",
+    "choices": {
+      "developmental": 0,
+      "small": 1,
+      "large": 2,
+      "both": 3
+    }
+  },
+  "enablepriors": {
+    "value": true,
+    "description": "Use priors for longitudinal data"
+  },
+  "affreg": {
+    "value": "mni",
+    "description": "Affine regularisation",
+    "choices": ["", "mni", "eastern", "subj", "none", "rigid"]
+  },
+  "biasstr": {
+    "value": 0.5,
+    "description": "Strength of the bias correction"
+  },
+  "accstr": {
+    "value": 0.5,
+    "description": "Strength of the accuracy correction"
+  },
+  "surface": {
+    "value": 1,
+    "description": "Surface and thickness creation",
+    "choices": {
+      "none": 0,
+      "lh+rh": 1,
+      "lh+rh+cerebellum": 2,
+      "lh": 3,
+      "rh": 4,
+      "lh+rh_fast": 5,
+      "lh+rh+cerebellum_fast": 6,
+      "thickness_only": 9
+    }
+  },
+  "output_BIDSno": {
+    "value": 0,
+    "description": "BIDS output enabled"
+  },
+  "atlases": {
+    "neuromorphometrics": 1,
+    "lpba40": 1,
+    "cobra": 1,
+    "hammers": 1,
+    "ibsr": 1,
+    "aal3": 1,
+    "mori": 1,
+    "thalamus": 1,
+    "anatomy3": 1,
+    "julichbrain": 1,
+    "Schaefer2018_100Parcels_17Networks_order": 0,
+    "Schaefer2018_200Parcels_17Networks_order": 0,
+    "Schaefer2018_400Parcels_17Networks_order": 0,
+    "Schaefer2018_600Parcels_17Networks_order": 0,
+    "ownatlas": ""
+  },
+  "longTPM": {
+    "value": 1,
+    "description": "Create and use longitudinal TPM"
+  },
+  "modulate": {
+    "value": 1,
+    "description": "Apply modulation"
+  },
+  "dartel": {
+    "value": 0,
+    "description": "Save dartel export"
+  },
+  "delete_temp": {
+    "value": 1,
+    "description": "Delete temporary files"
+  }
+}

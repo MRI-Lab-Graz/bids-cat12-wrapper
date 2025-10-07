@@ -23,6 +23,26 @@ class CAT12ScriptGenerator:
     def __init__(self, config: Dict):
         self.config = config
         self.template_dir = Path(__file__).parent.parent / 'scripts'
+    def load_segmentation_config(self, config_path: Path) -> Dict:
+        """
+        Load segmentation parameters from JSON config, mapping 'n/a' or missing to None (default).
+        """
+        if not config_path.exists():
+            logger.warning(f"Segmentation config file not found: {config_path}")
+            return {}
+        with open(config_path, 'r') as f:
+            seg_config = json.load(f)
+        parsed = {}
+        for key, entry in seg_config.items():
+            val = entry.get('value', None)
+            if val == "n/a":
+                parsed[key] = None
+            else:
+                parsed[key] = val
+        # Atlases (special case)
+        if 'atlases' in seg_config:
+            parsed['atlases'] = seg_config['atlases']
+        return parsed
         
     def generate_longitudinal_script(self, subject: str, t1w_files: List[str], 
                                    output_dir: Path) -> Path:
@@ -193,6 +213,9 @@ class CAT12Processor:
         self.config = config
         self.cat12_root = os.environ.get('CAT12_ROOT')
         self.mcr_root = os.environ.get('MCR_ROOT')
+        self.timeout_seconds = int(self.config.get('cat12', {}).get('timeout_seconds', 3600))
+        self.threads_per_job = int(self.config.get('cat12', {}).get('threads_per_job', 0) or 0)
+        self.use_cuda = bool(self.config.get('system', {}).get('use_cuda', True))
         
         if not self.cat12_root:
             raise ValueError("CAT12_ROOT environment variable not set")
@@ -233,6 +256,19 @@ class CAT12Processor:
             # Set up environment
             env = os.environ.copy()
             env['LD_LIBRARY_PATH'] = self._get_ld_library_path()
+            if self.threads_per_job:
+                env['OMP_NUM_THREADS'] = str(self.threads_per_job)
+            if not self.use_cuda:
+                env['CAT12_DISABLE_CUDA'] = '1'
+            else:
+                env['CAT12_DISABLE_CUDA'] = '0'
+            logger.debug("CAT12 command: %s", ' '.join(cmd))
+            logger.debug(
+                "CAT12 environment overrides -> OMP_NUM_THREADS=%s, CAT12_DISABLE_CUDA=%s, timeout=%s",
+                env.get('OMP_NUM_THREADS', 'not set'),
+                env.get('CAT12_DISABLE_CUDA'),
+                self.timeout_seconds,
+            )
             
             # Determine output directory
             if input_files:
@@ -246,7 +282,7 @@ class CAT12Processor:
                 env=env,
                 capture_output=True,
                 text=True,
-                timeout=3600  # 1 hour timeout
+                timeout=self.timeout_seconds
             )
             
             # Log output
