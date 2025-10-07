@@ -28,6 +28,8 @@ import subprocess
 from datetime import datetime
 import gzip
 import shutil
+import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
 import nibabel as nib
@@ -42,15 +44,58 @@ from bids_utils import BIDSValidator, BIDSSessionManager
 from cat12_utils import CAT12Processor, CAT12ScriptGenerator
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('cat12_processing.log')
-    ]
-)
 logger = logging.getLogger(__name__)
+
+
+def setup_logging(log_level: int, log_dir: Optional[Path] = None, log_name: Optional[str] = None,
+                  console: bool = True) -> Path:
+    """Configure logging for the current run and return the log file path."""
+
+    root_logger = logging.getLogger()
+    # Clear existing handlers to avoid duplicate logs when rerunning in the same session
+    for handler in list(root_logger.handlers):
+        root_logger.removeHandler(handler)
+
+    handlers: List[logging.Handler] = []
+    log_file_path: Path
+
+    if log_dir is None:
+        log_dir = Path.cwd() / 'logs'
+    else:
+        log_dir = Path(log_dir)
+
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    if not log_name:
+        log_name = f"cat12_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+    log_file_path = log_dir / log_name
+
+    file_handler = logging.FileHandler(log_file_path)
+    handlers.append(file_handler)
+
+    if console:
+        handlers.append(logging.StreamHandler(sys.stdout))
+
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+    for handler in handlers:
+        handler.setFormatter(formatter)
+        root_logger.addHandler(handler)
+
+    root_logger.setLevel(log_level)
+    return log_file_path
+
+
+def deep_update(base: Dict, updates: Dict) -> Dict:
+    """Recursively merge dictionary ``updates`` into ``base``."""
+
+    for key, value in updates.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            base[key] = deep_update(base.get(key, {}), value)
+        else:
+            base[key] = value
+    return base
 
 
 class BIDSLongitudinalProcessor:
@@ -67,7 +112,7 @@ class BIDSLongitudinalProcessor:
         """
         self.bids_dir = Path(bids_dir)
         self.output_dir = Path(output_dir)
-        self.config_file = config_file
+        self.config_file = Path(config_file) if config_file else None
         
         # Load configuration
         self.config = self._load_config()
@@ -103,13 +148,29 @@ class BIDSLongitudinalProcessor:
         }
         
         if self.config_file and self.config_file.exists():
-            with open(self.config_file, 'r') as f:
-                user_config = yaml.safe_load(f)
-            # Merge with defaults
-            config = {**default_config, **user_config}
+            try:
+                with open(self.config_file, 'r') as f:
+                    suffix = self.config_file.suffix.lower()
+                    if suffix == '.json':
+                        user_config = json.load(f)
+                    elif suffix in {'.yml', '.yaml'}:
+                        user_config = yaml.safe_load(f)
+                    else:
+                        raise ValueError(
+                            f"Unsupported configuration format '{self.config_file.suffix}'. "
+                            "Use .json, .yml, or .yaml"
+                        )
+
+                if user_config is None:
+                    user_config = {}
+
+                config = deep_update(default_config, user_config)
+            except (yaml.YAMLError, json.JSONDecodeError, ValueError) as exc:
+                logger.error(f"Failed to load configuration file {self.config_file}: {exc}")
+                config = default_config
         else:
             config = default_config
-            
+
         return config
     
     def _init_bids_layout(self):
@@ -327,19 +388,39 @@ class BIDSLongitudinalProcessor:
             for subject in all_subjects:
                 all_subjects[subject] = [s for s in all_subjects[subject] if f"ses-{s}" in session_labels or s in session_labels]
         
-        results = {}
-        
+        results: Dict[str, bool] = {}
+
         # Create derivatives directory structure
         self._create_derivatives_structure()
-        
-        # Process subjects sequentially with progress bar
-        for subject, sessions in tqdm(all_subjects.items(), desc="Processing subjects"):
-            if run_preproc:
-                success = self.process_subject(subject, sessions)
-                results[subject] = success
+
+        subject_items = list(all_subjects.items())
+
+        if run_preproc:
+            num_workers = max(1, int(self.config['cat12'].get('parallel_jobs', 1)))
+            if num_workers > 1 and len(subject_items) > 1:
+                logger.info(f"Running preprocessing with up to {num_workers} parallel jobs")
+                with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                    future_map = {
+                        executor.submit(self.process_subject, subject, sessions): subject
+                        for subject, sessions in subject_items
+                    }
+                    with tqdm(total=len(future_map), desc="Processing subjects") as progress:
+                        for future in as_completed(future_map):
+                            subject = future_map[future]
+                            try:
+                                results[subject] = future.result()
+                            except Exception as exc:
+                                logger.error(f"Error processing subject {subject}: {exc}")
+                                results[subject] = False
+                            progress.update(1)
             else:
-                results[subject] = True  # Mark as successful if no preprocessing
-        
+                for subject, sessions in tqdm(subject_items, desc="Processing subjects"):
+                    success = self.process_subject(subject, sessions)
+                    results[subject] = success
+        else:
+            for subject, _ in subject_items:
+                results[subject] = True  # Mark as successful if preprocessing is skipped
+
         # Generate summary report
         self._generate_summary_report(results)
         
@@ -499,7 +580,7 @@ class BIDSLongitudinalProcessor:
         # TODO: Call CAT12 ROI extraction function
 
 
-@click.command()
+@click.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
 @click.argument('bids_dir', type=click.Path(exists=True, path_type=Path))
 @click.argument('output_dir', type=click.Path(path_type=Path))
 @click.argument('analysis_level', type=click.Choice(['participant', 'group']), default='participant')
@@ -525,11 +606,13 @@ class BIDSLongitudinalProcessor:
 @click.option('--n-jobs', default=1, type=int, help='Number of parallel jobs (default: 1)')
 @click.option('--work-dir', type=click.Path(path_type=Path), help='Work directory for temporary files')
 @click.option('--verbose', is_flag=True, help='Verbose output')
+@click.option('--log-dir', type=click.Path(path_type=Path), help='Directory to write log files (default: <output_dir>/logs)')
+@click.option('--pilot', is_flag=True, help='Process a single random participant for a pilot run')
 def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
          preproc, smooth_volume, smooth_surface, qa, tiv, roi,
          no_surface, no_validate, no_cuda,
          volume_fwhm, surface_fwhm, smooth_prefix,
-         config, n_jobs, work_dir, verbose):
+         config, n_jobs, work_dir, verbose, log_dir, pilot, *args):
     """
     CAT12 BIDS App for structural MRI preprocessing and analysis.
     
@@ -553,17 +636,25 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
       # Process specific participants
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --participant-label 01 02
     """
+    # Ensure output and working directories exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if work_dir:
+        work_dir.mkdir(parents=True, exist_ok=True)
+
     # Set up logging
     log_level = logging.DEBUG if verbose else logging.INFO
-    logging.getLogger().setLevel(log_level)
-    
+    resolved_log_dir = log_dir if log_dir else (output_dir / 'logs')
+    log_file_path = setup_logging(log_level, log_dir=resolved_log_dir)
+
     logger.info("=" * 60)
     logger.info("CAT12 BIDS App - Structural MRI Processing")
     logger.info("=" * 60)
     logger.info(f"BIDS directory: {bids_dir}")
     logger.info(f"Output directory: {output_dir}")
+    if work_dir:
+        logger.info(f"Working directory: {work_dir}")
     logger.info(f"Analysis level: {analysis_level}")
-    logger.info(f"Analysis level: {analysis_level}")
+    logger.info(f"Log file: {log_file_path}")
     
     # Check if at least one processing stage is requested
     if not any([preproc, smooth_volume, smooth_surface, qa, tiv, roi]):
@@ -595,9 +686,12 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
     )
     
     # Update config with command-line options
-    processor.config['cat12']['surface_processing'] = not no_surface
-    processor.config['system']['use_cuda'] = not no_cuda
+    processor.config.setdefault('cat12', {})['surface_processing'] = not no_surface
     processor.config['cat12']['parallel_jobs'] = n_jobs
+    processor.config.setdefault('system', {})['use_cuda'] = not no_cuda
+    if work_dir:
+        processor.config['system']['work_dir'] = str(work_dir)
+    processor.config.setdefault('logging', {})['log_file'] = str(log_file_path)
     
     # Validate dataset if requested
     if not no_validate:
@@ -606,10 +700,17 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
             sys.exit(1)
     
     # Convert participant labels (remove 'sub-' prefix if present)
-    participant_labels = None
+    participant_labels = []
+    # Add any --participant-label options
     if participant_label:
-        participant_labels = [f"sub-{p.replace('sub-', '')}" for p in participant_label]
+        participant_labels.extend([f"sub-{p.replace('sub-', '')}" for p in participant_label])
+    # Add any extra positional arguments after analysis_level
+    if args:
+        participant_labels.extend([f"sub-{str(a).replace('sub-', '')}" for a in args])
+    if participant_labels:
         logger.info(f"Processing participants: {', '.join(participant_labels)}")
+    else:
+        participant_labels = None
     
     # Convert session labels
     session_labels = None
@@ -619,6 +720,14 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
     
     # Determine if data is longitudinal (automatically detected)
     longitudinal_subjects = processor.identify_longitudinal_subjects(participant_labels)
+
+    if pilot:
+        if longitudinal_subjects:
+            pilot_subject = random.choice(list(longitudinal_subjects.keys()))
+            participant_labels = [f"sub-{pilot_subject}"]
+            logger.info(f"Pilot mode enabled: selected participant sub-{pilot_subject}")
+        else:
+            logger.warning("Pilot mode requested but no eligible subjects were found. Processing all subjects.")
     
     if analysis_level == 'participant':
         # Run participant-level processing
