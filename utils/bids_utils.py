@@ -69,19 +69,21 @@ class BIDSValidator:
         return True
     
     def _has_bids_validator(self) -> bool:
-        """Check if bids-validator is available."""
+        """Check if bids-validator (Deno version) is available."""
         try:
-            subprocess.run(['bids-validator', '--version'], 
+            # Check for Deno
+            subprocess.run(['deno', '--version'], 
                          capture_output=True, check=True)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
     
     def _run_bids_validator(self) -> bool:
-        """Run official BIDS validator."""
+        """Run official BIDS validator using Deno."""
         try:
+            logger.info("Running BIDS validation with Deno validator...")
             result = subprocess.run(
-                ['bids-validator', str(self.bids_dir), '--json'],
+                ['deno', 'run', '-ERWN', 'jsr:@bids/validator', str(self.bids_dir)],
                 capture_output=True, text=True, check=False
             )
             
@@ -89,9 +91,12 @@ class BIDSValidator:
                 logger.info("BIDS validation passed")
                 return True
             else:
-                logger.error("BIDS validation failed")
-                logger.error(result.stdout)
-                return False
+                logger.warning("BIDS validation reported issues:")
+                logger.warning(result.stdout)
+                # Don't fail on warnings, only on errors
+                if 'error' in result.stdout.lower():
+                    return False
+                return True
                 
         except Exception as e:
             logger.error(f"Error running bids-validator: {e}")
