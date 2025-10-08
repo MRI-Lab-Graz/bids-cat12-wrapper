@@ -5,26 +5,2730 @@
 📂 Output directory: /data/local/129_PK01/derivatives/cat12
 🗂️ Working directory: /data/local/tmp_big
 🔬 Analysis level: participant
-📝 Log file: /data/local/129_PK01/derivatives/cat12/logs/cat12_processing_20251008_153220.log
-🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (FWHM=6 6 6), Quality assessment, TIV estimation
+📝 Log file: /data/local/129_PK01/derivatives/cat12/logs/cat12_processing_20251008_155510.log
+🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (FWHM=6 6 6), Surface smoothing (FWHM=12), Quality assessment, TIV estimation
 🔍 Initializing BIDS layout for: /data/local/129_PK01/rawdata
-📊 Using BIDS database: /data/local/129_PK01/derivatives/cat12/.bids_cache/bidsdb_5341770942107127655.db
+📊 Using BIDS database: /data/local/129_PK01/derivatives/cat12/.bids_cache/bidsdb_-8981771453831632409.db
 👥 Found 152 subjects
-Traceback (most recent call last):
-  File "/data/local/software/cat-12/bids_cat12_processor.py", line 1028, in <module>
-    main()
-  File "/data/local/software/cat-12/.venv/lib/python3.11/site-packages/click/core.py", line 1462, in __call__
-    return self.main(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/data/local/software/cat-12/.venv/lib/python3.11/site-packages/click/core.py", line 1383, in main
-    rv = self.invoke(ctx)
-         ^^^^^^^^^^^^^^^^
-  File "/data/local/software/cat-12/.venv/lib/python3.11/site-packages/click/core.py", line 1246, in invoke
-    return ctx.invoke(self.callback, **ctx.params)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/data/local/software/cat-12/.venv/lib/python3.11/site-packages/click/core.py", line 814, in invoke
-    return callback(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/data/local/software/cat-12/bids_cat12_processor.py", line 829, in main
-    import psutil
-ModuleNotFoundError: No module named 'psutil'
+[AUTO] Detected 125.8 GB RAM, reserving 16 GB for system, running 27 parallel CAT12 jobs.
+Subject 1291003: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291005: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291006: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291011: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291013: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291014: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291016: Cross-sectional with 1 session (1)
+Subject 1291019: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291020: LONGITUDINAL with 2 sessions (1, 2)
+Subject 1291021: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291029: Cross-sectional with 1 session (1)
+Subject 1291035: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291041: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291043: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291047: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291048: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291056: LONGITUDINAL with 2 sessions (1, 2)
+Subject 1291063: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291068: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291070: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291071: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291072: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291076: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291077: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291078: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291079: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291087: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291091: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291095: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291096: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291097: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291101: Cross-sectional with 1 session (1)
+Subject 1291109: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291111: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291113: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291121: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291127: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291132: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291138: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291145: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291149: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291154: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291155: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291159: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291161: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291162: Cross-sectional with 1 session (1)
+Subject 1291168: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291170: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1291173: Cross-sectional with 1 session (1)
+Subject 1291174: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292001: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292007: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292008: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292009: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292015: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292018: Cross-sectional with 1 session (1)
+Subject 1292022: Cross-sectional with 1 session (1)
+Subject 1292027: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292028: LONGITUDINAL with 2 sessions (1, 3)
+Subject 1292032: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292036: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292037: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292038: Cross-sectional with 1 session (1)
+Subject 1292039: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292044: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292045: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292050: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292052: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292057: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292059: Cross-sectional with 1 session (1)
+Subject 1292060: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292061: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292066: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292067: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292069: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292083: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292086: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292090: Cross-sectional with 1 session (1)
+Subject 1292092: Cross-sectional with 1 session (3)
+Subject 1292098: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292102: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292105: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292110: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292114: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292115: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292119: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292123: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292124: Cross-sectional with 1 session (1)
+Subject 1292126: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292129: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292133: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292134: LONGITUDINAL with 2 sessions (2, 3)
+Subject 1292136: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292137: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292140: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292142: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292143: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292146: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292150: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292151: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292156: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292157: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292158: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1292164: LONGITUDINAL with 2 sessions (2, 3)
+Subject 1293002: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293004: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293010: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293012: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293017: Cross-sectional with 1 session (1)
+Subject 1293023: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293025: Cross-sectional with 1 session (1)
+Subject 1293026: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293031: LONGITUDINAL with 2 sessions (1, 3)
+Subject 1293033: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293034: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293040: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293042: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293044: Cross-sectional with 1 session (3)
+Subject 1293049: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293053: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293054: Cross-sectional with 1 session (1)
+Subject 1293055: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293058: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293062: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293065: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293073: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293074: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293075: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293080: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293081: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293084: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293089: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293104: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293106: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293107: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293112: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293116: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293122: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293128: Cross-sectional with 1 session (1)
+Subject 1293130: LONGITUDINAL with 2 sessions (1, 2)
+Subject 1293135: Cross-sectional with 1 session (1)
+Subject 1293139: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293141: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293147: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293153: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293160: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293164: Cross-sectional with 1 session (1)
+Subject 1293166: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293167: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293171: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293172: LONGITUDINAL with 3 sessions (1, 2, 3)
+Subject 1293175: LONGITUDINAL with 3 sessions (1, 2, 3)
+Dataset summary: 133 longitudinal, 19 cross-sectional subjects
+Running preprocessing stage...
+Running preprocessing with up to 27 parallel jobs
+Processing subject 1291003 with sessions: 1, 2, 3
+Processing subject 1291005 with sessions: 1, 2, 3
+Processing subject 1291006 with sessions: 1, 2, 3
+Processing subject 1291011 with sessions: 1, 2, 3
+Processing subject 1291013 with sessions: 1, 2, 3
+Processing subject 1291014 with sessions: 1, 2, 3
+Processing subject 1291019 with sessions: 1, 2, 3
+Processing subject 1291020 with sessions: 1, 2
+Processing subject 1291021 with sessions: 1, 2, 3
+Processing subject 1291035 with sessions: 1, 2, 3
+Processing subject 1291041 with sessions: 1, 2, 3
+Processing subject 1291043 with sessions: 1, 2, 3
+Processing subject 1291047 with sessions: 1, 2, 3
+Processing subject 1291048 with sessions: 1, 2, 3
+Processing subject 1291056 with sessions: 1, 2
+Processing subject 1291063 with sessions: 1, 2, 3
+Processing subject 1291068 with sessions: 1, 2, 3
+Processing subject 1291070 with sessions: 1, 2, 3
+Processing subject 1291071 with sessions: 1, 2, 3
+Processing subject 1291072 with sessions: 1, 2, 3
+Processing subject 1291076 with sessions: 1, 2, 3
+Processing subject 1291077 with sessions: 1, 2, 3
+Processing subject 1291078 with sessions: 1, 2, 3
+Processing subject 1291079 with sessions: 1, 2, 3
+Processing subject 1291087 with sessions: 1, 2, 3
+Processing subject 1291091 with sessions: 1, 2, 3
+Processing subject 1291095 with sessions: 1, 2, 3
+Processing subjects:   0%|          | 0/152 [00:00<?, ?it/s]Gunzipping: sub-1291003_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291011_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291014_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291020_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291006_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291005_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291035_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291047_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291021_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291056_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291048_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291013_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291070_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291043_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291071_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291078_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291077_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291068_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291019_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291091_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291063_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291076_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291072_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291079_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291087_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291041_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291095_ses-1_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291095_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291071_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291070_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291087_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291091_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291076_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291005_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291072_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291013_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291041_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291006_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291077_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291011_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291021_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291063_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291035_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291078_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291068_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291047_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291043_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291056_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291020_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291003_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291014_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291019_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291079_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291048_ses-2_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291071_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291095_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291087_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291070_ses-3_acq-mprage_T1w.nii.gz
+Using 2 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 2 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+Gunzipping: sub-1291005_ses-3_acq-mprage_T1w.nii.gz
+Setting up environment variables
+Gunzipping: sub-1291013_ses-3_acq-mprage_T1w.nii.gz
+---
+Gunzipping: sub-1291076_ses-3_acq-mprage_T1w.nii.gz
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Gunzipping: sub-1291011_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291041_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291063_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291072_ses-3_acq-mprage_T1w.nii.gz
+Using 2 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 2 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Gunzipping: sub-1291035_ses-3_acq-mprage_T1w.nii.gz
+------------------------------------------
+Gunzipping: sub-1291021_ses-3_acq-mprage_T1w.nii.gz
+Setting up environment variables
+Gunzipping: sub-1291006_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291091_ses-3_acq-mprage_T1w.nii.gz
+---
+Gunzipping: sub-1291077_ses-3_acq-mprage_T1w.nii.gz
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Gunzipping: sub-1291078_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291047_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291068_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291043_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291014_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291003_ses-3_acq-mprage_T1w.nii.gz
+Gunzipping: sub-1291079_ses-3_acq-mprage_T1w.nii.gz
+SPM12, version 7771 (standalone)
+Gunzipping: sub-1291019_ses-3_acq-mprage_T1w.nii.gz
+MATLAB, version 9.3.0.713579 (R2017b)
+ ___  ____  __  __                                            
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+Gunzipping: sub-1291048_ses-3_acq-mprage_T1w.nii.gz
+SPM12, version 7771 (standalone)
+MATLAB, version 9.3.0.713579 (R2017b)
+ ___  ____  __  __                                            
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+Setting up environment variables
+------------------------------------------
+------------------------------------------
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+---
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Setting up environment variables
+------------------------------------------
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+---
+------------------------------------------
+---
+Setting up environment variables
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+---
+------------------------------------------
+Using 3 uncompressed NIfTI files for processing
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+📊 Using longitudinal template (multiple timepoints)
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+---
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+------------------------------------------
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Using 3 uncompressed NIfTI files for processing
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+📊 Using longitudinal template (multiple timepoints)
+Processing 3 input files
+------------------------------------------
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+------------------------------------------
+------------------------------------------
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+------------------------------------------
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Using 3 uncompressed NIfTI files for processing
+Processing 3 input files
+📊 Using longitudinal template (multiple timepoints)
+------------------------------------------
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Setting up environment variables
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Using 3 uncompressed NIfTI files for processing
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+📊 Using longitudinal template (multiple timepoints)
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Setting up environment variables
+---
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Setting up environment variables
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+Setting up environment variables
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+------------------------------------------
+Setting up environment variables
+------------------------------------------
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+------------------------------------------
+Setting up environment variables
+---
+------------------------------------------
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+Setting up environment variables
+---
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+---
+------------------------------------------
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+------------------------------------------
+---
+Using 3 uncompressed NIfTI files for processing
+📊 Using longitudinal template (multiple timepoints)
+Using CAT12 template: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Executing CAT12 script: /data/local/software/cat-12/external/cat12/standalone/cat_standalone_segment_long.m
+Processing 3 input files
+⏳ CAT12 processing started (this may take 10-30 minutes)...
+---
+------------------------------------------
+Setting up environment variables
+------------------------------------------
+Setting up environment variables
+---
+Setting up environment variables
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+------------------------------------------
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+Setting up environment variables
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+---
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+---
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+Setting up environment variables
+---
+---
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+---
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+LD_LIBRARY_PATH is .:/data/local/software/cat-12/external/MCR/v93/runtime/glnxa64:/data/local/software/cat-12/external/MCR/v93/bin/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/os/glnxa64:/data/local/software/cat-12/external/MCR/v93/sys/opengl/lib/glnxa64
+SPM12, version 7771 (standalone)
+MATLAB, version 9.3.0.713579 (R2017b)
+SPM12, version 7771 (standalone)
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+MATLAB, version 9.3.0.713579 (R2017b)
+MATLAB, version 9.3.0.713579 (R2017b)
+/ __)(  _ \(  \/  )                                           
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+ ___  ____  __  __                                            
+SPM12, version 7771 (standalone)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+MATLAB, version 9.3.0.713579 (R2017b)
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+MATLAB, version 9.3.0.713579 (R2017b)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+ ___  ____  __  __                                            
+SPM12, version 7771 (standalone)
+MATLAB, version 9.3.0.713579 (R2017b)
+SPM12, version 7771 (standalone)
+SPM12, version 7771 (standalone)
+/ __)(  _ \(  \/  )                                           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+SPM12, version 7771 (standalone)
+/ __)(  _ \(  \/  )                                           
+MATLAB, version 9.3.0.713579 (R2017b)
+ ___  ____  __  __                                            
+MATLAB, version 9.3.0.713579 (R2017b)
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+ ___  ____  __  __                                            
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+ ___  ____  __  __                                            
+/ __)(  _ \(  \/  )                                           
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+/ __)(  _ \(  \/  )                                           
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+SPM12, version 7771 (standalone)
+SPM12, version 7771 (standalone)
+MATLAB, version 9.3.0.713579 (R2017b)
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+/ __)(  _ \(  \/  )                                           
+MATLAB, version 9.3.0.713579 (R2017b)
+SPM12, version 7771 (standalone)
+MATLAB, version 9.3.0.713579 (R2017b)
+ ___  ____  __  __                                            
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+SPM12, version 7771 (standalone)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+MATLAB, version 9.3.0.713579 (R2017b)
+ ___  ____  __  __                                            
+SPM12, version 7771 (standalone)
+/ __)(  _ \(  \/  )                                           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+/ __)(  _ \(  \/  )                                           
+ ___  ____  __  __                                            
+SPM12, version 7771 (standalone)
+/ __)(  _ \(  \/  )                                           
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+ ___  ____  __  __                                            
+ ___  ____  __  __                                            
+ ___  ____  __  __                                            
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+/ __)(  _ \(  \/  )                                           
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+/ __)(  _ \(  \/  )                                           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+/ __)(  _ \(  \/  )                                           
+SPM12, version 7771 (standalone)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+SPM12, version 7771 (standalone)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+MATLAB, version 9.3.0.713579 (R2017b)
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+MATLAB, version 9.3.0.713579 (R2017b)
+SPM12, version 7771 (standalone)
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+ ___  ____  __  __                                            
+ ___  ____  __  __                                            
+MATLAB, version 9.3.0.713579 (R2017b)
+------------------------------------------------------------------------
+SPM12, version 7771 (standalone)
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+/ __)(  _ \(  \/  )                                           
+------------------------------------------------------------------------
+ ___  ____  __  __                                            
+08-Oct-2025 15:59:30 - Running job #1
+MATLAB, version 9.3.0.713579 (R2017b)
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+08-Oct-2025 15:59:30 - Running job #1
+/ __)(  _ \(  \/  )                                           
+------------------------------------------------------------------------
+ ___  ____  __  __                                            
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+------------------------------------------------------------------------
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+08-Oct-2025 15:59:30 - Running 'CAT12: Segment longitudinal data'
+/ __)(  _ \(  \/  )                                           
+08-Oct-2025 15:59:30 - Running 'CAT12: Segment longitudinal data'
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+\__ \ )___/ )    (   Statistical Parametric Mapping           
+(___/(__)  (_/\/\_)  SPM12 - https://www.fil.ion.ucl.ac.uk/spm/
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+------------------------------------------------------------------------
+08-Oct-2025 15:59:37 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:37 - Running job #2
+------------------------------------------------------------------------
+08-Oct-2025 15:59:38 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:38 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:41 - Running job #1
+------------------------------------------------------------------------
+08-Oct-2025 15:59:41 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:41 - Running job #1
+08-Oct-2025 15:59:42 - Running job #1
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running job #1
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running job #1
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running job #1
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:42 - Running job #1
+08-Oct-2025 15:59:42 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:42 - Running job #1
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:43 - Running job #1
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running job #1
+08-Oct-2025 15:59:43 - Running job #1
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:43 - Running job #1
+08-Oct-2025 15:59:43 - Running job #1
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:43 - Running job #1
+08-Oct-2025 15:59:43 - Running job #1
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:43 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:44 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:44 - Running 'CAT12: Segment longitudinal data'
+Item opts: No field(s) named
+------------------------------------------------------------------------
+printlong
+08-Oct-2025 15:59:44 - Running job #1
+Item opts: No field(s) named
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+printlong
+08-Oct-2025 15:59:44 - Running 'CAT12: Segment longitudinal data'
+08-Oct-2025 15:59:44 - Running job #1
+------------------------------------------------------------------------
+Item opts: No field(s) named
+------------------------------------------------------------------------
+08-Oct-2025 15:59:44 - Running job #1
+printlong
+08-Oct-2025 15:59:44 - Running 'CAT12: Segment longitudinal data'
+------------------------------------------------------------------------
+Item opts: No field(s) named
+08-Oct-2025 15:59:44 - Running 'CAT12: Segment longitudinal data'
+printlong
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+Item opts: No field(s) named
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+printlong
+printlong
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+------------------------------------------------------------------------
+printlong
+printlong
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+08-Oct-2025 15:59:46 - Running job #1
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+------------------------------------------------------------------------
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+08-Oct-2025 15:59:46 - Running 'CAT12: Segment longitudinal data'
+printlong
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+------------------------------------------------------------------------
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+printlong
+08-Oct-2025 15:59:47 - Running job #2
+printlong
+printlong
+Item opts: No field(s) named
+------------------------------------------------------------------------
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+Item opts: No field(s) named
+printlong
+printlong
+Item opts: No field(s) named
+08-Oct-2025 15:59:47 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+printlong
+Item opts: No field(s) named
+printlong
+Item opts: No field(s) named
+printlong
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:48 - Running job #2
+08-Oct-2025 15:59:48 - Running job #2
+08-Oct-2025 15:59:48 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:48 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:48 - Running job #2
+Item opts: No field(s) named
+------------------------------------------------------------------------
+printlong
+Item opts: No field(s) named
+08-Oct-2025 15:59:49 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:49 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+printlong
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:49 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:49 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running job #2
+08-Oct-2025 15:59:49 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:49 - Running job #2
+------------------------------------------------------------------------
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:50 - Running job #2
+08-Oct-2025 15:59:50 - Running job #2
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:50 - Running job #2
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:50 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:51 - Running job #2
+08-Oct-2025 15:59:51 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:51 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:51 - Running job #2
+08-Oct-2025 15:59:51 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:51 - Running job #2
+------------------------------------------------------------------------
+08-Oct-2025 15:59:51 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:52 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:52 - Running job #2
+08-Oct-2025 15:59:52 - Running job #2
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 15:59:52 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:52 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:52 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+------------------------------------------------------------------------
+08-Oct-2025 15:59:52 - Running job #2
+------------------------------------------------------------------------
+08-Oct-2025 15:59:53 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:53 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 15:59:53 - Running 'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.08,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291056/sanlm_sub-1291056_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   150s, Output /data/local/129_PK01/derivatives/cat12/sub-1291020/sanlm_sub-1291020_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   143s, Output /data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.06,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.10,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   150s, Output /data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   150s, Output /data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-1_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291020/sanlm_sub-1291020_ses-2_acq-mprage_T1w.nii
+08-Oct-2025 16:04:34 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:04:35 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:04:35 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.08,   151s, Output /data/local/129_PK01/derivatives/cat12/sub-1291056/sanlm_sub-1291056_ses-2_acq-mprage_T1w.nii
+08-Oct-2025 16:04:37 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:04:37 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:04:37 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.07,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   142s, Output /data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.09,   143s, Output /data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   144s, Output /data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-2_acq-mprage_T1w.nii
+      ./sub-1291020/sanlm_sub-1291020_ses-1_acq-mprage_T1w: saved  0.00%
+  NCstr = -0.50 > 0.08,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-2_acq-mprage_T1w.nii
+      ./sub-1291056/sanlm_sub-1291056_ses-1_acq-mprage_T1w: saved  3.06%
+  NCstr = -0.50 > 0.07,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   150s, Output /data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   148s, Output /data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   145s, Output /data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   147s, Output /data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   149s, Output /data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   146s, Output /data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-2_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.08,   150s, Output /data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-2_acq-mprage_T1w.nii
+      ./sub-1291020/sanlm_sub-1291020_ses-2_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:04:52 - Done    'Image data trimming'
+08-Oct-2025 16:04:52 - Running 'Longitudinal Registration'
+      ./sub-1291056/sanlm_sub-1291056_ses-2_acq-mprage_T1w: saved  3.82%
+08-Oct-2025 16:04:56 - Done    'Image data trimming'
+08-Oct-2025 16:04:56 - Running 'Longitudinal Registration'
+Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291020/sanlm_sub-1291020_ses-1_acq-mprage_T1w.nii" = 1.34763
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291020/sanlm_sub-1291020_ses-2_acq-mprage_T1w.nii" = 1.68811
+Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291056/sanlm_sub-1291056_ses-1_acq-mprage_T1w.nii" = 1.34204
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291056/sanlm_sub-1291056_ses-2_acq-mprage_T1w.nii" = 1.3126
+  NCstr = -0.50 > 0.06,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:06:59 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.07,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:06:59 - Running 'Image data trimming'
+08-Oct-2025 16:06:59 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+SPM12: cat_vol_headtrimming                        16:06:59 - 08/10/2025
+08-Oct-2025 16:06:59 - Running 'Image data trimming'
+========================================================================
+SPM12: cat_vol_headtrimming                        16:06:59 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.07,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:00 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:00 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:00 - 08/10/2025
+  NCstr = -0.50 > 0.07,   137s, Output /data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-3_acq-mprage_T1w.nii
+========================================================================
+08-Oct-2025 16:07:00 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:00 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:00 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.08,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:02 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.07,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:03 - Running 'Image data trimming'
+08-Oct-2025 16:07:03 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+SPM12: cat_vol_headtrimming                        16:07:03 - 08/10/2025
+08-Oct-2025 16:07:03 - Running 'Image data trimming'
+========================================================================
+SPM12: cat_vol_headtrimming                        16:07:03 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.09,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:03 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:03 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:03 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.08,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:04 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.08,   142s, Output /data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:04 - Running 'Image data trimming'
+  NCstr = -0.50 > 0.08,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:04 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+SPM12: cat_vol_headtrimming                        16:07:04 - 08/10/2025
+  NCstr = -0.50 > 0.07,   140s, Output /data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:04 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:04 - Running 'Image data trimming'
+========================================================================
+08-Oct-2025 16:07:04 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+SPM12: cat_vol_headtrimming                        16:07:04 - 08/10/2025
+08-Oct-2025 16:07:04 - Running 'Image data trimming'
+08-Oct-2025 16:07:04 - Running 'Image data trimming'
+========================================================================
+SPM12: cat_vol_headtrimming                        16:07:04 - 08/10/2025
+SPM12: cat_vol_headtrimming                        16:07:04 - 08/10/2025
+========================================================================
+========================================================================
+  NCstr = -0.50 > 0.07,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-3_acq-mprage_T1w.nii
+      ./sub-1291070/sanlm_sub-1291070_ses-1_acq-mprage_T1w: saved  3.57%
+08-Oct-2025 16:07:06 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.07,   141s, Output /data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:07 - Running 'Image data trimming'
+08-Oct-2025 16:07:07 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+  NCstr = -0.50 > 0.07,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-3_acq-mprage_T1w.nii
+SPM12: cat_vol_headtrimming                        16:07:07 - 08/10/2025
+      ./sub-1291095/sanlm_sub-1291095_ses-1_acq-mprage_T1w: saved  4.70%
+08-Oct-2025 16:07:07 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:07 - Running 'Image data trimming'
+  NCstr = -0.50 > 0.07,   140s, Output /data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-3_acq-mprage_T1w.nii
+========================================================================
+08-Oct-2025 16:07:07 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:07 - 08/10/2025
+08-Oct-2025 16:07:07 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+SPM12: cat_vol_headtrimming                        16:07:07 - 08/10/2025
+========================================================================
+08-Oct-2025 16:07:07 - Running 'Image data trimming'
+========================================================================
+SPM12: cat_vol_headtrimming                        16:07:07 - 08/10/2025
+  NCstr = -0.50 > 0.07,   138s, Output /data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-3_acq-mprage_T1w.nii
+========================================================================
+08-Oct-2025 16:07:07 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+      ./sub-1291091/sanlm_sub-1291091_ses-1_acq-mprage_T1w: saved  2.17%
+08-Oct-2025 16:07:07 - Running 'Image data trimming'
+  NCstr = -0.50 > 0.08,   141s, Output /data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-3_acq-mprage_T1w.nii
+SPM12: cat_vol_headtrimming                        16:07:07 - 08/10/2025
+      ./sub-1291003/sanlm_sub-1291003_ses-1_acq-mprage_T1w: saved  2.68%
+08-Oct-2025 16:07:08 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+========================================================================
+08-Oct-2025 16:07:08 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:08 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.07,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-3_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   141s, Output /data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:08 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:08 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:08 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:08 - 08/10/2025
+08-Oct-2025 16:07:09 - Running 'Image data trimming'
+========================================================================
+SPM12: cat_vol_headtrimming                        16:07:09 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.08,   140s, Output /data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:09 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:09 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:09 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.07,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:10 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+      ./sub-1291072/sanlm_sub-1291072_ses-1_acq-mprage_T1w: saved  3.57%
+08-Oct-2025 16:07:10 - Running 'Image data trimming'
+  NCstr = -0.50 > 0.08,   139s, Output /data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-3_acq-mprage_T1w.nii
+      ./sub-1291019/sanlm_sub-1291019_ses-1_acq-mprage_T1w: saved  0.89%
+SPM12: cat_vol_headtrimming                        16:07:10 - 08/10/2025
+08-Oct-2025 16:07:10 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+========================================================================
+08-Oct-2025 16:07:10 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:10 - 08/10/2025
+  NCstr = -0.50 > 0.07,   142s, Output /data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-3_acq-mprage_T1w.nii
+========================================================================
+08-Oct-2025 16:07:11 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:11 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:11 - 08/10/2025
+========================================================================
+  NCstr = -0.50 > 0.07,   140s, Output /data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-3_acq-mprage_T1w.nii
+  NCstr = -0.50 > 0.07,   140s, Output /data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-3_acq-mprage_T1w.nii
+08-Oct-2025 16:07:11 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+08-Oct-2025 16:07:12 - Done    'Spatially adaptive non-local means (SANLM) denoising filter'
+      ./sub-1291047/sanlm_sub-1291047_ses-1_acq-mprage_T1w: saved  3.32%
+08-Oct-2025 16:07:12 - Running 'Image data trimming'
+08-Oct-2025 16:07:12 - Running 'Image data trimming'
+SPM12: cat_vol_headtrimming                        16:07:12 - 08/10/2025
+SPM12: cat_vol_headtrimming                        16:07:12 - 08/10/2025
+========================================================================
+========================================================================
+      ./sub-1291048/sanlm_sub-1291048_ses-1_acq-mprage_T1w: saved  0.00%
+      ./sub-1291063/sanlm_sub-1291063_ses-1_acq-mprage_T1w: saved 10.28%
+      ./sub-1291014/sanlm_sub-1291014_ses-1_acq-mprage_T1w: saved  0.00%
+      ./sub-1291013/sanlm_sub-1291013_ses-1_acq-mprage_T1w: saved  1.79%
+      ./sub-1291095/sanlm_sub-1291095_ses-2_acq-mprage_T1w: saved  5.58%
+      ./sub-1291091/sanlm_sub-1291091_ses-2_acq-mprage_T1w: saved  3.32%
+      ./sub-1291077/sanlm_sub-1291077_ses-1_acq-mprage_T1w: saved  3.57%
+      ./sub-1291070/sanlm_sub-1291070_ses-2_acq-mprage_T1w: saved  2.68%
+      ./sub-1291006/sanlm_sub-1291006_ses-1_acq-mprage_T1w: saved  1.79%
+      ./sub-1291005/sanlm_sub-1291005_ses-1_acq-mprage_T1w: saved  4.84%
+      ./sub-1291071/sanlm_sub-1291071_ses-1_acq-mprage_T1w: saved  5.36%
+      ./sub-1291076/sanlm_sub-1291076_ses-1_acq-mprage_T1w: saved  3.57%
+      ./sub-1291003/sanlm_sub-1291003_ses-2_acq-mprage_T1w: saved  1.79%
+      ./sub-1291041/sanlm_sub-1291041_ses-1_acq-mprage_T1w: saved  2.55%
+      ./sub-1291011/sanlm_sub-1291011_ses-1_acq-mprage_T1w: saved  4.46%
+      ./sub-1291043/sanlm_sub-1291043_ses-1_acq-mprage_T1w: saved  1.79%
+      ./sub-1291072/sanlm_sub-1291072_ses-2_acq-mprage_T1w: saved  6.21%
+      ./sub-1291019/sanlm_sub-1291019_ses-2_acq-mprage_T1w: saved  0.89%
+      ./sub-1291021/sanlm_sub-1291021_ses-1_acq-mprage_T1w: saved  5.21%
+      ./sub-1291087/sanlm_sub-1291087_ses-1_acq-mprage_T1w: saved  2.94%
+      ./sub-1291047/sanlm_sub-1291047_ses-2_acq-mprage_T1w: saved  1.79%
+      ./sub-1291063/sanlm_sub-1291063_ses-2_acq-mprage_T1w: saved  3.57%
+      ./sub-1291068/sanlm_sub-1291068_ses-1_acq-mprage_T1w: saved  0.00%
+      ./sub-1291048/sanlm_sub-1291048_ses-2_acq-mprage_T1w: saved  0.00%
+      ./sub-1291013/sanlm_sub-1291013_ses-2_acq-mprage_T1w: saved  3.82%
+      ./sub-1291079/sanlm_sub-1291079_ses-1_acq-mprage_T1w: saved  0.89%
+      ./sub-1291078/sanlm_sub-1291078_ses-1_acq-mprage_T1w: saved  0.89%
+      ./sub-1291035/sanlm_sub-1291035_ses-1_acq-mprage_T1w: saved  0.00%
+      ./sub-1291095/sanlm_sub-1291095_ses-3_acq-mprage_T1w: saved  5.58%
+      ./sub-1291014/sanlm_sub-1291014_ses-2_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:23 - Done    'Image data trimming'
+08-Oct-2025 16:07:23 - Running 'Longitudinal Registration'
+      ./sub-1291091/sanlm_sub-1291091_ses-3_acq-mprage_T1w: saved  2.55%
+08-Oct-2025 16:07:23 - Done    'Image data trimming'
+08-Oct-2025 16:07:23 - Running 'Longitudinal Registration'
+      ./sub-1291070/sanlm_sub-1291070_ses-3_acq-mprage_T1w: saved  4.96%
+      ./sub-1291077/sanlm_sub-1291077_ses-2_acq-mprage_T1w: saved  3.57%
+08-Oct-2025 16:07:23 - Done    'Image data trimming'
+08-Oct-2025 16:07:23 - Running 'Longitudinal Registration'
+      ./sub-1291071/sanlm_sub-1291071_ses-2_acq-mprage_T1w: saved  5.36%
+      ./sub-1291041/sanlm_sub-1291041_ses-2_acq-mprage_T1w: saved  0.89%
+      ./sub-1291003/sanlm_sub-1291003_ses-3_acq-mprage_T1w: saved  2.68%
+08-Oct-2025 16:07:24 - Done    'Image data trimming'
+08-Oct-2025 16:07:24 - Running 'Longitudinal Registration'
+      ./sub-1291072/sanlm_sub-1291072_ses-3_acq-mprage_T1w: saved  1.28%
+08-Oct-2025 16:07:24 - Done    'Image data trimming'
+      ./sub-1291043/sanlm_sub-1291043_ses-2_acq-mprage_T1w: saved  1.79%
+08-Oct-2025 16:07:24 - Running 'Longitudinal Registration'
+      ./sub-1291006/sanlm_sub-1291006_ses-2_acq-mprage_T1w: saved  1.79%
+      ./sub-1291005/sanlm_sub-1291005_ses-2_acq-mprage_T1w: saved  5.58%
+      ./sub-1291019/sanlm_sub-1291019_ses-3_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:25 - Done    'Image data trimming'
+      ./sub-1291021/sanlm_sub-1291021_ses-2_acq-mprage_T1w: saved  3.57%
+08-Oct-2025 16:07:25 - Running 'Longitudinal Registration'
+      ./sub-1291047/sanlm_sub-1291047_ses-3_acq-mprage_T1w: saved  1.79%
+08-Oct-2025 16:07:26 - Done    'Image data trimming'
+08-Oct-2025 16:07:26 - Running 'Longitudinal Registration'
+      ./sub-1291076/sanlm_sub-1291076_ses-2_acq-mprage_T1w: saved  3.57%
+      ./sub-1291011/sanlm_sub-1291011_ses-2_acq-mprage_T1w: saved  5.36%
+      ./sub-1291013/sanlm_sub-1291013_ses-3_acq-mprage_T1w: saved  1.79%
+08-Oct-2025 16:07:27 - Done    'Image data trimming'
+      ./sub-1291048/sanlm_sub-1291048_ses-3_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:27 - Running 'Longitudinal Registration'
+08-Oct-2025 16:07:27 - Done    'Image data trimming'
+08-Oct-2025 16:07:27 - Running 'Longitudinal Registration'
+      ./sub-1291087/sanlm_sub-1291087_ses-2_acq-mprage_T1w: saved  1.79%
+      ./sub-1291063/sanlm_sub-1291063_ses-3_acq-mprage_T1w: saved  8.38%
+08-Oct-2025 16:07:27 - Done    'Image data trimming'
+08-Oct-2025 16:07:27 - Running 'Longitudinal Registration'
+      ./sub-1291079/sanlm_sub-1291079_ses-2_acq-mprage_T1w: saved  1.79%
+      ./sub-1291078/sanlm_sub-1291078_ses-2_acq-mprage_T1w: saved  0.89%
+      ./sub-1291068/sanlm_sub-1291068_ses-2_acq-mprage_T1w: saved  0.00%
+      ./sub-1291014/sanlm_sub-1291014_ses-3_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:30 - Done    'Image data trimming'
+08-Oct-2025 16:07:30 - Running 'Longitudinal Registration'
+      ./sub-1291035/sanlm_sub-1291035_ses-2_acq-mprage_T1w: saved  0.89%
+      ./sub-1291041/sanlm_sub-1291041_ses-3_acq-mprage_T1w: saved  1.79%
+08-Oct-2025 16:07:31 - Done    'Image data trimming'
+08-Oct-2025 16:07:31 - Running 'Longitudinal Registration'
+      ./sub-1291071/sanlm_sub-1291071_ses-3_acq-mprage_T1w: saved  6.25%
+08-Oct-2025 16:07:31 - Done    'Image data trimming'
+08-Oct-2025 16:07:31 - Running 'Longitudinal Registration'
+      ./sub-1291043/sanlm_sub-1291043_ses-3_acq-mprage_T1w: saved  1.79%
+      ./sub-1291077/sanlm_sub-1291077_ses-3_acq-mprage_T1w: saved  3.57%
+08-Oct-2025 16:07:31 - Done    'Image data trimming'
+08-Oct-2025 16:07:31 - Done    'Image data trimming'
+08-Oct-2025 16:07:31 - Running 'Longitudinal Registration'
+08-Oct-2025 16:07:31 - Running 'Longitudinal Registration'
+      ./sub-1291005/sanlm_sub-1291005_ses-3_acq-mprage_T1w: saved  7.21%
+08-Oct-2025 16:07:32 - Done    'Image data trimming'
+      ./sub-1291006/sanlm_sub-1291006_ses-3_acq-mprage_T1w: saved  1.79%
+08-Oct-2025 16:07:32 - Running 'Longitudinal Registration'
+08-Oct-2025 16:07:32 - Done    'Image data trimming'
+08-Oct-2025 16:07:32 - Running 'Longitudinal Registration'
+      ./sub-1291021/sanlm_sub-1291021_ses-3_acq-mprage_T1w: saved  3.57%
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+08-Oct-2025 16:07:32 - Done    'Image data trimming'
+------------------------------------------------------------------------
+08-Oct-2025 16:07:32 - Running 'Longitudinal Registration'
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-1_acq-mprage_T1w.nii" = 1.74653
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-1_acq-mprage_T1w.nii" = 1.3472
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-2_acq-mprage_T1w.nii" = 1.46602
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-1_acq-mprage_T1w.nii" = 1.3783
+      ./sub-1291087/sanlm_sub-1291087_ses-3_acq-mprage_T1w: saved  2.68%
+      ./sub-1291076/sanlm_sub-1291076_ses-3_acq-mprage_T1w: saved  4.46%
+08-Oct-2025 16:07:35 - Done    'Image data trimming'
+08-Oct-2025 16:07:35 - Done    'Image data trimming'
+08-Oct-2025 16:07:35 - Running 'Longitudinal Registration'
+08-Oct-2025 16:07:35 - Running 'Longitudinal Registration'
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-1_acq-mprage_T1w.nii" = 1.3566
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-2_acq-mprage_T1w.nii" = 1.31687
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291095/sanlm_sub-1291095_ses-3_acq-mprage_T1w.nii" = 1.55116
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-1_acq-mprage_T1w.nii" = 1.32032
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-2_acq-mprage_T1w.nii" = 1.33614
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+      ./sub-1291078/sanlm_sub-1291078_ses-3_acq-mprage_T1w: saved  0.89%
+08-Oct-2025 16:07:36 - Done    'Image data trimming'
+08-Oct-2025 16:07:36 - Running 'Longitudinal Registration'
+      ./sub-1291011/sanlm_sub-1291011_ses-3_acq-mprage_T1w: saved  2.68%
+08-Oct-2025 16:07:36 - Done    'Image data trimming'
+      ./sub-1291079/sanlm_sub-1291079_ses-3_acq-mprage_T1w: saved  0.89%
+08-Oct-2025 16:07:36 - Running 'Longitudinal Registration'
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-2_acq-mprage_T1w.nii" = 1.71016
+08-Oct-2025 16:07:36 - Done    'Image data trimming'
+08-Oct-2025 16:07:36 - Running 'Longitudinal Registration'
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291070/sanlm_sub-1291070_ses-3_acq-mprage_T1w.nii" = 1.22971
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291003/sanlm_sub-1291003_ses-3_acq-mprage_T1w.nii" = 1.42771
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-2_acq-mprage_T1w.nii" = 1.36869
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-1_acq-mprage_T1w.nii" = 1.35942
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291072/sanlm_sub-1291072_ses-3_acq-mprage_T1w.nii" = 1.41414
+------------------------------------------------------------------------
+      ./sub-1291068/sanlm_sub-1291068_ses-3_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:37 - Done    'Image data trimming'
+08-Oct-2025 16:07:37 - Running 'Longitudinal Registration'
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291091/sanlm_sub-1291091_ses-3_acq-mprage_T1w.nii" = 1.35649
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-2_acq-mprage_T1w.nii" = 1.35767
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-1_acq-mprage_T1w.nii" = 1.41
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291019/sanlm_sub-1291019_ses-3_acq-mprage_T1w.nii" = 1.28611
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-1_acq-mprage_T1w.nii" = 1.6276
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-2_acq-mprage_T1w.nii" = 1.2755
+      ./sub-1291035/sanlm_sub-1291035_ses-3_acq-mprage_T1w: saved  0.00%
+08-Oct-2025 16:07:39 - Done    'Image data trimming'
+08-Oct-2025 16:07:39 - Running 'Longitudinal Registration'
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-1_acq-mprage_T1w.nii" = 1.5316
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-2_acq-mprage_T1w.nii" = 1.55455
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291047/sanlm_sub-1291047_ses-3_acq-mprage_T1w.nii" = 1.36962
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-2_acq-mprage_T1w.nii" = 1.29138
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291063/sanlm_sub-1291063_ses-3_acq-mprage_T1w.nii" = 1.6773
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-1_acq-mprage_T1w.nii" = 1.39499
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291048/sanlm_sub-1291048_ses-3_acq-mprage_T1w.nii" = 1.17075
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-1_acq-mprage_T1w.nii" = 1.48842
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-2_acq-mprage_T1w.nii" = 1.40639
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-1_acq-mprage_T1w.nii" = 1.25552
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-1_acq-mprage_T1w.nii" = 1.92111
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-2_acq-mprage_T1w.nii" = 1.48257
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291013/sanlm_sub-1291013_ses-3_acq-mprage_T1w.nii" = 1.5779
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-2_acq-mprage_T1w.nii" = 1.28879
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-1_acq-mprage_T1w.nii" = 1.12095
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-1_acq-mprage_T1w.nii" = 1.26915
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291071/sanlm_sub-1291071_ses-3_acq-mprage_T1w.nii" = 1.55574
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-2_acq-mprage_T1w.nii" = 1.65463
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-1_acq-mprage_T1w.nii" = 1.51903
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291014/sanlm_sub-1291014_ses-3_acq-mprage_T1w.nii" = 1.20855
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-1_acq-mprage_T1w.nii" = 1.3427
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-1_acq-mprage_T1w.nii" = 1.49678
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-2_acq-mprage_T1w.nii" = 1.31376
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291077/sanlm_sub-1291077_ses-3_acq-mprage_T1w.nii" = 1.54228
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-2_acq-mprage_T1w.nii" = 1.48125
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-2_acq-mprage_T1w.nii" = 1.64636
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-2_acq-mprage_T1w.nii" = 1.41391
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-2_acq-mprage_T1w.nii" = 1.54103
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291006/sanlm_sub-1291006_ses-3_acq-mprage_T1w.nii" = 1.32432
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291043/sanlm_sub-1291043_ses-3_acq-mprage_T1w.nii" = 1.29184
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291041/sanlm_sub-1291041_ses-3_acq-mprage_T1w.nii" = 1.62176
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291005/sanlm_sub-1291005_ses-3_acq-mprage_T1w.nii" = 1.44779
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291021/sanlm_sub-1291021_ses-3_acq-mprage_T1w.nii" = 1.60808
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-1_acq-mprage_T1w.nii" = 1.54631
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-1_acq-mprage_T1w.nii" = 1.30737
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-1_acq-mprage_T1w.nii" = 1.47392
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-2_acq-mprage_T1w.nii" = 1.41048
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-2_acq-mprage_T1w.nii" = 1.50076
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-1_acq-mprage_T1w.nii" = 1.65596
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-2_acq-mprage_T1w.nii" = 1.27535
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-1_acq-mprage_T1w.nii" = 1.1447
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291076/sanlm_sub-1291076_ses-3_acq-mprage_T1w.nii" = 1.3677
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291087/sanlm_sub-1291087_ses-3_acq-mprage_T1w.nii" = 1.58065
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-1_acq-mprage_T1w.nii" = 1.31239
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-2_acq-mprage_T1w.nii" = 1.5875
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291011/sanlm_sub-1291011_ses-3_acq-mprage_T1w.nii" = 1.50532
+Correct center-of-mass                                            Correct center-of-mass                                            Correct center-of-mass                                            
+------------------------------------------------------------------------
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-2_acq-mprage_T1w.nii" = 1.27224
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-2_acq-mprage_T1w.nii" = 1.26709
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291079/sanlm_sub-1291079_ses-3_acq-mprage_T1w.nii" = 1.49304
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-1_acq-mprage_T1w.nii" = 1.241
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291078/sanlm_sub-1291078_ses-3_acq-mprage_T1w.nii" = 1.20918
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291068/sanlm_sub-1291068_ses-3_acq-mprage_T1w.nii" = 1.27106
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-2_acq-mprage_T1w.nii" = 1.32087
+Estimated noise sd for "/data/local/129_PK01/derivatives/cat12/sub-1291035/sanlm_sub-1291035_ses-3_acq-mprage_T1w.nii" = 1.43252
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Use initial brainmask for final resolution level.
+APP                                                               
+Use initial brainmask for final resolution level.
+APP                                                               
+  Initialize                                                         11s
+  Initialize                                                         12s
+  Estimate background                                                 9s
+  Initial correction                                                 11s
+  Estimate background                                                16s
+  Refine background                                                   6s
+  Final correction                                                    9s
+  Initial correction                                                 16s
+  Refine background                                                   6s
+  Final scaling                                                      11s
+                                                                    67s
+  Final correction                                                   13s
+Reduce bounding box for final resolution level.
+  Final scaling                                                      15s
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+                                                                    88s
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Use initial brainmask for final resolution level.
+APP                                                               
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Reduce bounding box for final resolution level.
+Use initial brainmask for final resolution level.
+Use initial brainmask for final resolution level.
+APP                                                               
+Reduce bounding box for final resolution level.
+APP                                                               
+Use initial brainmask for final resolution level.
+  Initialize                                                         10s
+Use initial brainmask for final resolution level.
+APP                                                               
+APP                                                               
+Reduce bounding box for final resolution level.
+Use initial brainmask for final resolution level.
+APP                                                               
+Use initial brainmask for final resolution level.
+APP                                                               
+Use initial brainmask for final resolution level.
+  Initialize                                                         12s
+Reduce bounding box for final resolution level.
+  Estimate background                                                 9s
+APP                                                               
+Use initial brainmask for final resolution level.
+  Initialize                                                         13s
+Use initial brainmask for final resolution level.
+APP                                                               
+APP                                                               
+Use initial brainmask for final resolution level.
+Use initial brainmask for final resolution level.
+  Initialize                                                         12s
+APP                                                               
+APP                                                               
+  Initialize                                                         13s
+Use initial brainmask for final resolution level.
+  Initialize                                                         14s
+APP                                                               
+  Initialize                                                         12s
+  Estimate background                                                 9s
+Use initial brainmask for final resolution level.
+  Estimate background                                                 9s
+Use initial brainmask for final resolution level.
+Use initial brainmask for final resolution level.
+APP                                                               
+APP                                                               
+APP                                                               
+  Estimate background                                                 9s
+  Initialize                                                         12s
+Use initial brainmask for final resolution level.
+  Initial correction                                                 14s
+Use initial brainmask for final resolution level.
+  Initialize                                                         12s
+Use initial brainmask for final resolution level.
+APP                                                               
+Use initial brainmask for final resolution level.
+APP                                                               
+  Initialize                                                         14s
+APP                                                               
+APP                                                               
+  Estimate background                                                11s
+  Estimate background                                                10s
+  Initialize                                                         14s
+Use initial brainmask for final resolution level.
+  Estimate background                                                11s
+APP                                                               
+  Initial correction                                                 10s
+Use initial brainmask for final resolution level.
+  Initialize                                                         13s
+  Initialize                                                         17s
+  Estimate background                                                 9s
+  Initial correction                                                 13s
+  Refine background                                                   8s
+APP                                                               
+  Initialize                                                         11s
+Use initial brainmask for final resolution level.
+APP                                                               
+  Initial correction                                                 12s
+  Initialize                                                         13s
+  Estimate background                                                10s
+Use initial brainmask for final resolution level.
+  Initialize                                                         14s
+  Refine background                                                   6s
+APP                                                               
+  Estimate background                                                12s
+  Refine background                                                   6s
+  Initialize                                                         13s
+  Initialize                                                         13s
+  Initial correction                                                 11s
+  Estimate background                                                11s
+  Initialize                                                         14s
+Use initial brainmask for final resolution level.
+APP                                                               
+  Initial correction                                                 13s
+  Initialize                                                         15s
+  Estimate background                                                 9s
+  Initialize                                                         11s
+  Initial correction                                                 11s
+  Initial correction                                                 11s
+  Refine background                                                   8s
+  Estimate background                                                12s
+  Final correction                                                   12s
+  Estimate background                                                13s
+  Final correction                                                    9s
+  Estimate background                                                10s
+  Initialize                                                         12s
+  Refine background                                                   7s
+  Final correction                                                   10s
+  Refine background                                                   7s
+  Refine background                                                   6s
+  Estimate background                                                12s
+  Estimate background                                                10s
+  Initialize                                                         16s
+  Estimate background                                                10s
+  Refine background                                                   6s
+  Estimate background                                                10s
+  Initial correction                                                 13s
+  Estimate background                                                 9s
+  Initial correction                                                 10s
+  Initial correction                                                 17s
+  Final correction                                                   10s
+  Estimate background                                                12s
+  Initialize                                                         14s
+  Final scaling                                                      10s
+  Initialize                                                         17s
+  Initial correction                                                 15s
+  Initial correction                                                 12s
+  Estimate background                                                10s
+  Refine background                                                   6s
+  Final correction                                                   10s
+  Final correction                                                    9s
+  Initial correction                                                 13s
+  Initial correction                                                 13s
+  Refine background                                                   8s
+  Final scaling                                                      13s
+  Final correction                                                   11s
+  Estimate background                                                10s
+  Final correction                                                   11s
+  Refine background                                                   8s
+  Final scaling                                                      13s
+  Initial correction                                                 10s
+  Initial correction                                                 13s
+  Refine background                                                   6s
+  Initial correction                                                 13s
+                                                                    71s
+  Initial correction                                                 14s
+  Initial correction                                                 15s
+  Refine background                                                   7s
+  Refine background                                                   9s
+  Refine background                                                   7s
+  Final scaling                                                      13s
+  Estimate background                                                12s
+  Refine background                                                   5s
+  Estimate background                                                12s
+  Initial correction                                                 11s
+  Refine background                                                   7s
+                                                                    69s
+  Initial correction                                                 15s
+  Final scaling                                                      12s
+  Final correction                                                   12s
+  Final correction                                                   12s
+  Final scaling                                                      13s
+  Refine background                                                   9s
+  Refine background                                                   6s
+  Refine background                                                   7s
+  Final correction                                                   10s
+  Final correction                                                   10s
+  Final scaling                                                      13s
+  Initial correction                                                 12s
+  Final scaling                                                      14s
+                                                                    76s
+  Refine background                                                   7s
+  Final correction                                                   11s
+                                                                    74s
+  Final correction                                                   12s
+  Refine background                                                   8s
+  Final correction                                                   12s
+                                                                    74s
+  Final correction                                                   12s
+  Final correction                                                   11s
+  Initial correction                                                 13s
+  Refine background                                                   8s
+                                                                    78s
+  Final scaling                                                      12s
+  Final correction                                                   11s
+  Initial correction                                                 15s
+                                                                    75s
+  Final correction                                                   13s
+  Final scaling                                                      14s
+  Final correction                                                   14s
+  Final scaling                                                      14s
+  Final correction                                                   11s
+                                                                    76s
+  Refine background                                                   7s
+  Final scaling                                                      15s
+  Refine background                                                   8s
+  Final correction                                                   13s
+                                                                    68s
+  Final scaling                                                      15s
+  Final scaling                                                      12s
+  Final scaling                                                      14s
+  Final scaling                                                      16s
+  Final scaling                                                      17s
+  Final scaling                                                      14s
+                                                                    83s
+  Final correction                                                   16s
+  Final correction                                                   12s
+  Final scaling                                                      15s
+                                                                    84s
+  Final scaling                                                      14s
+  Final scaling                                                      17s
+                                                                    80s
+                                                                    90s
+  Final correction                                                   14s
+                                                                    89s
+  Final scaling                                                      14s
+                                                                    83s
+                                                                    74s
+                                                                    80s
+                                                                    89s
+  Final scaling                                                      14s
+  Final scaling                                                      17s
+                                                                    87s
+                                                                    79s
+                                                                    91s
+                                                                    92s
+                                                                    80s
+  Final scaling                                                      19s
+                                                                    92s
+                                                                   104s
+08-Oct-2025 16:14:58 - Done    'Longitudinal Registration'
+08-Oct-2025 16:14:58 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:14:58 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:14:59 - Running 'Move/Rename/Delete Files'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:14:59 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:14:59 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291056_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             25s
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:15:42 - Done    'Longitudinal Registration'
+08-Oct-2025 16:15:42 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:15:42 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:15:42 - Running 'Move/Rename/Delete Files'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:15:42 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:15:43 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291020_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Initialize                                                         12s
+  Estimate background                                                10s
+  Initial correction                                                 10s
+SANLM denoising (medium)                                             26s
+  Refine background                                                   4s
+Affine preprocessing (APP)                                        
+  Final correction                                                    9s
+  Final scaling                                                       9s
+  Initialize                                                         11s
+                                                                     61s
+Correct center-of-mass                                                3s
+  Estimate background                                                11s
+  Initial correction                                                 13s
+Affine registration                                               
+  Refine background                                                   7s
+  Use new longitudinal background setting.    23s
+  Final correction                                                   10s
+  Final scaling                                                      11s
+                                                                     70s
+Correct center-of-mass                                                3s
+Affine registration                                               
+  Use new longitudinal background setting.    25s
+08-Oct-2025 16:18:42 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:18:42 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:18:42 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:18:42 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:18:42 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:18:42 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:18:42 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:18:42 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:18:42 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:18:43 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:18:43 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:18:43 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291095_ses-1_acq-mprage_T1w.n
+CAT12.9 r2556: 1/1:             ./avg_sub-1291063_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+08-Oct-2025 16:19:03 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:03 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:04 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:04 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:04 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:04 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:19:06 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:06 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:06 - Done    'Move/Rename/Delete Files'
+------------------------------------------------------------------------
+08-Oct-2025 16:19:06 - Running 'Move/Rename/Delete Files'
+CAT12.9 r2556: 1/1:             ./avg_sub-1291005_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+08-Oct-2025 16:19:07 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:07 - Running 'CAT12: Segmentation'
+SANLM denoising (medium)                                             23s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291071_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             25s
+08-Oct-2025 16:19:14 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:14 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:15 - Done    'Move/Rename/Delete Files'
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:19:15 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:15 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:15 - Running 'CAT12: Segmentation'
+Affine preprocessing (APP)                                        
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291021_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+08-Oct-2025 16:19:19 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:19 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:19 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:20 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:20 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:20 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291072_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Initialize                                                         10s
+  Initialize                                                         10s
+08-Oct-2025 16:19:30 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:30 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:30 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:31 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:31 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:31 - Running 'CAT12: Segmentation'
+  Estimate background                                                 7s
+  Estimate background                                                 6s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291077_ses-1_acq-mprage_T1w.n
+SANLM denoising (medium)                                             27s
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             28s
+Affine preprocessing (APP)                                        
+  Initial correction                                                  8s
+  Initial correction                                                  9s
+08-Oct-2025 16:19:42 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:42 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:43 - Done    'Move/Rename/Delete Files'
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:19:43 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:43 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:43 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+  Refine background                                                   5s
+CAT12.9 r2556: 1/1:             ./avg_sub-1291076_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Initialize                                                          7s
+SANLM denoising (medium)                                             28s
+08-Oct-2025 16:19:46 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:46 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:46 - Done    'Move/Rename/Delete Files'
+  Refine background                                                   5s
+08-Oct-2025 16:19:46 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:46 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:46 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:46 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:47 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:47 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:19:47 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:47 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:48 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291070_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291087_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             28s
+  Estimate background                                                 6s
+  Initialize                                                          9s
+Affine preprocessing (APP)                                        
+  Final correction                                                    8s
+  Final correction                                                   10s
+SANLM denoising (medium)                                             22s
+08-Oct-2025 16:19:57 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:19:57 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:57 - Done    'Move/Rename/Delete Files'
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:19:58 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:19:58 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:19:59 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291041_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Affine preprocessing (APP)                                        
+  Initial correction                                                 11s
+  Estimate background                                                11s
+  Initialize                                                         11s
+  Final scaling                                                      13s
+  Refine background                                                   5s
+  Initialize                                                         11s
+  Final scaling                                                      15s
+  Estimate background                                                 8s
+SANLM denoising (medium)                                             27s
+  Initial correction                                                 10s
+  Initialize                                                         11s
+                                                                     59s
+  Final correction                                                    7s
+  Estimate background                                                 7s
+  Refine background                                                   4s
+Affine preprocessing (APP)                                        
+Correct center-of-mass                                                2s
+                                                                     62s
+SANLM denoising (medium)                                             29s
+08-Oct-2025 16:20:19 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:20:19 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:19 - Done    'Move/Rename/Delete Files'
+  Estimate background                                                 7s
+  Initial correction                                                  9s
+08-Oct-2025 16:20:20 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:20 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:20 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:20:20 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:20:20 - Running 'Move/Rename/Delete Files'
+SANLM denoising (medium)                                             31s
+08-Oct-2025 16:20:21 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:21 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:21 - Done    'Move/Rename/Delete Files'
+------------------------------------------------------------------------
+08-Oct-2025 16:20:22 - Running 'CAT12: Segmentation'
+CAT12.9 r2556: 1/1:             ./avg_sub-1291013_ses-1_acq-mprage_T1w.n
+08-Oct-2025 16:20:22 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+------------------------------------------------------------------------
+08-Oct-2025 16:20:22 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:22 - Done    'Move/Rename/Delete Files'
+Correct center-of-mass                                                5s
+08-Oct-2025 16:20:22 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:22 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:22 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             23s
+CAT12.9 r2556: 1/1:             ./avg_sub-1291091_ses-1_acq-mprage_T1w.n
+  Final correction                                                    7s
+------------------------------------------------------------------------
+  Initial correction                                                  8s
+  Initialize                                                          7s
+Affine preprocessing (APP)                                        
+------------------------------------------------------------------------
+  Refine background                                                   4s
+  Final scaling                                                       9s
+CAT12.9 r2556: 1/1:             ./avg_sub-1291003_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Affine preprocessing (APP)                                        
+  Refine background                                                   4s
+  Initial correction                                                  8s
+08-Oct-2025 16:20:28 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:20:28 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:28 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:29 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:20:29 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:29 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:30 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:30 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:30 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:30 - Done    'Move/Rename/Delete Files'
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:20:30 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:20:30 - Running 'CAT12: Segmentation'
+  Estimate background                                                 8s
+                                                                     53s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291043_ses-1_acq-mprage_T1w.n
+08-Oct-2025 16:20:33 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+Affine registration                                               
+------------------------------------------------------------------------
+08-Oct-2025 16:20:33 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:33 - Done    'Move/Rename/Delete Files'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291078_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+08-Oct-2025 16:20:34 - Running 'Move/Rename/Delete Files'
+  Final correction                                                   10s
+08-Oct-2025 16:20:34 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:20:34 - Running 'CAT12: Segmentation'
+  Refine background                                                   7s
+  Initialize                                                         11s
+  Final scaling                                                      13s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291011_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Initialize                                                         14s
+  Use new longitudinal background setting.    22s
+Correct center-of-mass                                                7s
+  Final correction                                                   11s
+  Initial correction                                                  9s
+  Initialize                                                         13s
+  Final correction                                                   11s
+  Refine background                                                   6s
+  Estimate background                                                10s
+Affine registration                                               
+                                                                     66s
+  Final scaling                                                      17s
+  Estimate background                                                13s
+  Estimate background                                                 8s
+  Final scaling                                                      14s
+SANLM denoising (medium)                                             32s
+08-Oct-2025 16:20:54 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:20:54 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:55 - Done    'Move/Rename/Delete Files'
+  Final correction                                                    8s
+08-Oct-2025 16:20:55 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:20:55 - Done    'Move/Rename/Delete Files'
+SANLM denoising (medium)                                             32s
+08-Oct-2025 16:20:56 - Running 'CAT12: Segmentation'
+Correct center-of-mass                                                7s
+  Use new longitudinal background setting.    35s
+SANLM denoising (medium)                                             33s
+  Final scaling                                                      11s
+------------------------------------------------------------------------
+Affine registration                                               
+CAT12.9 r2556: 1/1:             ./avg_sub-1291006_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Initial correction                                                 12s
+Affine preprocessing (APP)                                        
+                                                                     68s
+                                                                     62s
+  Initial correction                                                  9s
+  Initial correction                                                 10s
+  Use new longitudinal background setting.    23s
+Affine preprocessing (APP)                                        
+SANLM denoising (medium)                                             29s
+Affine preprocessing (APP)                                        
+  Refine background                                                   4s
+                                                                     62s
+  Final scaling                                                       9s
+SANLM denoising (medium)                                             31s
+  Refine background                                                   4s
+  Refine background                                                   4s
+SANLM denoising (medium)                                             28s
+08-Oct-2025 16:21:06 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:21:06 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:06 - Done    'Move/Rename/Delete Files'
+Correct center-of-mass                                                6s
+08-Oct-2025 16:21:07 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:07 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:21:07 - Running 'CAT12: Segmentation'
+Correct center-of-mass                                                3s
+Affine preprocessing (APP)                                        
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291019_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Correct center-of-mass                                               10s
+  Final correction                                                    7s
+08-Oct-2025 16:21:10 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:21:10 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:10 - Done    'Move/Rename/Delete Files'
+  Initialize                                                          9s
+  Initialize                                                          8s
+08-Oct-2025 16:21:11 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:11 - Done    'Move/Rename/Delete Files'
+Affine preprocessing (APP)                                        
+  Initialize                                                         12s
+08-Oct-2025 16:21:11 - Running 'CAT12: Segmentation'
+  Final correction                                                    7s
+SPM preprocessing 1 (estimate 1 - TPM registration):                141s
+                                                                     56s
+Affine registration                                               
+------------------------------------------------------------------------
+Affine preprocessing (APP)                                        
+CAT12.9 r2556: 1/1:             ./avg_sub-1291014_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+  Final correction                                                    9s
+  Use new longitudinal background setting.    21s
+  Initialize                                                         11s
+Correct center-of-mass                                                7s
+  Final scaling                                                      10s
+  Estimate background                                                10s
+  Estimate background                                                10s
+  Final scaling                                                      10s
+  Estimate background                                                10s
+  Initialize                                                         13s
+SANLM denoising (medium)                                             28s
+  Initialize                                                         13s
+Affine registration                                               
+                                                                     58s
+  Final scaling                                                      15s
+                                                                     64s
+  Estimate background                                                10s
+08-Oct-2025 16:21:29 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:21:29 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:29 - Done    'Move/Rename/Delete Files'
+Affine registration                                               
+08-Oct-2025 16:21:30 - Running 'Move/Rename/Delete Files'
+Affine registration                                               
+08-Oct-2025 16:21:30 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:21:31 - Running 'CAT12: Segmentation'
+08-Oct-2025 16:21:31 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+  Initial correction                                                 10s
+08-Oct-2025 16:21:31 - Running 'Move/Rename/Delete Files'
+  Initial correction                                                 10s
+08-Oct-2025 16:21:31 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:21:32 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:32 - Done    'Move/Rename/Delete Files'
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291035_ses-1_acq-mprage_T1w.n
+08-Oct-2025 16:21:32 - Running 'CAT12: Segmentation'
+------------------------------------------------------------------------
+  Estimate background                                                 9s
+  Initial correction                                                 12s
+Affine preprocessing (APP)                                        
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291079_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Correct center-of-mass                                                5s
+  Use new longitudinal background setting.    29s
+  Use new longitudinal background setting.    25s
+  Use new longitudinal background setting.    28s
+  Refine background                                                   4s
+  Refine background                                                   5s
+08-Oct-2025 16:21:37 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+  Estimate background                                                11s
+08-Oct-2025 16:21:37 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:37 - Done    'Move/Rename/Delete Files'
+                                                                     74s
+Affine registration                                               
+08-Oct-2025 16:21:38 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:38 - Done    'Move/Rename/Delete Files'
+Correct center-of-mass                                               10s
+SANLM denoising (medium)                                             29s
+  Refine background                                                   5s
+08-Oct-2025 16:21:38 - Running 'CAT12: Segmentation'
+  Initial correction                                                 10s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291047_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+SANLM denoising (medium)                                             30s
+  Initialize                                                         10s
+  Initial correction                                                 11s
+  Final correction                                                    9s
+  Use new longitudinal background setting.    25s
+  Refine background                                                   6s
+Correct center-of-mass                                                9s
+  Final correction                                                   11s
+Affine preprocessing (APP)                                        
+  Final correction                                                   11s
+  Initial correction                                                 12s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 15s
+  Refine background                                                   8s
+Affine preprocessing (APP)                                        
+08-Oct-2025 16:21:53 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+08-Oct-2025 16:21:53 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:53 - Done    'Move/Rename/Delete Files'
+Affine registration                                               
+08-Oct-2025 16:21:54 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:21:54 - Done    'Move/Rename/Delete Files'
+  Estimate background                                                11s
+08-Oct-2025 16:21:54 - Running 'CAT12: Segmentation'
+  Refine background                                                   5s
+------------------------------------------------------------------------
+CAT12.9 r2556: 1/1:             ./avg_sub-1291068_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Affine registration                                               
+  Final correction                                                   13s
+  Final scaling                                                      14s
+  Initialize                                                         11s
+  Final scaling                                                      13s
+  Use new longitudinal background setting.    27s
+  Final correction                                                    9s
+  Final scaling                                                      13s
+SANLM denoising (medium)                                             30s
+  Initialize                                                         10s
+  Use new longitudinal background setting.    26s
+Affine registration                                               
+  Initial correction                                                 11s
+  Final correction                                                   11s
+SANLM denoising (medium)                                             32s
+                                                                     64s
+                                                                     65s
+  Estimate background                                                 9s
+SANLM denoising (medium)                                             28s
+Affine preprocessing (APP)                                        
+Correct center-of-mass                                                4s
+  Final scaling                                                      13s
+  Refine background                                                   6s
+                                                                     72s
+  Use new longitudinal background setting.    26s
+Affine preprocessing (APP)                                        
+  Final scaling                                                      12s
+  Estimate background                                                11s
+Correct center-of-mass                                                8s
+Affine preprocessing (APP)                                        
+  Final scaling                                                      11s
+Correct center-of-mass                                                7s
+SANLM denoising (medium)                                             23s
+  Final correction                                                    8s
+                                                                     72s
+  Initialize                                                         10s
+  Initial correction                                                 15s
+                                                                     72s
+  Initialize                                                         13s
+                                                                     71s
+  Initial correction                                                 11s
+Correct center-of-mass                                                5s
+  Initialize                                                         10s
+Affine preprocessing (APP)                                        
+Correct center-of-mass                                                3s
+Correct center-of-mass                                                4s
+  Refine background                                                   6s
+Affine registration                                               
+  Final scaling                                                      10s
+  Estimate background                                                 8s
+SPM preprocessing 1 (estimate 1 - TPM registration):                128s
+  Refine background                                                   7s
+  Estimate background                                                 9s
+Affine registration                                               
+  Initialize                                                          9s
+  Use new longitudinal background setting.    24s
+  Estimate background                                                11s
+Affine registration                                               
+                                                                     64s
+  Final correction                                                   10s
+  Use new longitudinal background setting.    24s
+  Final correction                                                    9s
+08-Oct-2025 16:22:42 - Done    'Longitudinal Registration'
+⏳ CAT12 processing... (50 log lines)
+Correct center-of-mass                                                5s
+08-Oct-2025 16:22:42 - Running 'Move/Rename/Delete Files'
+  Initial correction                                                 12s
+08-Oct-2025 16:22:42 - Done    'Move/Rename/Delete Files'
+Affine registration                                               
+08-Oct-2025 16:22:43 - Running 'Move/Rename/Delete Files'
+08-Oct-2025 16:22:43 - Done    'Move/Rename/Delete Files'
+08-Oct-2025 16:22:43 - Running 'CAT12: Segmentation'
+  Estimate background                                                 9s
+  Use new longitudinal background setting.    26s
+------------------------------------------------------------------------
+  Initial correction                                                 12s
+CAT12.9 r2556: 1/1:             ./avg_sub-1291048_ses-1_acq-mprage_T1w.n
+------------------------------------------------------------------------
+Affine registration                                               
+Affine registration                                               
+  Refine background                                                   4s
+  Use new longitudinal background setting.    24s
+  Initial correction                                                 13s
+  Refine background                                                   5s
+  Use new longitudinal background setting.    24s
+  Final scaling                                                      13s
+  Use new longitudinal background setting.    25s
+  Final scaling                                                      12s
+  Refine background                                                   5s
+  Initial correction                                                 11s
+  Final correction                                                   10s
+                                                                     66s
+  Refine background                                                   5s
+Affine registration                                               
+                                                                     73s
+  Final correction                                                   11s
+Correct center-of-mass                                                3s
+  Final correction                                                    9s
+Correct center-of-mass                                                3s
+  Use new longitudinal background setting.    25s
+  Final correction                                                   12s
+  Final scaling                                                      15s
+  Final scaling                                                      13s
+SPM preprocessing 2 (write)                                         123s
+  Final scaling                                                      12s
+SANLM denoising (medium)                                             32s
+Affine registration                                               
+                                                                     68s
+                                                                     71s
+  Final scaling                                                      12s
+Correct center-of-mass                                                3s
+Correct center-of-mass                                                2s
+                                                                     69s
+Affine registration                                               
+Affine preprocessing (APP)                                        
+  Use new longitudinal background setting.    24s
+Correct center-of-mass                                                3s
+  Use new longitudinal background setting.    26s
+                                                                     66s
+Global intensity correction                                          18s
+Correct center-of-mass                                                3s
+  Initialize                                                         13s
+Affine registration                                               
+Affine registration                                               
+SANLM denoising after intensity normalization (medium)               13s
+Affine registration                                               
+  Use new longitudinal background setting.    25s
+Fast Optimized Shooting registration                                  3s
+  Estimate background                                                11s
+  Use new longitudinal background setting.    28s
+  Use new longitudinal background setting.    27s
+Affine registration                                               
+  Initial correction                                                 12s
+  Use new longitudinal background setting.    28s
+  Refine background                                                   5s
+  Final correction                                                   11s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 91s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 87s
+SPM preprocessing 2 (write)                                         124s
+  Final scaling                                                      18s
+SPM preprocessing 1 (estimate 1 - TPM registration):                110s
+SPM preprocessing 1 (estimate 1 - TPM registration):                129s
+                                                                     81s
+  Use initial fine affine registration.                              73s
+Global intensity correction                                          19s
+   74s
+Local adaptive segmentation (LASstr=0.50)                         
+Correct center-of-mass                                               14s
+SANLM denoising after intensity normalization (medium)               12s
+Fast Optimized Shooting registration                                  3s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 99s
+SPM preprocessing 1 (estimate 1 - TPM registration):                109s
+Affine registration                                               
+SPM preprocessing 1 (estimate 1 - TPM registration):                116s
+  Use new longitudinal background setting.    29s
+SPM preprocessing 1 (estimate 1 - TPM registration):                107s
+SPM preprocessing 1 (estimate 1 - TPM registration):                101s
+SPM preprocessing 1 (estimate 1 - TPM registration):                103s
+SPM preprocessing 2 (write)                                          95s
+SPM preprocessing 2 (write)                                          96s
+SPM preprocessing 1 (estimate 1 - TPM registration):                102s
+SPM preprocessing 1 (estimate 1 - TPM registration):                104s
+   69s
+Local adaptive segmentation (LASstr=0.50)                         
+Global intensity correction                                          16s
+SPM preprocessing 2 (write)                                          92s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 90s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 88s
+Global intensity correction                                          14s
+SPM preprocessing 2 (write)                                          94s
+SPM preprocessing 2 (write)                                         101s
+SANLM denoising after intensity normalization (medium)               12s
+SPM preprocessing 1 (estimate 1 - TPM registration):                103s
+Global intensity correction                                          14s
+Fast Optimized Shooting registration                                  3s
+SANLM denoising after intensity normalization (medium)               12s
+Fast Optimized Shooting registration                                  3s
+Global intensity correction                                          16s
+SANLM denoising after intensity normalization (medium)               11s
+Global intensity correction                                          18s
+    0s
+Fast Optimized Shooting registration                                  4s
+SANLM denoising after intensity normalization (medium)               11s
+Fast Optimized Shooting registration                                  4s
+SANLM denoising after intensity normalization (medium)               11s
+SPM preprocessing 2 (write)                                          97s
+SPM preprocessing 1 (estimate 1 - TPM registration):                113s
+Fast Optimized Shooting registration                                  4s
+SPM preprocessing 2 (write)                                         107s
+SPM preprocessing 1 (estimate 1 - TPM registration):                144s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    131s
+Global intensity correction                                          14s
+SPM preprocessing 1 (estimate 1 - TPM registration):                 99s
+SPM preprocessing 2 (write)                                          96s
+SPM preprocessing 2 (write)                                         117s
+SANLM denoising after intensity normalization (medium)               10s
+Fast Optimized Shooting registration                                  2s
+SPM preprocessing 2 (write)                                         108s
+Global intensity correction                                          15s
+Global intensity correction                                          17s
+SANLM denoising after intensity normalization (medium)               12s
+SPM preprocessing 1 (estimate 1 - TPM registration):                117s
+Global intensity correction                                          19s
+Fast Optimized Shooting registration                                  2s
+SANLM denoising after intensity normalization (medium)               11s
+SPM preprocessing 1 (estimate 1 - TPM registration):                112s
+Fast Optimized Shooting registration                                  3s
+Global intensity correction                                          22s
+   76s
+Local adaptive segmentation (LASstr=0.50)                         
+   82s
+Local adaptive segmentation (LASstr=0.50)                         
+SANLM denoising after intensity normalization (medium)               15s
+SPM preprocessing 2 (write)                                         121s
+SANLM denoising after intensity normalization (medium)               11s
+   75s
+Local adaptive segmentation (LASstr=0.50)                         
+Fast Optimized Shooting registration                                  3s
+Fast Optimized Shooting registration                                  5s
+   73s
+Local adaptive segmentation (LASstr=0.50)                         
+   71s
+Local adaptive segmentation (LASstr=0.50)                         
+SPM preprocessing 1 (estimate 1 - TPM registration):                123s
+    0s
+SPM preprocessing 1 (estimate 1 - TPM registration):                143s
+Global intensity correction                                          18s
+SPM preprocessing 2 (write)                                         118s
+SPM preprocessing 2 (write)                                         116s
+SPM preprocessing 2 (write)                                         128s
+SPM preprocessing 1 (estimate 1 - TPM registration):                141s
+SANLM denoising after intensity normalization (medium)               13s
+SPM preprocessing 2 (write)                                         127s
+Fast Optimized Shooting registration                                  3s
+SPM preprocessing 2 (write)                                         120s
+Global intensity correction                                          18s
+Global intensity correction                                          19s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    138s
+   76s
+Local adaptive segmentation (LASstr=0.50)                         
+Global intensity correction                                          19s
+SANLM denoising after intensity normalization (medium)               14s
+SANLM denoising after intensity normalization (medium)               14s
+Global intensity correction                                          22s
+Fast Optimized Shooting registration                                  3s
+Fast Optimized Shooting registration                                  4s
+   70s
+Local adaptive segmentation (LASstr=0.50)                         
+Global intensity correction                                          22s
+SANLM denoising after intensity normalization (medium)               15s
+SPM preprocessing 2 (write)                                         123s
+   84s
+Local adaptive segmentation (LASstr=0.50)                         
+Fast Optimized Shooting registration                                  4s
+SANLM denoising after intensity normalization (medium)               13s
+SANLM denoising after intensity normalization (medium)               18s
+Fast Optimized Shooting registration                                  3s
+Fast Optimized Shooting registration                                  5s
+SPM preprocessing 2 (write)                                         127s
+SPM preprocessing 2 (write)                                         124s
+   84s
+Local adaptive segmentation (LASstr=0.50)                         
+   84s
+Local adaptive segmentation (LASstr=0.50)                         
+    0s
+Global intensity correction                                          26s
+    0s
+    0s
+    0s
+ROI segmentation (partitioning)                                     141s
+No enhanced blood vessel correction is required                       3s
+Global intensity correction                                          21s
+SANLM denoising after intensity normalization (medium)               14s
+Global intensity correction                                          24s
+Fast Optimized Shooting registration                                  3s
+   82s
+  SANLM denoising after LAS (medium)                                 25s
+Local adaptive segmentation (LASstr=0.50)                         
+                                                                    116s
+    0s
+  SANLM denoising after LAS (medium)                                 23s
+                                                                    121s
+  SANLM denoising after LAS (medium)                                 21s
+                                                                    109s
+  SANLM denoising after LAS (medium)                                 22s
+                                                                    116s
+SANLM denoising after intensity normalization (medium)               15s
+SANLM denoising after intensity normalization (medium)               14s
+Fast Optimized Shooting registration                                  3s
+SPM preprocessing 2 (write)                                         141s
+Fast Optimized Shooting registration                                  4s
+SPM preprocessing 2 (write)                                         138s
+  SANLM denoising after LAS (medium)                                 20s
+                                                                    121s
+   81s
+Local adaptive segmentation (LASstr=0.50)                         
+    0s
+Amap using initial SPM12 segmentations (MRF filter strength 0.06)    34s
+   77s
+Local adaptive segmentation (LASstr=0.50)                         
+   93s
+Local adaptive segmentation (LASstr=0.50)                         
+SPM preprocessing 2 (write)                                         130s
+Global intensity correction                                          20s
+   75s
+Local adaptive segmentation (LASstr=0.50)                         
+Global intensity correction                                          23s
+    0s
+  SANLM denoising after LAS (medium)                                 19s
+                                                                    111s
+SPM preprocessing 2 (write)                                         138s
+   83s
+Local adaptive segmentation (LASstr=0.50)                         
+Final cleanup (gcutstr=0.25)                                      
+SPM preprocessing 2 (write)                                         130s
+SANLM denoising after intensity normalization (medium)               14s
+SANLM denoising after intensity normalization (medium)               18s
+    0s
+  Level 1 cleanup (ROI estimation)                                    7s
+Fast Optimized Shooting registration                                  4s
+Fast Optimized Shooting registration                                  3s
+Global intensity correction                                          24s
+  SANLM denoising after LAS (medium)                                 23s
+                                                                    114s
+  Level 1 cleanup (brain masking)                                     8s
+Global intensity correction                                          20s
+  Level 2 cleanup (CSF correction)                                    4s
+SPM preprocessing 1 (estimate 1 - TPM registration):                165s
+Global intensity correction                                          21s
+  Level 3 cleanup (CSF/WM PVE)                                        7s
+                                                                     25s
+   77s
+Local adaptive segmentation (LASstr=0.50)                         
+SANLM denoising after intensity normalization (medium)               14s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    123s
+SANLM denoising after intensity normalization (medium)               15s
+Fast Optimized Shooting registration                                  5s
+Fast Optimized Shooting registration                                  3s
+Shooting registration is not required.
+    0s
+SANLM denoising after intensity normalization (medium)               14s
+    4s
+   80s
+Local adaptive segmentation (LASstr=0.50)                         
+Fast Optimized Shooting registration                                  4s
+    0s
+   86s
+Local adaptive segmentation (LASstr=0.50)                         
+ROI segmentation (partitioning)                                     169s
+Apply enhanced blood vessel correction                                1s
+  SANLM denoising after LAS (medium)                                 23s
+                                                                    135s
+    0s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    137s
+   77s
+Local adaptive segmentation (LASstr=0.50)                         
+    0s
+ROI segmentation (partitioning)                                     130s
+  SANLM denoising after LAS (medium)                                 23s
+                                                                    131s
+ROI segmentation (partitioning)                                     125s
+ROI segmentation (partitioning)                                     128s
+Apply enhanced blood vessel correction                                1s
+Apply enhanced blood vessel correction                                1s
+Apply enhanced blood vessel correction                                1s
+Amap using initial SPM12 segmentations (MRF filter strength 0.06)    34s
+ROI segmentation (partitioning)                                     133s
+Apply enhanced blood vessel correction                                1s
+   90s
+Local adaptive segmentation (LASstr=0.50)                         
+    0s
+    0s
+    0s
+ROI segmentation (partitioning)                                     130s
+Apply enhanced blood vessel correction                                1s
+   75s
+Local adaptive segmentation (LASstr=0.50)                         
+    0s
+Final cleanup (gcutstr=0.25)                                      
+  SANLM denoising after LAS (medium)                                 26s
+                                                                    134s
+   76s
+Local adaptive segmentation (LASstr=0.50)                         
+ROI segmentation (partitioning)                                     122s
+Apply enhanced blood vessel correction                                1s
+   91s
+Local adaptive segmentation (LASstr=0.50)                         
+  Level 1 cleanup (ROI estimation)                                   10s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    31s
+  SANLM denoising after LAS (medium)                                 25s
+                                                                    134s
+Amap using initial SPM12 segmentations (MRF filter strength 0.06)    33s
+  Level 1 cleanup (brain masking)                                     6s
+  SANLM denoising after LAS (medium)                                 21s
+                                                                    138s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    32s
+ROI segmentation (partitioning)                                     113s
+Apply enhanced blood vessel correction                                1s
+  Level 2 cleanup (CSF correction)                                    4s
+  SANLM denoising after LAS (medium)                                 22s
+                                                                    133s
+  SANLM denoising after LAS (medium)                                 29s
+                                                                    147s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    34s
+Write result maps                                                    67s
+  Level 3 cleanup (CSF/WM PVE)                                        5s
+                                                                     25s
+Final cleanup (gcutstr=0.25)                                      
+Final cleanup (gcutstr=0.25)                                      
+Final cleanup (gcutstr=0.25)                                      
+    0s
+Final cleanup (gcutstr=0.25)                                      
+  Level 1 cleanup (ROI estimation)                                    7s
+  Level 1 cleanup (ROI estimation)                                    7s
+  Level 1 cleanup (ROI estimation)                                    9s
+Shooting registration is not required.
+  Level 1 cleanup (ROI estimation)                                    6s
+    0s
+  Level 1 cleanup (brain masking)                                     4s
+  Level 1 cleanup (brain masking)                                     5s
+  Level 1 cleanup (brain masking)                                     5s
+Amap using initial SPM12 segmentations (MRF filter strength 0.06)    39s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    31s
+  Level 2 cleanup (CSF correction)                                    2s
+    4s
+  Level 2 cleanup (CSF correction)                                    3s
+  Level 2 cleanup (CSF correction)                                    3s
+  Level 1 cleanup (brain masking)                                     6s
+  Level 3 cleanup (CSF/WM PVE)                                        3s
+                                                                     18s
+    0s
+  Level 3 cleanup (CSF/WM PVE)                                        4s
+                                                                     18s
+  Level 2 cleanup (CSF correction)                                    3s
+ROI segmentation (partitioning)                                     128s
+  Level 3 cleanup (CSF/WM PVE)                                        5s
+                                                                     19s
+SPM preprocessing 2 (write)                                         137s
+Apply enhanced blood vessel correction                                1s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    29s
+  Level 3 cleanup (CSF/WM PVE)                                        6s
+                                                                     21s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    138s
+Shooting registration is not required.
+Surface and thickness estimation                                  
+lh:
+Final cleanup (gcutstr=0.25)                                      
+Final cleanup (gcutstr=0.25)                                      
+Shooting registration is not required.
+    3s
+Shooting registration is not required.
+    4s
+    3s
+  Level 1 cleanup (ROI estimation)                                    7s
+  Level 1 cleanup (ROI estimation)                                    5s
+  SANLM denoising after LAS (medium)                                 25s
+                                                                    126s
+Shooting registration is not required.
+Final cleanup (gcutstr=0.25)                                      
+  Level 1 cleanup (brain masking)                                     3s
+  Thickness estimation (0.50 mm³)                                 
+  Level 2 cleanup (CSF correction)                                    2s
+    3s
+  Level 1 cleanup (brain masking)                                     7s
+  Level 3 cleanup (CSF/WM PVE)                                        3s
+                                                                     13s
+  Level 1 cleanup (ROI estimation)                                    6s
+  Level 2 cleanup (CSF correction)                                    4s
+  SANLM denoising after LAS (medium)                                 26s
+                                                                    142s
+  Level 1 cleanup (brain masking)                                     4s
+Global intensity correction                                          26s
+  Level 2 cleanup (CSF correction)                                    2s
+  Level 3 cleanup (CSF/WM PVE)                                        6s
+                                                                     23s
+Shooting registration is not required.
+    2s
+  Level 3 cleanup (CSF/WM PVE)                                        5s
+                                                                     16s
+    0s
+Amap using initial SPM12 segmentations (MRF filter strength 0.06)    30s
+ROI segmentation (partitioning)                                     131s
+Apply enhanced blood vessel correction                                2s
+SANLM denoising after intensity normalization (medium)               13s
+Shooting registration is not required.
+Shooting registration is not required.
+Fast Optimized Shooting registration                                  4s
+    3s
+    3s
+Write result maps                                                    15s
+Final cleanup (gcutstr=0.25)                                      
+ROI segmentation (partitioning)                                     153s
+Apply enhanced blood vessel correction                                1s
+  Level 1 cleanup (ROI estimation)                                    7s
+  SANLM denoising after LAS (medium)                                 24s
+                                                                    136s
+    0s
+    0s
+ROI segmentation (partitioning)                                     138s
+  Level 1 cleanup (brain masking)                                     7s
+Apply enhanced blood vessel correction                                2s
+  Level 2 cleanup (CSF correction)                                    4s
+    0s
+Surface and thickness estimation                                  
+lh:
+  Level 3 cleanup (CSF/WM PVE)                                        6s
+                                                                     24s
+Write result maps                                                    19s
+    0s
+  Thickness estimation (0.50 mm³)                                 
+Write result maps                                                    15s
+Amap using initial SPM12 segmentations (MRF filter strength 0.07)    35s
+Shooting registration is not required.
+  SANLM denoising after LAS (medium)                                 26s
+                                                                    139s
+    2s
