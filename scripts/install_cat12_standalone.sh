@@ -129,6 +129,10 @@ export MCRROOT="$MCR_ROOT"
 export LD_LIBRARY_PATH="\$MCR_ROOT/runtime/glnxa64:\$MCR_ROOT/bin/glnxa64:\$MCR_ROOT/sys/os/glnxa64:\$MCR_ROOT/sys/opengl/lib/glnxa64:\$LD_LIBRARY_PATH"
 export PATH="\$CAT12_ROOT:\$SPMROOT:\$PATH"
 
+# Deno for BIDS validation
+export DENO_INSTALL="\$HOME/.deno"
+export PATH="\$DENO_INSTALL/bin:\$PATH"
+
 # Project-specific paths
 export CAT12_PROJECT_ROOT="$PROJECT_DIR"
 EOF
@@ -137,6 +141,21 @@ EOF
 print_status "Installing UV package manager..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# Install Deno for BIDS validation
+print_status "Installing Deno for BIDS validation..."
+if ! command -v deno &> /dev/null; then
+    print_status "Downloading and installing Deno..."
+    curl -fsSL https://deno.land/x/install/install.sh | sh
+    
+    # Add Deno to PATH for this session
+    export DENO_INSTALL="$HOME/.deno"
+    export PATH="$DENO_INSTALL/bin:$PATH"
+    
+    print_status "Deno installed successfully"
+else
+    print_status "Deno already installed: $(deno --version | head -1)"
+fi
 
 # Create Python virtual environment with UV
 print_status "Creating Python virtual environment with UV..."

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 BIDS CAT12 Longitudinal Processor
 
@@ -186,9 +186,17 @@ class BIDSLongitudinalProcessor:
         """Initialize BIDS layout with validation."""
         try:
             logger.info(f"{Fore.CYAN}🔍 Initializing BIDS layout for: {self.bids_dir}{Style.RESET_ALL}")
-            # Use a file-based database path to avoid SQLite URI issues
-            import tempfile
-            db_path = Path(tempfile.gettempdir()) / f"bidsdb_{hash(str(self.bids_dir))}.db"
+            # Use output_dir for database to ensure we have enough space
+            # Avoid using /tmp or home directory which may have limited space
+            db_dir = self.output_dir / '.bids_cache'
+            db_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Clean up old BIDS database files (older than 7 days)
+            self._cleanup_old_bids_databases(db_dir)
+            
+            db_path = db_dir / f"bidsdb_{hash(str(self.bids_dir))}.db"
+            logger.info(f"{Fore.CYAN}📊 Using BIDS database: {db_path}{Style.RESET_ALL}")
+            
             self.layout = BIDSLayout(
                 self.bids_dir, 
                 validate=self.config['bids']['validate'],
@@ -201,6 +209,29 @@ class BIDSLongitudinalProcessor:
             import traceback
             logger.error(f"{Fore.RED}{traceback.format_exc()}{Style.RESET_ALL}")
             sys.exit(1)
+    
+    def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7):
+        """Clean up old BIDS database files to save space."""
+        try:
+            import time
+            cutoff_time = time.time() - (days * 86400)  # days * seconds_per_day
+            
+            db_files = list(db_dir.glob("bidsdb_*.db"))
+            removed_count = 0
+            removed_size = 0
+            
+            for db_file in db_files:
+                if db_file.stat().st_mtime < cutoff_time:
+                    size = db_file.stat().st_size
+                    db_file.unlink()
+                    removed_count += 1
+                    removed_size += size
+            
+            if removed_count > 0:
+                size_mb = removed_size / (1024 * 1024)
+                logger.info(f"{Fore.YELLOW}🧹 Cleaned up {removed_count} old BIDS database(s) ({size_mb:.1f} MB){Style.RESET_ALL}")
+        except Exception as e:
+            logger.warning(f"Could not clean up old BIDS databases: {e}")
     
     def validate_dataset(self) -> bool:
         """Validate BIDS dataset structure."""
@@ -302,13 +333,22 @@ class BIDSLongitudinalProcessor:
             t1w_files = []
             t1w_files_uncompressed = []
             for session in sessions:
-                files = self.layout.get(
-                    subject=subject,
-                    session=session,
-                    datatype='anat',
-                    suffix='T1w',
-                    extension='.nii.gz'
-                )
+                # Handle empty session (cross-sectional without session subdirectories)
+                if session == '':
+                    files = self.layout.get(
+                        subject=subject,
+                        datatype='anat',
+                        suffix='T1w',
+                        extension='.nii.gz'
+                    )
+                else:
+                    files = self.layout.get(
+                        subject=subject,
+                        session=session,
+                        datatype='anat',
+                        suffix='T1w',
+                        extension='.nii.gz'
+                    )
                 if files:
                     for f in files:
                         t1w_files.append(f.path)
@@ -318,14 +358,21 @@ class BIDSLongitudinalProcessor:
                 else:
                     logger.warning(f"No T1w found for {subject} session {session}")
             
-            if len(t1w_files_uncompressed) < 2:
-                logger.warning(f"Subject {subject}: Insufficient T1w images for longitudinal processing")
+            if len(t1w_files_uncompressed) < 1:
+                logger.warning(f"Subject {subject}: No T1w images found")
                 return False
             
             logger.info(f"Using {len(t1w_files_uncompressed)} uncompressed NIfTI files for processing")
             
-            # Use the CAT12 standalone template for longitudinal processing
-            template_path = Path(os.environ.get('SPMROOT')) / 'standalone' / 'cat_standalone_segment_long.m'
+            # Choose template based on number of timepoints
+            if len(t1w_files_uncompressed) >= 2:
+                # Longitudinal processing (2+ timepoints)
+                template_path = Path(os.environ.get('SPMROOT')) / 'standalone' / 'cat_standalone_segment_long.m'
+                logger.info(f"{Fore.CYAN}📊 Using longitudinal template (multiple timepoints){Style.RESET_ALL}")
+            else:
+                # Cross-sectional processing (1 timepoint)
+                template_path = Path(os.environ.get('SPMROOT')) / 'standalone' / 'cat_standalone_segment.m'
+                logger.info(f"{Fore.CYAN}📊 Using cross-sectional template (single timepoint){Style.RESET_ALL}")
             
             if not template_path.exists():
                 logger.error(f"CAT12 standalone template not found: {template_path}")
@@ -369,7 +416,8 @@ class BIDSLongitudinalProcessor:
                            run_smooth_surface: bool = False,
                            run_qa: bool = False,
                            run_tiv: bool = False,
-                           run_roi: bool = False) -> Dict[str, bool]:
+                           run_roi: bool = False,
+                           subjects_dict: Optional[Dict[str, List[str]]] = None) -> Dict[str, bool]:
         """
         Process all subjects in the dataset with specified stages.
         
@@ -382,11 +430,16 @@ class BIDSLongitudinalProcessor:
             run_qa: Run quality assessment
             run_tiv: Run TIV estimation
             run_roi: Run ROI extraction
+            subjects_dict: Optional pre-computed subjects dictionary (for --cross flag)
             
         Returns:
             Dictionary mapping subject IDs to processing success status
         """
-        all_subjects = self.identify_longitudinal_subjects(participant_labels)
+        # Use provided subjects_dict if available (e.g., from --cross flag)
+        if subjects_dict is not None:
+            all_subjects = subjects_dict
+        else:
+            all_subjects = self.identify_longitudinal_subjects(participant_labels)
         
         if not all_subjects:
             logger.error("No subjects found!")
@@ -594,7 +647,7 @@ class BIDSLongitudinalProcessor:
 @click.argument('output_dir', type=click.Path(path_type=Path))
 @click.argument('analysis_level', type=click.Choice(['participant', 'group']), default='participant')
 @click.option('--participant-label', multiple=True, help='Process specific participants (e.g., sub-01 or just 01)')
-@click.option('--session-label', multiple=True, help='Process specific sessions (e.g., ses-01 or just 01)')
+@click.option('--session-label', multiple=True, help='Process specific sessions (e.g., 1, 2, or pre, post). Validates session existence.')
 # Processing stages (opt-in)
 @click.option('--preproc', is_flag=True, help='Run preprocessing/segmentation')
 @click.option('--smooth-volume', is_flag=True, help='Run volume data smoothing')
@@ -616,7 +669,7 @@ class BIDSLongitudinalProcessor:
 @click.option('--verbose', is_flag=True, help='Verbose output')
 @click.option('--log-dir', type=click.Path(path_type=Path), help='Directory to write log files (default: <output_dir>/logs)')
 @click.option('--pilot', is_flag=True, help='Process a single random participant for a pilot run')
-@click.option('--cross', is_flag=True, help='Force cross-sectional processing even if longitudinal data is present')
+@click.option('--cross', is_flag=True, help='Force cross-sectional (use first available session per subject)')
 def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
          preproc, smooth_volume, smooth_surface, qa, tiv, roi,
          no_surface, no_validate, no_cuda,
@@ -632,6 +685,13 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
     ANALYSIS_LEVEL: Level of analysis (participant or group)
     
     \b
+    Session Selection:
+      - No --session-label: Process all sessions (auto-detect longitudinal/cross-sectional)
+      - --session-label 2: Process only session 2 (cross-sectional)
+      - --session-label 1 2: Process sessions 1 and 2 (can be longitudinal)
+      - --cross: Use only first available session per subject (cross-sectional)
+    
+    \b
     Examples:
       # Preprocessing only (automatically detects longitudinal)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc
@@ -639,11 +699,20 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
       # Preprocessing without surface extraction
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --no-surface
       
+      # Process only session 2 (cross-sectional)
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --session-label 2
+      
+      # Force cross-sectional (use first available session per subject)
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross
+      
       # Full pipeline: preproc + smoothing + QA + TIV
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume --qa --tiv
       
       # Process specific participants
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --participant-label 01 02
+      
+      # Pilot mode with cross-sectional
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross --pilot
     """
     # Ensure output and working directories exist
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -721,28 +790,74 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
     else:
         participant_labels = None
     
-    # Convert session labels
+    # Convert session labels and validate
     session_labels = None
     if session_label:
-        session_labels = [f"ses-{s.replace('ses-', '')}" for s in session_label]
-        logger.info(f"Processing sessions: {', '.join(session_labels)}")
+        session_labels = [s.replace('ses-', '') for s in session_label]
+        logger.info(f"{Fore.CYAN}📅 Requested sessions: {', '.join(session_labels)}{Style.RESET_ALL}")
+        
+        # Validate that requested sessions exist in the dataset
+        available_sessions = set(processor.layout.get_sessions())
+        requested_sessions = set(session_labels)
+        invalid_sessions = requested_sessions - available_sessions
+        
+        if invalid_sessions:
+            logger.error(f"{Fore.RED}❌ Invalid session(s): {', '.join(invalid_sessions)}{Style.RESET_ALL}")
+            logger.info(f"{Fore.CYAN}ℹ️  Available sessions in dataset: {', '.join(sorted(available_sessions))}{Style.RESET_ALL}")
+            sys.exit(1)
     
     # Determine if data is longitudinal (automatically detected)
     if cross:
         logger.info(f"{Fore.YELLOW}⚡ Forcing cross-sectional processing (--cross flag set){Style.RESET_ALL}")
-        # Treat all subjects as cross-sectional
+        # Treat all subjects as cross-sectional - pick first available session
+        all_subjects = processor.layout.get_subjects()
+        if participant_labels:
+            all_subjects = [s for s in all_subjects if f"sub-{s}" in participant_labels]
+        
         longitudinal_subjects = {}
-        cross_sectional_subjects = processor.layout.get_subjects()
+        for subject in all_subjects:
+            subject_sessions = processor.layout.get_sessions(subject=subject)
+            if subject_sessions:
+                # If session_labels specified, use those; otherwise use first session
+                if session_labels:
+                    subject_sessions = [s for s in subject_sessions if s in session_labels]
+                if subject_sessions:
+                    longitudinal_subjects[subject] = [subject_sessions[0]]  # Take first session only
+            else:
+                # No session subdirectories
+                longitudinal_subjects[subject] = ['']
+        
+        logger.info(f"{Fore.CYAN}📋 Found {len(longitudinal_subjects)} subjects (cross-sectional mode, 1 session per subject){Style.RESET_ALL}")
     else:
         longitudinal_subjects = processor.identify_longitudinal_subjects(participant_labels)
+        
+        # If session_labels specified, filter sessions
+        if session_labels:
+            filtered_subjects = {}
+            for subject in longitudinal_subjects:
+                subject_sessions = [s for s in longitudinal_subjects[subject] if s in session_labels or s == '']
+                if subject_sessions:
+                    filtered_subjects[subject] = subject_sessions
+                else:
+                    logger.warning(f"{Fore.YELLOW}⚠️  Subject {subject} has no data for requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}")
+            
+            longitudinal_subjects = filtered_subjects
+            if not longitudinal_subjects:
+                logger.error(f"{Fore.RED}❌ No subjects found with requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}")
+                sys.exit(1)
+            
+            logger.info(f"{Fore.CYAN}📋 Filtered to {len(longitudinal_subjects)} subjects with requested sessions{Style.RESET_ALL}")
 
     if pilot:
         if longitudinal_subjects:
             pilot_subject = random.choice(list(longitudinal_subjects.keys()))
             participant_labels = [f"sub-{pilot_subject}"]
+            # Filter longitudinal_subjects to only include the pilot subject
+            longitudinal_subjects = {pilot_subject: longitudinal_subjects[pilot_subject]}
             logger.info(f"{Fore.YELLOW}🎯 Pilot mode enabled: selected participant sub-{pilot_subject}{Style.RESET_ALL}")
         else:
-            logger.warning(f"{Fore.YELLOW}⚠️ Pilot mode requested but no eligible subjects were found. Processing all subjects.{Style.RESET_ALL}")
+            logger.warning(f"{Fore.YELLOW}⚠️ Pilot mode requested but no subjects were found.{Style.RESET_ALL}")
+            sys.exit(1)
 
     if analysis_level == 'participant':
         # Run participant-level processing
@@ -756,8 +871,15 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
                 run_smooth_surface=False,
                 run_qa=False,
                 run_tiv=False,
-                run_roi=False
+                run_roi=False,
+                subjects_dict=longitudinal_subjects
             )
+            
+            # Check if any subjects were successfully processed
+            successful_count = sum(1 for success in results.values() if success)
+            if successful_count == 0:
+                logger.error(f"{Fore.RED}❌ No subjects were successfully processed!{Style.RESET_ALL}")
+                sys.exit(1)
         
         # Run additional stages on preprocessed data
         if smooth_volume:
