@@ -18,13 +18,11 @@ License: MIT
 
 import os
 import sys
-import argparse
 import logging
-from colorama import Fore, Style, init as colorama_init
 from pathlib import Path
 import json
 import yaml
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 import subprocess
 from datetime import datetime
 import gzip
@@ -32,25 +30,29 @@ import shutil
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import pandas as pd
-import nibabel as nib
+from colorama import init as colorama_init, Fore, Style
 from bids import BIDSLayout
-from bids.exceptions import BIDSValidationError
 import click
 from tqdm import tqdm
 
-colorama_init(autoreset=True)
 # Import custom utilities
-sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
-from bids_utils import BIDSValidator, BIDSSessionManager
-from cat12_utils import CAT12Processor, CAT12ScriptGenerator
+sys.path.append(os.path.join(os.path.dirname(__file__), "utils"))
+from bids_utils import BIDSValidator, BIDSSessionManager  # noqa: E402
+from cat12_utils import CAT12Processor, CAT12ScriptGenerator  # noqa: E402
+
+# Initialize colorama
+colorama_init(autoreset=True)
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(log_level: int, log_dir: Optional[Path] = None, log_name: Optional[str] = None,
-                  console: bool = True) -> Path:
+def setup_logging(
+    log_level: int,
+    log_dir: Optional[Path] = None,
+    log_name: Optional[str] = None,
+    console: bool = True,
+) -> Path:
     """Configure logging for the current run and return the log file path."""
 
     root_logger = logging.getLogger()
@@ -62,7 +64,7 @@ def setup_logging(log_level: int, log_dir: Optional[Path] = None, log_name: Opti
     log_file_path: Path
 
     if log_dir is None:
-        log_dir = Path.cwd() / 'logs'
+        log_dir = Path.cwd() / "logs"
     else:
         log_dir = Path(log_dir)
 
@@ -73,11 +75,12 @@ def setup_logging(log_level: int, log_dir: Optional[Path] = None, log_name: Opti
 
     log_file_path = log_dir / log_name
 
-    from colorama import Fore, Style, init as colorama_init
+    from colorama import init as colorama_init
+
     colorama_init(autoreset=True)
 
     # File handler: plain log, no logger name, no emoji/color
-    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(file_formatter)
     handlers.append(file_handler)
@@ -86,7 +89,7 @@ def setup_logging(log_level: int, log_dir: Optional[Path] = None, log_name: Opti
     if console:
         console_handler = logging.StreamHandler(sys.stdout)
         # Simple formatter that just outputs the message (which already has color/emoji codes)
-        console_handler.setFormatter(logging.Formatter('%(message)s'))
+        console_handler.setFormatter(logging.Formatter("%(message)s"))
         handlers.append(console_handler)
 
     for handler in handlers:
@@ -109,11 +112,13 @@ def deep_update(base: Dict, updates: Dict) -> Dict:
 
 class BIDSLongitudinalProcessor:
     """Main class for processing BIDS longitudinal datasets with CAT12."""
-    
-    def __init__(self, bids_dir: Path, output_dir: Path, config_file: Optional[Path] = None):
+
+    def __init__(
+        self, bids_dir: Path, output_dir: Path, config_file: Optional[Path] = None
+    ):
         """
         Initialize the processor.
-        
+
         Args:
             bids_dir: Path to BIDS dataset
             output_dir: Path for outputs (derivatives)
@@ -122,47 +127,41 @@ class BIDSLongitudinalProcessor:
         self.bids_dir = Path(bids_dir)
         self.output_dir = Path(output_dir)
         self.config_file = Path(config_file) if config_file else None
-        
+
         # Load configuration
         self.config = self._load_config()
-        
+
         # Initialize BIDS layout
         self.layout = None
         self._init_bids_layout()
-        
+
         # Initialize processors
         self.validator = BIDSValidator(self.bids_dir)
         self.session_manager = BIDSSessionManager(self.layout)
         self.cat12_processor = CAT12Processor(self.config)
         self.script_generator = CAT12ScriptGenerator(self.config)
-        
+
     def _load_config(self) -> Dict:
         """Load processing configuration."""
         default_config = {
-            'cat12': {
-                'longitudinal': True,
-                'surface_processing': True,
-                'volume_processing': True,
-                'quality_check': True,
-                'parallel_jobs': 1
+            "cat12": {
+                "longitudinal": True,
+                "surface_processing": True,
+                "volume_processing": True,
+                "quality_check": True,
+                "parallel_jobs": 1,
             },
-            'bids': {
-                'validate': True,
-                'derivatives_name': 'cat12'
-            },
-            'system': {
-                'use_cuda': True,
-                'memory_limit': '16GB'
-            }
+            "bids": {"validate": True, "derivatives_name": "cat12"},
+            "system": {"use_cuda": True, "memory_limit": "16GB"},
         }
-        
+
         if self.config_file and self.config_file.exists():
             try:
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file, "r") as f:
                     suffix = self.config_file.suffix.lower()
-                    if suffix == '.json':
+                    if suffix == ".json":
                         user_config = json.load(f)
-                    elif suffix in {'.yml', '.yaml'}:
+                    elif suffix in {".yml", ".yaml"}:
                         user_config = yaml.safe_load(f)
                     else:
                         raise ValueError(
@@ -175,179 +174,211 @@ class BIDSLongitudinalProcessor:
 
                 config = deep_update(default_config, user_config)
             except (yaml.YAMLError, json.JSONDecodeError, ValueError) as exc:
-                logger.error(f"Failed to load configuration file {self.config_file}: {exc}")
+                logger.error(
+                    f"Failed to load configuration file {self.config_file}: {exc}"
+                )
                 config = default_config
         else:
             config = default_config
 
         return config
-    
+
     def _init_bids_layout(self):
         """Initialize BIDS layout with validation."""
         try:
-            logger.info(f"{Fore.CYAN}🔍 Initializing BIDS layout for: {self.bids_dir}{Style.RESET_ALL}")
+            logger.info(
+                f"{Fore.CYAN}🔍 Initializing BIDS layout for: {self.bids_dir}{Style.RESET_ALL}"
+            )
             # Use output_dir for database to ensure we have enough space
             # Avoid using /tmp or home directory which may have limited space
-            db_dir = self.output_dir / '.bids_cache'
+            db_dir = self.output_dir / ".bids_cache"
             db_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Clean up old BIDS database files (older than 7 days)
             self._cleanup_old_bids_databases(db_dir)
-            
+
             db_path = db_dir / f"bidsdb_{hash(str(self.bids_dir))}.db"
-            logger.info(f"{Fore.CYAN}📊 Using BIDS database: {db_path}{Style.RESET_ALL}")
-            
-            self.layout = BIDSLayout(
-                self.bids_dir, 
-                validate=self.config['bids']['validate'],
-                database_path=str(db_path),
-                reset_database=True
+            logger.info(
+                f"{Fore.CYAN}📊 Using BIDS database: {db_path}{Style.RESET_ALL}"
             )
-            logger.info(f"{Fore.GREEN}👥 Found {len(self.layout.get_subjects())} subjects{Style.RESET_ALL}")
+
+            self.layout = BIDSLayout(
+                self.bids_dir,
+                validate=self.config["bids"]["validate"],
+                database_path=str(db_path),
+                reset_database=True,
+            )
+            logger.info(
+                f"{Fore.GREEN}👥 Found {len(self.layout.get_subjects())} subjects{Style.RESET_ALL}"
+            )
         except Exception as e:
-            logger.error(f"{Fore.RED}❌ Failed to initialize BIDS layout: {e}{Style.RESET_ALL}")
+            logger.error(
+                f"{Fore.RED}❌ Failed to initialize BIDS layout: {e}{Style.RESET_ALL}"
+            )
             import traceback
+
             logger.error(f"{Fore.RED}{traceback.format_exc()}{Style.RESET_ALL}")
             sys.exit(1)
-    
+
     def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7):
         """Clean up old BIDS database files to save space."""
         try:
             import time
+
             cutoff_time = time.time() - (days * 86400)  # days * seconds_per_day
-            
+
             db_files = list(db_dir.glob("bidsdb_*.db"))
             removed_count = 0
             removed_size = 0
-            
+
             for db_file in db_files:
                 if db_file.stat().st_mtime < cutoff_time:
                     size = db_file.stat().st_size
                     db_file.unlink()
                     removed_count += 1
                     removed_size += size
-            
+
             if removed_count > 0:
                 size_mb = removed_size / (1024 * 1024)
-                logger.info(f"{Fore.YELLOW}🧹 Cleaned up {removed_count} old BIDS database(s) ({size_mb:.1f} MB){Style.RESET_ALL}")
+                logger.info(
+                    f"{Fore.YELLOW}🧹 Cleaned up {removed_count} old BIDS database(s) ({size_mb:.1f} MB){Style.RESET_ALL}"
+                )
         except Exception as e:
             logger.warning(f"Could not clean up old BIDS databases: {e}")
-    
+
     def validate_dataset(self) -> bool:
         """Validate BIDS dataset structure."""
         logger.info("Validating BIDS dataset...")
         return self.validator.validate()
-    
-    def identify_longitudinal_subjects(self, participant_labels: Optional[List[str]] = None) -> Dict[str, List[str]]:
+
+    def identify_longitudinal_subjects(
+        self, participant_labels: Optional[List[str]] = None
+    ) -> Dict[str, List[str]]:
         """
         Identify subjects with longitudinal data (multiple sessions).
         Automatically detects if data is longitudinal.
-        
+
         Args:
             participant_labels: Optional list of specific participants to process
-            
+
         Returns:
             Dictionary mapping subject ID to list of session IDs
         """
         subjects = self.layout.get_subjects()
         if participant_labels:
             subjects = [s for s in subjects if f"sub-{s}" in participant_labels]
-        
+
         longitudinal_subjects = {}
         cross_sectional_subjects = {}
-        
+
         for subject in subjects:
             sessions = self.layout.get_sessions(subject=subject)
             if sessions and len(sessions) > 1:
                 # Multiple sessions = longitudinal
                 longitudinal_subjects[subject] = sessions
-                logger.info(f"Subject {subject}: LONGITUDINAL with {len(sessions)} sessions ({', '.join(sessions)})")
+                logger.info(
+                    f"Subject {subject}: LONGITUDINAL with {len(sessions)} sessions ({', '.join(sessions)})"
+                )
             elif sessions and len(sessions) == 1:
                 # Single session = cross-sectional
                 cross_sectional_subjects[subject] = sessions
-                logger.info(f"Subject {subject}: Cross-sectional with 1 session ({sessions[0]})")
+                logger.info(
+                    f"Subject {subject}: Cross-sectional with 1 session ({sessions[0]})"
+                )
             else:
                 # No sessions = cross-sectional
-                cross_sectional_subjects[subject] = ['']
-                logger.info(f"Subject {subject}: Cross-sectional (no session subdirectory)")
-        
+                cross_sectional_subjects[subject] = [""]
+                logger.info(
+                    f"Subject {subject}: Cross-sectional (no session subdirectory)"
+                )
+
         all_subjects = {**longitudinal_subjects, **cross_sectional_subjects}
-        
-        logger.info(f"Dataset summary: {len(longitudinal_subjects)} longitudinal, {len(cross_sectional_subjects)} cross-sectional subjects")
+
+        logger.info(
+            f"Dataset summary: {len(longitudinal_subjects)} longitudinal, {len(cross_sectional_subjects)} cross-sectional subjects"
+        )
         return all_subjects
-    
+
     def gunzip_file(self, gz_file: str, output_dir: Path) -> str:
         """
         Gunzip a .nii.gz file to .nii in the output directory.
-        
+
         Args:
             gz_file: Path to .nii.gz file
             output_dir: Output directory for uncompressed file
-            
+
         Returns:
             Path to uncompressed .nii file
         """
         gz_path = Path(gz_file)
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create output filename in the subject output directory
-        nii_filename = gz_path.name.replace('.nii.gz', '.nii')
+        nii_filename = gz_path.name.replace(".nii.gz", ".nii")
         nii_path = output_dir / nii_filename
-        
+
         # Skip if already uncompressed
         if nii_path.exists():
             logger.debug(f"Uncompressed file already exists: {nii_path}")
             return str(nii_path)
-        
+
         logger.info(f"Gunzipping: {gz_path.name}")
         try:
-            with gzip.open(gz_file, 'rb') as f_in:
-                with open(nii_path, 'wb') as f_out:
+            with gzip.open(gz_file, "rb") as f_in:
+                with open(nii_path, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
             logger.debug(f"Created: {nii_path}")
             return str(nii_path)
         except Exception as e:
             logger.error(f"Failed to gunzip {gz_file}: {e}")
             raise
-    
-    def process_subject(self, subject: str, sessions: List[str], cli_args: Optional[str] = None, config_path: Optional[str] = None) -> bool:
+
+    def process_subject(
+        self,
+        subject: str,
+        sessions: List[str],
+        cli_args: Optional[str] = None,
+        config_path: Optional[str] = None,
+    ) -> bool:
         """
         Process a single subject with longitudinal data.
-        
+
         Args:
             subject: Subject ID
             sessions: List of session IDs
-            
+
         Returns:
             True if processing successful
         """
-        logger.info(f"Processing subject {subject} with sessions: {', '.join(sessions)}")
-        
+        logger.info(
+            f"Processing subject {subject} with sessions: {', '.join(sessions)}"
+        )
+
         try:
             # Create subject output directory first
             subject_output_dir = self.output_dir / f"sub-{subject}"
             subject_output_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Get T1w images for all sessions
             t1w_files = []
             t1w_files_uncompressed = []
             for session in sessions:
                 # Handle empty session (cross-sectional without session subdirectories)
-                if session == '':
+                if session == "":
                     files = self.layout.get(
                         subject=subject,
-                        datatype='anat',
-                        suffix='T1w',
-                        extension='.nii.gz'
+                        datatype="anat",
+                        suffix="T1w",
+                        extension=".nii.gz",
                     )
                 else:
                     files = self.layout.get(
                         subject=subject,
                         session=session,
-                        datatype='anat',
-                        suffix='T1w',
-                        extension='.nii.gz'
+                        datatype="anat",
+                        suffix="T1w",
+                        extension=".nii.gz",
                     )
                 if files:
                     for f in files:
@@ -357,96 +388,135 @@ class BIDSLongitudinalProcessor:
                         t1w_files_uncompressed.append(uncompressed)
                 else:
                     logger.warning(f"No T1w found for {subject} session {session}")
-            
+
             if len(t1w_files_uncompressed) < 1:
                 logger.warning(f"Subject {subject}: No T1w images found")
                 return False
-            
-            logger.info(f"Using {len(t1w_files_uncompressed)} uncompressed NIfTI files for processing")
-            
+
+            logger.info(
+                f"Using {len(t1w_files_uncompressed)} uncompressed NIfTI files for processing"
+            )
+
             # Choose template based on number of timepoints
             if len(t1w_files_uncompressed) >= 2:
                 # Longitudinal processing (2+ timepoints)
-                template_path = Path(os.environ.get('SPMROOT')) / 'standalone' / 'cat_standalone_segment_long.m'
-                logger.info(f"{Fore.CYAN}📊 Using longitudinal template (multiple timepoints){Style.RESET_ALL}")
+                template_path = (
+                    Path(os.environ.get("SPMROOT"))
+                    / "standalone"
+                    / "cat_standalone_segment_long.m"
+                )
+                logger.info(
+                    f"{Fore.CYAN}📊 Using longitudinal template (multiple timepoints){Style.RESET_ALL}"
+                )
             else:
                 # Cross-sectional processing (1 timepoint)
-                template_path = Path(os.environ.get('SPMROOT')) / 'standalone' / 'cat_standalone_segment.m'
-                logger.info(f"{Fore.CYAN}📊 Using cross-sectional template (single timepoint){Style.RESET_ALL}")
-            
+                template_path = (
+                    Path(os.environ.get("SPMROOT"))
+                    / "standalone"
+                    / "cat_standalone_segment.m"
+                )
+                logger.info(
+                    f"{Fore.CYAN}📊 Using cross-sectional template (single timepoint){Style.RESET_ALL}"
+                )
+
             if not template_path.exists():
                 logger.error(f"CAT12 standalone template not found: {template_path}")
                 return False
-            
+
             logger.info(f"Using CAT12 template: {template_path}")
-            
+
             # Execute CAT12 processing with template and input files
-            success = self.cat12_processor.execute_script(template_path, t1w_files_uncompressed)
-            
+            success = self.cat12_processor.execute_script(
+                template_path, t1w_files_uncompressed
+            )
+
             if success:
                 logger.info(f"Successfully processed subject {subject}")
                 # Generate quality report
                 self._generate_quality_report(subject, subject_output_dir)
                 # Generate per-subject HTML boilerplate log
                 from utils.generate_boilerplate import main as boilerplate_main
+
                 # Compose CLI args for subject
-                subject_cli_args = cli_args if cli_args else 'N/A'
+                subject_cli_args = cli_args if cli_args else "N/A"
                 # Filter out empty session strings
                 valid_sessions = [s for s in sessions if s]
-                subject_sessions = ','.join(valid_sessions) if valid_sessions else 'cross-sectional'
+                subject_sessions = (
+                    ",".join(valid_sessions) if valid_sessions else "cross-sectional"
+                )
                 # Call boilerplate script for HTML only
                 args = [
-                    '--input-dir', str(self.bids_dir),
-                    '--output-dir', str(subject_output_dir),
-                    '--subjects', subject,
-                    '--sessions', subject_sessions,
-                    '--cli-args', subject_cli_args,
-                    '--config-path', config_path if config_path else '',
-                    '--spm-script', os.path.join(os.environ.get('SPMROOT', '/data/local/software/cat-12/external/cat12'), 'standalone', 'cat_standalone_segment.m')
+                    "--input-dir",
+                    str(self.bids_dir),
+                    "--output-dir",
+                    str(subject_output_dir),
+                    "--subjects",
+                    subject,
+                    "--sessions",
+                    subject_sessions,
+                    "--cli-args",
+                    subject_cli_args,
+                    "--config-path",
+                    config_path if config_path else "",
+                    "--spm-script",
+                    os.path.join(
+                        os.environ.get(
+                            "SPMROOT", "/data/local/software/cat-12/external/cat12"
+                        ),
+                        "standalone",
+                        "cat_standalone_segment.m",
+                    ),
                 ]
                 # Only write HTML for per-subject logs
-                sys.argv = ['generate_boilerplate.py'] + args
+                sys.argv = ["generate_boilerplate.py"] + args
                 # Patch: only write HTML file for subject logs
                 try:
                     boilerplate_main()
                 except Exception as e:
-                    logger.warning(f"Could not generate HTML boilerplate for subject {subject}: {e}")
+                    logger.warning(
+                        f"Could not generate HTML boilerplate for subject {subject}: {e}"
+                    )
             else:
                 logger.error(f"Failed to process subject {subject}")
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"Error processing subject {subject}: {e}")
             return False
-    
+
     def _generate_quality_report(self, subject: str, output_dir: Path):
         """Generate quality assessment report for processed subject."""
         try:
             # Look for CAT12 quality metrics
             qa_files = list(output_dir.glob("**/cat_*.xml"))
             if qa_files:
-                logger.info(f"Found {len(qa_files)} quality assessment files for {subject}")
+                logger.info(
+                    f"Found {len(qa_files)} quality assessment files for {subject}"
+                )
                 # Could implement detailed QA parsing here
             else:
                 logger.warning(f"No quality assessment files found for {subject}")
         except Exception as e:
             logger.error(f"Error generating quality report for {subject}: {e}")
-    
-    def process_all_subjects(self, participant_labels: Optional[List[str]] = None, 
-                           session_labels: Optional[List[str]] = None,
-                           run_preproc: bool = True,
-                           run_smooth_volume: bool = False,
-                           run_smooth_surface: bool = False,
-                           run_qa: bool = False,
-                           run_tiv: bool = False,
-                           run_roi: bool = False,
-                           subjects_dict: Optional[Dict[str, List[str]]] = None,
-                           cli_args: Optional[str] = None,
-                           config_path: Optional[str] = None) -> Dict[str, bool]:
+
+    def process_all_subjects(
+        self,
+        participant_labels: Optional[List[str]] = None,
+        session_labels: Optional[List[str]] = None,
+        run_preproc: bool = True,
+        run_smooth_volume: bool = False,
+        run_smooth_surface: bool = False,
+        run_qa: bool = False,
+        run_tiv: bool = False,
+        run_roi: bool = False,
+        subjects_dict: Optional[Dict[str, List[str]]] = None,
+        cli_args: Optional[str] = None,
+        config_path: Optional[str] = None,
+    ) -> Dict[str, bool]:
         """
         Process all subjects in the dataset with specified stages.
-        
+
         Args:
             participant_labels: Optional list of specific participants
             session_labels: Optional list of specific sessions
@@ -457,7 +527,7 @@ class BIDSLongitudinalProcessor:
             run_tiv: Run TIV estimation
             run_roi: Run ROI extraction
             subjects_dict: Optional pre-computed subjects dictionary (for --cross flag)
-            
+
         Returns:
             Dictionary mapping subject IDs to processing success status
         """
@@ -466,16 +536,20 @@ class BIDSLongitudinalProcessor:
             all_subjects = subjects_dict
         else:
             all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         if not all_subjects:
             logger.error("No subjects found!")
             return {}
-        
+
         # Filter by session if requested
         if session_labels:
             for subject in all_subjects:
-                all_subjects[subject] = [s for s in all_subjects[subject] if f"ses-{s}" in session_labels or s in session_labels]
-        
+                all_subjects[subject] = [
+                    s
+                    for s in all_subjects[subject]
+                    if f"ses-{s}" in session_labels or s in session_labels
+                ]
+
         results: Dict[str, bool] = {}
 
         # Create derivatives directory structure
@@ -484,297 +558,379 @@ class BIDSLongitudinalProcessor:
         subject_items = list(all_subjects.items())
 
         if run_preproc:
-            num_workers = max(1, int(self.config['cat12'].get('parallel_jobs', 1)))
+            num_workers = max(1, int(self.config["cat12"].get("parallel_jobs", 1)))
             if num_workers > 1 and len(subject_items) > 1:
-                logger.info(f"Running preprocessing with up to {num_workers} parallel jobs")
+                logger.info(
+                    f"Running preprocessing with up to {num_workers} parallel jobs"
+                )
                 with ThreadPoolExecutor(max_workers=num_workers) as executor:
                     future_map = {
-                        executor.submit(self.process_subject, subject, sessions, cli_args, config_path): subject
+                        executor.submit(
+                            self.process_subject,
+                            subject,
+                            sessions,
+                            cli_args,
+                            config_path,
+                        ): subject
                         for subject, sessions in subject_items
                     }
-                    with tqdm(total=len(future_map), desc="Processing subjects") as progress:
+                    with tqdm(
+                        total=len(future_map), desc="Processing subjects"
+                    ) as progress:
                         for future in as_completed(future_map):
                             subject = future_map[future]
                             try:
                                 results[subject] = future.result()
                             except Exception as exc:
-                                logger.error(f"Error processing subject {subject}: {exc}")
+                                logger.error(
+                                    f"Error processing subject {subject}: {exc}"
+                                )
                                 results[subject] = False
                             progress.update(1)
             else:
-                for subject, sessions in tqdm(subject_items, desc="Processing subjects"):
-                    success = self.process_subject(subject, sessions, cli_args, config_path)
+                for subject, sessions in tqdm(
+                    subject_items, desc="Processing subjects"
+                ):
+                    success = self.process_subject(
+                        subject, sessions, cli_args, config_path
+                    )
                     results[subject] = success
         else:
             for subject, _ in subject_items:
-                results[subject] = True  # Mark as successful if preprocessing is skipped
+                results[subject] = (
+                    True  # Mark as successful if preprocessing is skipped
+                )
 
         # Generate summary report
         self._generate_summary_report(results)
-        
+
         return results
-    
+
     def _create_derivatives_structure(self):
         """Create BIDS derivatives directory structure."""
         derivatives_dir = self.output_dir
         derivatives_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create dataset_description.json
         dataset_description = {
-            "Name": f"CAT12 Longitudinal Processing",
+            "Name": "CAT12 Longitudinal Processing",
             "BIDSVersion": "1.6.0",
             "GeneratedBy": [
                 {
                     "Name": "CAT12 Standalone",
                     "Version": "12.8",
-                    "CodeURL": "https://neuro-jena.github.io/cat12-help/"
+                    "CodeURL": "https://neuro-jena.github.io/cat12-help/",
                 }
             ],
-            "SourceDatasets": [
-                {
-                    "URL": str(self.bids_dir),
-                    "Version": "unknown"
-                }
-            ]
+            "SourceDatasets": [{"URL": str(self.bids_dir), "Version": "unknown"}],
         }
-        
-        with open(derivatives_dir / "dataset_description.json", 'w') as f:
+
+        with open(derivatives_dir / "dataset_description.json", "w") as f:
             json.dump(dataset_description, f, indent=2)
-    
+
     def _generate_summary_report(self, results: Dict[str, bool]):
         """Generate summary report of processing results."""
         successful = sum(results.values())
         total = len(results)
-        
+
         report = {
             "processing_date": datetime.now().isoformat(),
             "total_subjects": total,
             "successful_subjects": successful,
             "failed_subjects": total - successful,
             "success_rate": successful / total if total > 0 else 0,
-            "results": results
+            "results": results,
         }
-        
+
         # Save JSON report
-        with open(self.output_dir / "processing_summary.json", 'w') as f:
+        with open(self.output_dir / "processing_summary.json", "w") as f:
             json.dump(report, f, indent=2)
-        
+
         logger.info(f"Processing complete: {successful}/{total} subjects successful")
 
-
-    def smooth_volume_data(self, participant_labels: Optional[List[str]] = None, 
-                          fwhm: str = "6 6 6", prefix: str = "s"):
+    def smooth_volume_data(
+        self,
+        participant_labels: Optional[List[str]] = None,
+        fwhm: str = "6 6 6",
+        prefix: str = "s",
+    ):
         """
         Smooth volume data for all subjects.
-        
+
         Args:
             participant_labels: Optional list of specific participants
             fwhm: Smoothing kernel in mm (e.g., "6 6 6")
             prefix: Prefix for smoothed files
         """
         logger.info(f"Smoothing volume data with FWHM={fwhm}, prefix={prefix}")
-        
+
         all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         for subject in tqdm(all_subjects.keys(), desc="Smoothing volumes"):
             subject_dir = self.output_dir / f"sub-{subject}"
             mwp1_files = list(subject_dir.glob("**/mri/mwp1*.nii"))
-            
+
             if mwp1_files:
-                logger.info(f"Smoothing {len(mwp1_files)} GM files for subject {subject}")
+                logger.info(
+                    f"Smoothing {len(mwp1_files)} GM files for subject {subject}"
+                )
                 # TODO: Call CAT12 smoothing function
             else:
                 logger.warning(f"No volume files found for subject {subject}")
-    
-    def smooth_surface_data(self, participant_labels: Optional[List[str]] = None, 
-                           fwhm: str = "12"):
+
+    def smooth_surface_data(
+        self, participant_labels: Optional[List[str]] = None, fwhm: str = "12"
+    ):
         """
         Resample and smooth surface data for all subjects.
-        
+
         Args:
             participant_labels: Optional list of specific participants
             fwhm: Smoothing kernel in mm
         """
         logger.info(f"Resampling and smoothing surface data with FWHM={fwhm}")
-        
+
         all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         for subject in tqdm(all_subjects.keys(), desc="Smoothing surfaces"):
             subject_dir = self.output_dir / f"sub-{subject}"
             thickness_files = list(subject_dir.glob("**/surf/lh.thickness.*"))
-            
+
             if thickness_files:
-                logger.info(f"Smoothing {len(thickness_files)} surface files for subject {subject}")
+                logger.info(
+                    f"Smoothing {len(thickness_files)} surface files for subject {subject}"
+                )
                 # TODO: Call CAT12 resample function
             else:
                 logger.warning(f"No surface files found for subject {subject}")
-    
+
     def run_quality_assessment(self, participant_labels: Optional[List[str]] = None):
         """
         Run quality assessment for all subjects.
-        
+
         Args:
             participant_labels: Optional list of specific participants
         """
         logger.info("Running quality assessment")
-        
-        all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         # Volume QA
         volume_qa_file = self.output_dir / "quality_measures_volumes.csv"
         logger.info(f"Saving volume QA to: {volume_qa_file}")
-        
+
         # Surface QA
         surface_qa_file = self.output_dir / "quality_measures_surfaces.csv"
         logger.info(f"Saving surface QA to: {surface_qa_file}")
-        
+
         # Image quality rating (IQR)
         iqr_file = self.output_dir / "IQR.txt"
         logger.info(f"Saving IQR to: {iqr_file}")
-        
+
         # TODO: Call CAT12 QA functions
-    
+
     def estimate_tiv(self, participant_labels: Optional[List[str]] = None):
         """
         Estimate total intracranial volume (TIV) for all subjects.
-        
+
         Args:
             participant_labels: Optional list of specific participants
         """
         logger.info("Estimating TIV")
-        
-        all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         tiv_file = self.output_dir / "TIV.txt"
         logger.info(f"Saving TIV estimates to: {tiv_file}")
-        
+
         # TODO: Call CAT12 TIV estimation function
-    
+
     def extract_roi_values(self, participant_labels: Optional[List[str]] = None):
         """
         Extract ROI values for all subjects.
-        
+
         Args:
             participant_labels: Optional list of specific participants
         """
         logger.info("Extracting ROI values")
-        
-        all_subjects = self.identify_longitudinal_subjects(participant_labels)
-        
+
         roi_dir = self.output_dir / "roi_values"
         roi_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Saving ROI values to: {roi_dir}")
-        
+
         # TODO: Call CAT12 ROI extraction function
 
 
 @click.command()
-@click.argument('bids_dir', type=click.Path(exists=True, path_type=Path))
-@click.argument('output_dir', type=click.Path(path_type=Path))
-@click.argument('analysis_level', type=click.Choice(['participant', 'group']), default='participant')
-@click.option('--participant-label', multiple=True, help='Process specific participants (e.g., sub-01 or just 01)')
-@click.option('--session-label', multiple=True, help='Process specific sessions (e.g., 1, 2, or pre, post). Validates session existence.')
+@click.argument("bids_dir", type=click.Path(exists=True, path_type=Path))
+@click.argument("output_dir", type=click.Path(path_type=Path))
+@click.argument(
+    "analysis_level", type=click.Choice(["participant", "group"]), default="participant"
+)
+@click.option(
+    "--participant-label",
+    multiple=True,
+    help="Process specific participants (e.g., sub-01 or just 01)",
+)
+@click.option(
+    "--session-label",
+    multiple=True,
+    help="Process specific sessions (e.g., 1, 2, or pre, post). Validates session existence.",
+)
 # Processing stages (opt-in)
-@click.option('--preproc', is_flag=True, help='Run preprocessing/segmentation')
-@click.option('--smooth-volume', is_flag=True, help='Run volume data smoothing')
-@click.option('--smooth-surface', is_flag=True, help='Run surface data smoothing')
-@click.option('--qa', is_flag=True, help='Run quality assessment')
-@click.option('--tiv', is_flag=True, help='Estimate total intracranial volume (TIV)')
-@click.option('--roi', is_flag=True, help='Extract ROI values')
+@click.option("--preproc", is_flag=True, help="Run preprocessing/segmentation")
+@click.option("--smooth-volume", is_flag=True, help="Run volume data smoothing")
+@click.option("--smooth-surface", is_flag=True, help="Run surface data smoothing")
+@click.option("--qa", is_flag=True, help="Run quality assessment")
+@click.option("--tiv", is_flag=True, help="Estimate total intracranial volume (TIV)")
+@click.option("--roi", is_flag=True, help="Extract ROI values")
 # Processing options (opt-out)
-@click.option('--no-surface', is_flag=True, help='Skip surface extraction during preprocessing')
-@click.option('--no-validate', is_flag=True, help='Skip BIDS validation')
-@click.option('--no-cuda', is_flag=True, help='Disable CUDA/GPU acceleration')
+@click.option(
+    "--no-surface", is_flag=True, help="Skip surface extraction during preprocessing"
+)
+@click.option("--no-validate", is_flag=True, help="Skip BIDS validation")
+@click.option("--no-cuda", is_flag=True, help="Disable CUDA/GPU acceleration")
 # Smoothing parameters
-@click.option('--volume-fwhm', default='6 6 6', help='Volume smoothing kernel in mm (default: "6 6 6")')
-@click.option('--surface-fwhm', default='12', help='Surface smoothing kernel in mm (default: 12)')
-@click.option('--smooth-prefix', default='s', help='Prefix for smoothed files (default: "s")')
-@click.option('--config', type=click.Path(exists=True, path_type=Path), help='Configuration file')
-@click.option('--n-jobs', default=1, type=str, help='Number of parallel jobs (default: 1). Use "auto" to automatically set jobs based on available RAM (4GB/job, 16GB reserved for system).')
-@click.option('--work-dir', type=click.Path(path_type=Path), help='Work directory for temporary files')
-@click.option('--verbose', is_flag=True, help='Verbose output')
-@click.option('--log-dir', type=click.Path(path_type=Path), help='Directory to write log files (default: <output_dir>/logs)')
-@click.option('--pilot', is_flag=True, help='Process a single random participant for a pilot run')
-@click.option('--cross', is_flag=True, help='Force cross-sectional (use first available session per subject)')
-@click.option('--nohup', is_flag=True, help='Run in background with nohup (detaches from terminal, writes to nohup.out)')
-def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
-         preproc, smooth_volume, smooth_surface, qa, tiv, roi,
-         no_surface, no_validate, no_cuda,
-         volume_fwhm, surface_fwhm, smooth_prefix,
-         config, n_jobs, work_dir, verbose, log_dir, pilot, cross, nohup):
+@click.option(
+    "--volume-fwhm",
+    default="6 6 6",
+    help='Volume smoothing kernel in mm (default: "6 6 6")',
+)
+@click.option(
+    "--surface-fwhm", default="12", help="Surface smoothing kernel in mm (default: 12)"
+)
+@click.option(
+    "--smooth-prefix", default="s", help='Prefix for smoothed files (default: "s")'
+)
+@click.option(
+    "--config", type=click.Path(exists=True, path_type=Path), help="Configuration file"
+)
+@click.option(
+    "--n-jobs",
+    default=1,
+    type=str,
+    help='Number of parallel jobs (default: 1). Use "auto" to automatically set jobs based on available RAM (4GB/job, 16GB reserved for system).',
+)
+@click.option(
+    "--work-dir",
+    type=click.Path(path_type=Path),
+    help="Work directory for temporary files",
+)
+@click.option("--verbose", is_flag=True, help="Verbose output")
+@click.option(
+    "--log-dir",
+    type=click.Path(path_type=Path),
+    help="Directory to write log files (default: <output_dir>/logs)",
+)
+@click.option(
+    "--pilot", is_flag=True, help="Process a single random participant for a pilot run"
+)
+@click.option(
+    "--cross",
+    is_flag=True,
+    help="Force cross-sectional (use first available session per subject)",
+)
+@click.option(
+    "--nohup",
+    is_flag=True,
+    help="Run in background with nohup (detaches from terminal, writes to nohup.out)",
+)
+def main(
+    bids_dir,
+    output_dir,
+    analysis_level,
+    participant_label,
+    session_label,
+    preproc,
+    smooth_volume,
+    smooth_surface,
+    qa,
+    tiv,
+    roi,
+    no_surface,
+    no_validate,
+    no_cuda,
+    volume_fwhm,
+    surface_fwhm,
+    smooth_prefix,
+    config,
+    n_jobs,
+    work_dir,
+    verbose,
+    log_dir,
+    pilot,
+    cross,
+    nohup,
+):
     """
     CAT12 BIDS App for structural MRI preprocessing and analysis.
-    
+
     BIDS_DIR: Path to BIDS dataset directory
-    
+
     OUTPUT_DIR: Path to output derivatives directory
-    
+
     ANALYSIS_LEVEL: Level of analysis (participant or group)
-    
+
     \b
     Session Selection:
       - No --session-label: Process all sessions (auto-detect longitudinal/cross-sectional)
       - --session-label 2: Process only session 2 (cross-sectional)
       - --session-label 1 2: Process sessions 1 and 2 (can be longitudinal)
       - --cross: Use only first available session per subject (cross-sectional)
-    
+
     \b
     Parallelization:
       - --n-jobs N: Run N subjects in parallel (default: 1)
       - --n-jobs auto: Automatically set jobs based on available RAM (4GB/job, 16GB reserved for system)
         Example output: "[AUTO] Detected 128.0 GB RAM, reserving 16 GB for system, running 28 parallel CAT12 jobs."
-    
+
     \b
     Examples:
       # Preprocessing only (automatically detects longitudinal)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc
-      
+
       # Preprocessing without surface extraction
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --no-surface
-      
+
       # Process only session 2 (cross-sectional)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --session-label 2
-      
+
       # Force cross-sectional (use first available session per subject)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross
-      
+
       # Full pipeline: preproc + smoothing + QA + TIV
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume --qa --tiv
-      
+
       # Process specific participants
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --participant-label 01 02
-      
+
       # Pilot mode with cross-sectional
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross --pilot
-      
+
       # Auto parallel jobs
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --n-jobs auto
-      
+
       # Run in background (detached from terminal)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --qa --tiv --n-jobs auto --nohup
     """
     # Handle --nohup flag: restart in background with nohup
     if nohup:
         script_dir = Path(__file__).parent.absolute()
-        env_file = script_dir / '.env'
-        
+        env_file = script_dir / ".env"
+
         # Build command to re-run without --nohup flag
         cmd_args = sys.argv[1:]  # Get all arguments except script name
         # Remove --nohup from arguments
-        cmd_args = [arg for arg in cmd_args if arg != '--nohup']
-        
+        cmd_args = [arg for arg in cmd_args if arg != "--nohup"]
+
         # Build the full command with environment sourcing
         nohup_cmd = f"cd {script_dir} && source {env_file} && source .venv/bin/activate && nohup python {__file__} {' '.join(cmd_args)} > nohup.out 2>&1 &"
-        
-        print(f"🚀 Starting CAT12 processing in background...")
+
+        print("🚀 Starting CAT12 processing in background...")
         print(f"📝 Output will be written to: {script_dir}/nohup.out")
         print(f"💡 Monitor progress with: tail -f {script_dir}/nohup.out")
-        
+
         # Execute the command
-        subprocess.run(nohup_cmd, shell=True, executable='/bin/bash')
-        print(f"✅ Background process started!")
+        subprocess.run(nohup_cmd, shell=True, executable="/bin/bash")
+        print("✅ Background process started!")
         sys.exit(0)
-    
+
     # Ensure output and working directories exist
     output_dir.mkdir(parents=True, exist_ok=True)
     if work_dir:
@@ -782,11 +938,13 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
 
     # Set up logging
     log_level = logging.DEBUG if verbose else logging.INFO
-    resolved_log_dir = log_dir if log_dir else (output_dir / 'logs')
+    resolved_log_dir = log_dir if log_dir else (output_dir / "logs")
     log_file_path = setup_logging(log_level, log_dir=resolved_log_dir)
 
     logger.info(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
-    logger.info(f"{Fore.MAGENTA}🧠 CAT12 BIDS App - Structural MRI Processing{Style.RESET_ALL}")
+    logger.info(
+        f"{Fore.MAGENTA}🧠 CAT12 BIDS App - Structural MRI Processing{Style.RESET_ALL}"
+    )
     logger.info(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}📁 BIDS directory: {bids_dir}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}📂 Output directory: {output_dir}{Style.RESET_ALL}")
@@ -794,16 +952,20 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
         logger.info(f"{Fore.CYAN}🗂️ Working directory: {work_dir}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}🔬 Analysis level: {analysis_level}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}📝 Log file: {log_file_path}{Style.RESET_ALL}")
-    
+
     # Check if at least one processing stage is requested
     if not any([preproc, smooth_volume, smooth_surface, qa, tiv, roi]):
-        logger.error(f"{Fore.RED}❌ No processing stages specified! Use at least one of: --preproc, --smooth-volume, --smooth-surface, --qa, --tiv, --roi{Style.RESET_ALL}")
+        logger.error(
+            f"{Fore.RED}❌ No processing stages specified! Use at least one of: --preproc, --smooth-volume, --smooth-surface, --qa, --tiv, --roi{Style.RESET_ALL}"
+        )
         sys.exit(1)
-    
+
     # Log processing stages
     stages = []
     if preproc:
-        stages.append(f"Preprocessing{'(no surface)' if no_surface else '(with surface)'}")
+        stages.append(
+            f"Preprocessing{'(no surface)' if no_surface else '(with surface)'}"
+        )
     if smooth_volume:
         stages.append(f"Volume smoothing (FWHM={volume_fwhm})")
     if smooth_surface:
@@ -814,124 +976,163 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
         stages.append("TIV estimation")
     if roi:
         stages.append("ROI extraction")
-    
-    logger.info(f"{Fore.MAGENTA}🛠️  Processing stages: {', '.join(stages)}{Style.RESET_ALL}")
-    
+
+    logger.info(
+        f"{Fore.MAGENTA}🛠️  Processing stages: {', '.join(stages)}{Style.RESET_ALL}"
+    )
+
     # Initialize processor
     processor = BIDSLongitudinalProcessor(
-        bids_dir=bids_dir,
-        output_dir=output_dir,
-        config_file=config
+        bids_dir=bids_dir, output_dir=output_dir, config_file=config
     )
-    
+
     # Auto n_jobs calculation if requested
-    if isinstance(n_jobs, str) and n_jobs == 'auto':
+    if isinstance(n_jobs, str) and n_jobs == "auto":
         import psutil
+
         total_gb = psutil.virtual_memory().total / (1024**3)
         reserved_gb = 16
         per_job_gb = 4
         max_jobs = max(1, int((total_gb - reserved_gb) // per_job_gb))
-        print(f"[AUTO] Detected {total_gb:.1f} GB RAM, reserving {reserved_gb} GB for system, running {max_jobs} parallel CAT12 jobs.")
+        print(
+            f"[AUTO] Detected {total_gb:.1f} GB RAM, reserving {reserved_gb} GB for system, running {max_jobs} parallel CAT12 jobs."
+        )
         n_jobs = max_jobs
-    processor.config.setdefault('cat12', {})['surface_processing'] = not no_surface
-    processor.config['cat12']['parallel_jobs'] = n_jobs
-    processor.config.setdefault('system', {})['use_cuda'] = not no_cuda
+    processor.config.setdefault("cat12", {})["surface_processing"] = not no_surface
+    processor.config["cat12"]["parallel_jobs"] = n_jobs
+    processor.config.setdefault("system", {})["use_cuda"] = not no_cuda
     if work_dir:
-        processor.config['system']['work_dir'] = str(work_dir)
-    processor.config.setdefault('logging', {})['log_file'] = str(log_file_path)
-    
+        processor.config["system"]["work_dir"] = str(work_dir)
+    processor.config.setdefault("logging", {})["log_file"] = str(log_file_path)
+
     # Validate dataset if requested
     if not no_validate:
         if not processor.validate_dataset():
-            logger.error("BIDS validation failed! Use --no-validate to skip validation.")
+            logger.error(
+                "BIDS validation failed! Use --no-validate to skip validation."
+            )
             sys.exit(1)
-    
+
     # Convert participant labels (remove 'sub-' prefix if present)
     participant_labels = []
     # Add any --participant-label options
     if participant_label:
-        participant_labels.extend([f"sub-{p.replace('sub-', '')}" for p in participant_label])
+        participant_labels.extend(
+            [f"sub-{p.replace('sub-', '')}" for p in participant_label]
+        )
     if participant_labels:
         logger.info(f"Processing participants: {', '.join(participant_labels)}")
     else:
         participant_labels = None
-    
+
     # Convert session labels and validate
     session_labels = None
     if session_label:
-        session_labels = [s.replace('ses-', '') for s in session_label]
-        logger.info(f"{Fore.CYAN}📅 Requested sessions: {', '.join(session_labels)}{Style.RESET_ALL}")
-        
+        session_labels = [s.replace("ses-", "") for s in session_label]
+        logger.info(
+            f"{Fore.CYAN}📅 Requested sessions: {', '.join(session_labels)}{Style.RESET_ALL}"
+        )
+
         # Validate that requested sessions exist in the dataset
         available_sessions = set(processor.layout.get_sessions())
         requested_sessions = set(session_labels)
         invalid_sessions = requested_sessions - available_sessions
-        
+
         if invalid_sessions:
-            logger.error(f"{Fore.RED}❌ Invalid session(s): {', '.join(invalid_sessions)}{Style.RESET_ALL}")
-            logger.info(f"{Fore.CYAN}ℹ️  Available sessions in dataset: {', '.join(sorted(available_sessions))}{Style.RESET_ALL}")
+            logger.error(
+                f"{Fore.RED}❌ Invalid session(s): {', '.join(invalid_sessions)}{Style.RESET_ALL}"
+            )
+            logger.info(
+                f"{Fore.CYAN}ℹ️  Available sessions in dataset: {', '.join(sorted(available_sessions))}{Style.RESET_ALL}"
+            )
             sys.exit(1)
-    
+
     # Determine if data is longitudinal (automatically detected)
     if cross:
-        logger.info(f"{Fore.YELLOW}⚡ Forcing cross-sectional processing (--cross flag set){Style.RESET_ALL}")
+        logger.info(
+            f"{Fore.YELLOW}⚡ Forcing cross-sectional processing (--cross flag set){Style.RESET_ALL}"
+        )
         # Treat all subjects as cross-sectional - pick first available session
         all_subjects = processor.layout.get_subjects()
         if participant_labels:
             all_subjects = [s for s in all_subjects if f"sub-{s}" in participant_labels]
-        
+
         longitudinal_subjects = {}
         for subject in all_subjects:
             subject_sessions = processor.layout.get_sessions(subject=subject)
             if subject_sessions:
                 # If session_labels specified, use those; otherwise use first session
                 if session_labels:
-                    subject_sessions = [s for s in subject_sessions if s in session_labels]
+                    subject_sessions = [
+                        s for s in subject_sessions if s in session_labels
+                    ]
                 if subject_sessions:
-                    longitudinal_subjects[subject] = [subject_sessions[0]]  # Take first session only
+                    longitudinal_subjects[subject] = [
+                        subject_sessions[0]
+                    ]  # Take first session only
             else:
                 # No session subdirectories
-                longitudinal_subjects[subject] = ['']
-        
-        logger.info(f"{Fore.CYAN}📋 Found {len(longitudinal_subjects)} subjects (cross-sectional mode, 1 session per subject){Style.RESET_ALL}")
+                longitudinal_subjects[subject] = [""]
+
+        logger.info(
+            f"{Fore.CYAN}📋 Found {len(longitudinal_subjects)} subjects (cross-sectional mode, 1 session per subject){Style.RESET_ALL}"
+        )
     else:
-        longitudinal_subjects = processor.identify_longitudinal_subjects(participant_labels)
-        
+        longitudinal_subjects = processor.identify_longitudinal_subjects(
+            participant_labels
+        )
+
         # If session_labels specified, filter sessions
         if session_labels:
             filtered_subjects = {}
             for subject in longitudinal_subjects:
-                subject_sessions = [s for s in longitudinal_subjects[subject] if s in session_labels or s == '']
+                subject_sessions = [
+                    s
+                    for s in longitudinal_subjects[subject]
+                    if s in session_labels or s == ""
+                ]
                 if subject_sessions:
                     filtered_subjects[subject] = subject_sessions
                 else:
-                    logger.warning(f"{Fore.YELLOW}⚠️  Subject {subject} has no data for requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}")
-            
+                    logger.warning(
+                        f"{Fore.YELLOW}⚠️  Subject {subject} has no data for requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}"
+                    )
+
             longitudinal_subjects = filtered_subjects
             if not longitudinal_subjects:
-                logger.error(f"{Fore.RED}❌ No subjects found with requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}")
+                logger.error(
+                    f"{Fore.RED}❌ No subjects found with requested session(s): {', '.join(session_labels)}{Style.RESET_ALL}"
+                )
                 sys.exit(1)
-            
-            logger.info(f"{Fore.CYAN}📋 Filtered to {len(longitudinal_subjects)} subjects with requested sessions{Style.RESET_ALL}")
+
+            logger.info(
+                f"{Fore.CYAN}📋 Filtered to {len(longitudinal_subjects)} subjects with requested sessions{Style.RESET_ALL}"
+            )
 
     if pilot:
         if longitudinal_subjects:
             pilot_subject = random.choice(list(longitudinal_subjects.keys()))
             participant_labels = [f"sub-{pilot_subject}"]
             # Filter longitudinal_subjects to only include the pilot subject
-            longitudinal_subjects = {pilot_subject: longitudinal_subjects[pilot_subject]}
-            logger.info(f"{Fore.YELLOW}🎯 Pilot mode enabled: selected participant sub-{pilot_subject}{Style.RESET_ALL}")
+            longitudinal_subjects = {
+                pilot_subject: longitudinal_subjects[pilot_subject]
+            }
+            logger.info(
+                f"{Fore.YELLOW}🎯 Pilot mode enabled: selected participant sub-{pilot_subject}{Style.RESET_ALL}"
+            )
         else:
-            logger.warning(f"{Fore.YELLOW}⚠️ Pilot mode requested but no subjects were found.{Style.RESET_ALL}")
+            logger.warning(
+                f"{Fore.YELLOW}⚠️ Pilot mode requested but no subjects were found.{Style.RESET_ALL}"
+            )
             sys.exit(1)
 
-    if analysis_level == 'participant':
+    if analysis_level == "participant":
         # Run participant-level processing
         if preproc:
             logger.info("Running preprocessing stage...")
             # Compose CLI args string for boilerplate
-            cli_args_str = ' '.join(sys.argv)
-            config_path_str = str(config) if config else ''
+            cli_args_str = " ".join(sys.argv)
+            config_path_str = str(config) if config else ""
             results = processor.process_all_subjects(
                 participant_labels=participant_labels,
                 session_labels=session_labels,
@@ -943,72 +1144,99 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
                 run_roi=False,
                 subjects_dict=longitudinal_subjects,
                 cli_args=cli_args_str,
-                config_path=config_path_str
+                config_path=config_path_str,
             )
             # After all subjects processed, generate main boilerplate summary (Markdown)
             from utils.generate_boilerplate import main as boilerplate_main
+
             all_subjects_list = list(longitudinal_subjects.keys())
             all_sessions_list = []
             for subj in longitudinal_subjects:
                 all_sessions_list.extend(longitudinal_subjects[subj])
             # Filter out empty session strings
             valid_sessions = [s for s in all_sessions_list if s]
-            sessions_str = ','.join(valid_sessions) if valid_sessions else 'cross-sectional'
+            sessions_str = (
+                ",".join(valid_sessions) if valid_sessions else "cross-sectional"
+            )
             args = [
-                '--input-dir', str(bids_dir),
-                '--output-dir', str(output_dir),
-                '--subjects', ','.join(all_subjects_list),
-                '--sessions', sessions_str,
-                '--cli-args', cli_args_str,
-                '--config-path', config_path_str,
-                '--spm-script', os.path.join(os.environ.get('SPMROOT', '/data/local/software/cat-12/external/cat12'), 'standalone', 'cat_standalone_segment.m')
+                "--input-dir",
+                str(bids_dir),
+                "--output-dir",
+                str(output_dir),
+                "--subjects",
+                ",".join(all_subjects_list),
+                "--sessions",
+                sessions_str,
+                "--cli-args",
+                cli_args_str,
+                "--config-path",
+                config_path_str,
+                "--spm-script",
+                os.path.join(
+                    os.environ.get(
+                        "SPMROOT", "/data/local/software/cat-12/external/cat12"
+                    ),
+                    "standalone",
+                    "cat_standalone_segment.m",
+                ),
             ]
-            sys.argv = ['generate_boilerplate.py'] + args
+            sys.argv = ["generate_boilerplate.py"] + args
             try:
                 boilerplate_main()
             except Exception as e:
                 logger.warning(f"Could not generate main boilerplate summary: {e}")
-            
+
             # Check if any subjects were successfully processed
             successful_count = sum(1 for success in results.values() if success)
             if successful_count == 0:
-                logger.error(f"{Fore.RED}❌ No subjects were successfully processed!{Style.RESET_ALL}")
+                logger.error(
+                    f"{Fore.RED}❌ No subjects were successfully processed!{Style.RESET_ALL}"
+                )
                 sys.exit(1)
-        
+
         # Run additional stages on preprocessed data
         if smooth_volume:
             logger.info("Running volume smoothing stage...")
             processor.smooth_volume_data(
                 participant_labels=participant_labels,
                 fwhm=volume_fwhm,
-                prefix=smooth_prefix
+                prefix=smooth_prefix,
             )
-        
+
         if smooth_surface:
             logger.info("Running surface smoothing stage...")
             processor.smooth_surface_data(
-                participant_labels=participant_labels,
-                fwhm=surface_fwhm
+                participant_labels=participant_labels, fwhm=surface_fwhm
             )
-        
+
         if qa:
-            logger.info(f"{Fore.CYAN}🔎 Running quality assessment stage...{Style.RESET_ALL}")
+            logger.info(
+                f"{Fore.CYAN}🔎 Running quality assessment stage...{Style.RESET_ALL}"
+            )
             processor.run_quality_assessment(participant_labels=participant_labels)
-        
+
         if tiv:
-            logger.info(f"{Fore.CYAN}🧮 Running TIV estimation stage...{Style.RESET_ALL}")
+            logger.info(
+                f"{Fore.CYAN}🧮 Running TIV estimation stage...{Style.RESET_ALL}"
+            )
             processor.estimate_tiv(participant_labels=participant_labels)
-        
+
         if roi:
-            logger.info(f"{Fore.CYAN}📊 Running ROI extraction stage...{Style.RESET_ALL}")
+            logger.info(
+                f"{Fore.CYAN}📊 Running ROI extraction stage...{Style.RESET_ALL}"
+            )
             processor.extract_roi_values(participant_labels=participant_labels)
-        
-        logger.info(f"{Fore.GREEN}🏁 Participant-level processing completed{Style.RESET_ALL}")
-    
-    elif analysis_level == 'group':
-        logger.info(f"{Fore.MAGENTA}👥 Group-level analysis not yet implemented{Style.RESET_ALL}")
+
+        logger.info(
+            f"{Fore.GREEN}🏁 Participant-level processing completed{Style.RESET_ALL}"
+        )
+
+    elif analysis_level == "group":
+        logger.info(
+            f"{Fore.MAGENTA}👥 Group-level analysis not yet implemented{Style.RESET_ALL}"
+        )
         # Future: group statistics, visualization, etc.
-    
+
     logger.info(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
     logger.info(f"{Fore.GREEN}🎉 Processing completed successfully!{Style.RESET_ALL}")
     logger.info(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
@@ -1016,9 +1244,11 @@ def main(bids_dir, output_dir, analysis_level, participant_label, session_label,
 
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) == 1:
         # No arguments: show help and exit
         from click import Context
+
         ctx = Context(main)
         click.echo(main.get_help(ctx))
         sys.exit(0)

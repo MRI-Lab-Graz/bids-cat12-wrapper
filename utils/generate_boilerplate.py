@@ -2,6 +2,7 @@
 Generate a reproducible boilerplate summary for CAT12 BIDS processing runs.
 Outputs both Markdown and HTML files with system, software, and run details.
 """
+
 import os
 import sys
 import platform
@@ -11,23 +12,29 @@ import json
 import yaml
 from pathlib import Path
 
+
 def get_system_info():
     return {
         "os": platform.platform(),
         "python": sys.version.split()[0],
         "hostname": socket.gethostname(),
         "cpu": platform.processor(),
-        "ram_gb": round(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024.**3), 2)
+        "ram_gb": round(
+            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024.0**3), 2
+        ),
     }
+
 
 def get_spm_cat_version(spm_script):
     # Dummy implementation; replace with actual parsing if needed
     return "SPM12 (unknown)", "CAT12 (unknown)"
 
+
 def get_env_vars():
     keys = ["LD_LIBRARY_PATH", "SPM12_PATH", "CAT12_PATH", "SPMROOT"]
     env_dict = {k: os.environ.get(k, "not set") for k in keys}
-    return '\n'.join([f"{k}={v}" for k, v in env_dict.items()])
+    return "\n".join([f"{k}={v}" for k, v in env_dict.items()])
+
 
 def load_config(config_path):
     if not config_path or not os.path.exists(config_path):
@@ -39,6 +46,7 @@ def load_config(config_path):
         with open(config_path) as f:
             return yaml.safe_load(f)
     return {}
+
 
 def render_markdown(info):
     md = f"""# CAT12 BIDS Processing Boilerplate
@@ -83,6 +91,7 @@ def render_markdown(info):
 """
     return md
 
+
 def render_html(info):
     html = f"""
 <html><head><title>CAT12 BIDS Processing Boilerplate</title></head><body>
@@ -114,44 +123,56 @@ def render_html(info):
 """
     return html
 
+
 def render_markdown_with_log(info):
     md = render_markdown(info)
-    if info.get('cat12_log_summary'):
-        md += f"\n---\n**CAT12 Log Summary:**\n\n```\n{info['cat12_log_summary']}\n```\n"
+    if info.get("cat12_log_summary"):
+        md += (
+            f"\n---\n**CAT12 Log Summary:**\n\n```\n{info['cat12_log_summary']}\n```\n"
+        )
     return md
+
 
 def render_html_with_log(info):
     html = render_html(info)
-    if info.get('cat12_log_summary'):
+    if info.get("cat12_log_summary"):
         html += f"<hr><h2>CAT12 Log Summary</h2><pre>{info['cat12_log_summary']}</pre>"
     return html
 
+
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Generate CAT12 BIDS boilerplate summary.")
+
+    parser = argparse.ArgumentParser(
+        description="Generate CAT12 BIDS boilerplate summary."
+    )
     parser.add_argument("--input-dir", required=True)
     parser.add_argument("--output-dir", required=True)
-    parser.add_argument("--subjects", required=True, help="Comma-separated list of subject IDs")
-    parser.add_argument("--sessions", default="", help="Comma-separated list of session IDs")
+    parser.add_argument(
+        "--subjects", required=True, help="Comma-separated list of subject IDs"
+    )
+    parser.add_argument(
+        "--sessions", default="", help="Comma-separated list of session IDs"
+    )
     parser.add_argument("--cli-args", required=True)
     parser.add_argument("--config-path", default="")
     parser.add_argument("--spm-script", required=True)
     args = parser.parse_args()
 
     info = {}
-    info['date'] = datetime.datetime.now().isoformat()
-    info['system'] = get_system_info()
+    info["date"] = datetime.datetime.now().isoformat()
+    info["system"] = get_system_info()
     spm_version, cat_version = get_spm_cat_version(args.spm_script)
-    info['spm_version'] = spm_version
-    info['cat_version'] = cat_version
-    info['cli_args'] = args.cli_args
-    info['config_path'] = args.config_path if args.config_path else "default config"
-    info['config'] = load_config(args.config_path)
-    info['env_vars'] = get_env_vars()
-    info['input_dir'] = args.input_dir
-    info['output_dir'] = args.output_dir
-    info['subjects'] = args.subjects  # Already a string
-    info['sessions'] = args.sessions if args.sessions else 'N/A'
+    info["spm_version"] = spm_version
+    info["cat_version"] = cat_version
+    info["cli_args"] = args.cli_args
+    info["config_path"] = args.config_path if args.config_path else "default config"
+    info["config"] = load_config(args.config_path)
+    info["env_vars"] = get_env_vars()
+    info["input_dir"] = args.input_dir
+    info["output_dir"] = args.output_dir
+    info["subjects"] = args.subjects  # Already a string
+    info["sessions"] = args.sessions if args.sessions else "N/A"
 
     # Try to extract CAT12 log info
     log_path = os.path.join(args.output_dir, "cat12_stdout.log")
@@ -163,7 +184,12 @@ def main():
         block = []
         in_block = False
         for line in lines:
-            if ("SPM12" in line or "CAT12" in line or "MATLAB" in line or "Statistical Parametric Mapping" in line):
+            if (
+                "SPM12" in line
+                or "CAT12" in line
+                or "MATLAB" in line
+                or "Statistical Parametric Mapping" in line
+            ):
                 in_block = True
             if in_block:
                 block.append(line.rstrip())
@@ -173,10 +199,30 @@ def main():
         if block:
             log_summary = "\n".join(block)
         # Also extract timing lines and main steps
-        timing_lines = [l.rstrip() for l in lines if ("s" in l and any(kw in l for kw in ["registration", "denoising", "correction", "segmentation", "preprocessing", "estimation", "thickness"]))]
+        timing_lines = [
+            line.rstrip()
+            for line in lines
+            if (
+                "s" in line
+                and any(
+                    kw in line
+                    for kw in [
+                        "registration",
+                        "denoising",
+                        "correction",
+                        "segmentation",
+                        "preprocessing",
+                        "estimation",
+                        "thickness",
+                    ]
+                )
+            )
+        ]
         if timing_lines:
-            log_summary += "\n\n---\nCAT12 Processing Steps & Timing:\n" + "\n".join(timing_lines)
-    info['cat12_log_summary'] = log_summary
+            log_summary += "\n\n---\nCAT12 Processing Steps & Timing:\n" + "\n".join(
+                timing_lines
+            )
+    info["cat12_log_summary"] = log_summary
 
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     with open(os.path.join(args.output_dir, "boilerplate.md"), "w") as f:
@@ -184,6 +230,7 @@ def main():
     with open(os.path.join(args.output_dir, "boilerplate.html"), "w") as f:
         f.write(render_html_with_log(info))
     print(f"Boilerplate written to {args.output_dir}/boilerplate.md and .html")
+
 
 if __name__ == "__main__":
     main()
