@@ -601,6 +601,9 @@ class BIDSLongitudinalProcessor:
                     True  # Mark as successful if preprocessing is skipped
                 )
 
+        # Normalize output structure (move any nested sub-* folders up)
+        self._normalize_output_structure()
+
         # Generate summary report
         self._generate_summary_report(results)
 
@@ -627,6 +630,55 @@ class BIDSLongitudinalProcessor:
 
         with open(derivatives_dir / "dataset_description.json", "w") as f:
             json.dump(dataset_description, f, indent=2)
+
+    def _normalize_output_structure(self):
+        """
+        Normalize output structure by moving any subject folders found under
+        nested category folders (e.g. 'cross_sectional' or 'longitudinal') up
+        into the main output directory as `sub-<id>`.
+
+        This is a safety/compatibility step in case older code or external
+        scripts created categorized subdirectories. It will:
+        - move `sub-*` directories found under nested folders into `output_dir`
+        - merge contents if a destination subject folder already exists
+        - remove the now-empty category folders
+        """
+        try:
+            candidates = {"cross_sectional", "cross-sectional", "cross", "longitudinal"}
+            for child in list(self.output_dir.iterdir()):
+                if child.is_dir() and child.name.lower() in candidates:
+                    logger.info(f"Normalizing nested output folder: {child}")
+                    for sub in list(child.glob("sub-*")):
+                        dest = self.output_dir / sub.name
+                        if dest.exists():
+                            logger.info(f"Merging {sub} -> {dest}")
+                            # move contents of sub into dest, handling conflicts
+                            for item in list(sub.iterdir()):
+                                target = dest / item.name
+                                if target.exists():
+                                    # If a file/folder already exists, rename the moved item to avoid overwrite
+                                    new_name = f"{item.name}.from_{child.name}"
+                                    logger.warning(f"Conflict moving {item} to {target}; renaming to {new_name}")
+                                    shutil.move(str(item), str(dest / new_name))
+                                else:
+                                    shutil.move(str(item), str(target))
+                            # attempt to remove the now-empty subject dir
+                            try:
+                                sub.rmdir()
+                            except Exception:
+                                pass
+                        else:
+                            logger.info(f"Moving {sub} -> {dest}")
+                            shutil.move(str(sub), str(dest))
+
+                    # remove category folder if empty
+                    try:
+                        child.rmdir()
+                        logger.info(f"Removed empty folder: {child}")
+                    except Exception:
+                        logger.debug(f"Could not remove folder (not empty): {child}")
+        except Exception as e:
+            logger.warning(f"Failed to normalize output structure: {e}")
 
     def _generate_summary_report(self, results: Dict[str, bool]):
         """Generate summary report of processing results."""
@@ -1008,6 +1060,8 @@ def main(
     """
     # Handle --nohup flag: restart in background with nohup
     if nohup:
+        import shlex
+
         script_dir = Path(__file__).parent.absolute()
         env_file = script_dir / ".env"
 
@@ -1016,8 +1070,11 @@ def main(
         # Remove --nohup from arguments
         cmd_args = [arg for arg in cmd_args if arg != "--nohup"]
 
+        # Properly quote arguments to preserve spaces within quoted strings
+        quoted_args = " ".join(shlex.quote(arg) for arg in cmd_args)
+
         # Build the full command with environment sourcing
-        nohup_cmd = f"cd {script_dir} && source {env_file} && source .venv/bin/activate && nohup python {__file__} {' '.join(cmd_args)} > nohup.out 2>&1 &"
+        nohup_cmd = f"cd {script_dir} && source {env_file} && source .venv/bin/activate && nohup python {__file__} {quoted_args} > nohup.out 2>&1 &"
 
         print("🚀 Starting CAT12 processing in background...")
         print(f"📝 Output will be written to: {script_dir}/nohup.out")
