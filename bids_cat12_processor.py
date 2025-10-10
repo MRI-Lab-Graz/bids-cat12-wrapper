@@ -92,6 +92,7 @@ def setup_logging(
         console_handler.setFormatter(logging.Formatter("%(message)s"))
         handlers.append(console_handler)
 
+    for handler in handlers:
         root_logger.addHandler(handler)
 
     root_logger.setLevel(log_level)
@@ -650,58 +651,151 @@ class BIDSLongitudinalProcessor:
     def smooth_volume_data(
         self,
         participant_labels: Optional[List[str]] = None,
-        fwhm: str = "6 6 6",
-        prefix: str = "s",
+        fwhm_list: Optional[List[float]] = None,
     ):
         """
-        Smooth volume data for all subjects.
+        Smooth volume data for all subjects with multiple FWHM kernels.
 
         Args:
             participant_labels: Optional list of specific participants
-            fwhm: Smoothing kernel in mm (e.g., "6 6 6")
-            prefix: Prefix for smoothed files
+            fwhm_list: List of smoothing kernels in mm (e.g., [6, 8, 10])
+
+        Returns:
+            Dict mapping (subject, fwhm) to success status
         """
-        logger.info(f"Smoothing volume data with FWHM={fwhm}, prefix={prefix}")
+        if fwhm_list is None:
+            fwhm_list = [6.0]
 
         all_subjects = self.identify_longitudinal_subjects(participant_labels)
+        smoothing_results = {}
 
-        for subject in tqdm(all_subjects.keys(), desc="Smoothing volumes"):
-            subject_dir = self.output_dir / f"sub-{subject}"
-            mwp1_files = list(subject_dir.glob("**/mri/mwp1*.nii"))
+        for fwhm in fwhm_list:
+            # Create isotropic kernel string for CAT12
+            fwhm_str = f"{fwhm} {fwhm} {fwhm}"
+            prefix = f"s{int(fwhm)}"
 
-            if mwp1_files:
-                logger.info(
-                    f"Smoothing {len(mwp1_files)} GM files for subject {subject}"
-                )
-                # TODO: Call CAT12 smoothing function
-            else:
-                logger.warning(f"No volume files found for subject {subject}")
+            logger.info(
+                f"Smoothing volume data with FWHM={fwhm_str}mm, prefix={prefix}"
+            )
+
+            for subject in tqdm(
+                all_subjects.keys(), desc=f"Smoothing volumes ({fwhm}mm)"
+            ):
+                subject_dir = self.output_dir / f"sub-{subject}"
+                mwp1_files = list(subject_dir.glob("**/mri/mwp1*.nii"))
+
+                if mwp1_files:
+                    logger.info(
+                        f"Smoothing {len(mwp1_files)} GM files for subject {subject} with {fwhm}mm kernel"
+                    )
+
+                    # Call CAT12 smoothing function
+                    success = self.cat12_processor.smooth_volume(
+                        input_files=[str(f) for f in mwp1_files],
+                        fwhm=[fwhm, fwhm, fwhm],  # isotropic kernel
+                        prefix=prefix,
+                    )
+
+                    if not success:
+                        logger.error(f"Failed to smooth files for subject {subject}")
+                        smoothing_results[(subject, fwhm)] = False
+                        continue
+
+                    # After smoothing, verify output files exist
+                    expected_smooth_files = list(
+                        subject_dir.glob(f"**/mri/{prefix}mwp1*.nii")
+                    )
+                    if expected_smooth_files:
+                        logger.info(
+                            f"{Fore.GREEN}✓ Created {len(expected_smooth_files)} smoothed files for {subject} with {fwhm}mm kernel{Style.RESET_ALL}"
+                        )
+                        smoothing_results[(subject, fwhm)] = True
+                    else:
+                        logger.error(
+                            f"{Fore.RED}✗ No smoothed files found for {subject} with {fwhm}mm kernel (expected pattern: {prefix}mwp1*.nii){Style.RESET_ALL}"
+                        )
+                        smoothing_results[(subject, fwhm)] = False
+                else:
+                    logger.warning(f"No volume files found for subject {subject}")
+                    smoothing_results[(subject, fwhm)] = False
+
+        return smoothing_results
 
     def smooth_surface_data(
-        self, participant_labels: Optional[List[str]] = None, fwhm: str = "12"
+        self,
+        participant_labels: Optional[List[str]] = None,
+        fwhm_list: Optional[List[float]] = None,
     ):
         """
-        Resample and smooth surface data for all subjects.
+        Resample and smooth surface data for all subjects with multiple FWHM kernels.
 
         Args:
             participant_labels: Optional list of specific participants
-            fwhm: Smoothing kernel in mm
+            fwhm_list: List of smoothing kernels in mm (e.g., [12, 15, 20])
+
+        Returns:
+            Dict mapping (subject, fwhm) to success status
         """
-        logger.info(f"Resampling and smoothing surface data with FWHM={fwhm}")
+        if fwhm_list is None:
+            fwhm_list = [12.0]
 
         all_subjects = self.identify_longitudinal_subjects(participant_labels)
+        smoothing_results = {}
 
-        for subject in tqdm(all_subjects.keys(), desc="Smoothing surfaces"):
-            subject_dir = self.output_dir / f"sub-{subject}"
-            thickness_files = list(subject_dir.glob("**/surf/lh.thickness.*"))
+        for fwhm in fwhm_list:
+            prefix = f"s{int(fwhm)}"
+            logger.info(
+                f"Resampling and smoothing surface data with FWHM={fwhm}mm, prefix={prefix}"
+            )
 
-            if thickness_files:
-                logger.info(
-                    f"Smoothing {len(thickness_files)} surface files for subject {subject}"
-                )
-                # TODO: Call CAT12 resample function
-            else:
-                logger.warning(f"No surface files found for subject {subject}")
+            for subject in tqdm(
+                all_subjects.keys(), desc=f"Smoothing surfaces ({fwhm}mm)"
+            ):
+                subject_dir = self.output_dir / f"sub-{subject}"
+                thickness_files = list(subject_dir.glob("**/surf/lh.thickness.*"))
+
+                if thickness_files:
+                    logger.info(
+                        f"Smoothing {len(thickness_files)} surface files for subject {subject} with {fwhm}mm kernel"
+                    )
+
+                    # Call CAT12 resample and smooth function
+                    success = self.cat12_processor.resample_and_smooth_surface(
+                        lh_thickness_files=[str(f) for f in thickness_files],
+                        fwhm=fwhm,
+                        mesh_size=1,  # 32k HCP mesh
+                    )
+
+                    if not success:
+                        logger.error(
+                            f"Failed to smooth surface files for subject {subject}"
+                        )
+                        smoothing_results[(subject, fwhm)] = False
+                        continue
+
+                    # After smoothing, verify output files exist
+                    # CAT12 creates files like: s12.mesh.thickness.resampled_32k.*
+                    expected_files = list(
+                        subject_dir.glob(
+                            f"**/surf/{prefix}.mesh.thickness.resampled_32k.*"
+                        )
+                    )
+
+                    if expected_files:
+                        logger.info(
+                            f"{Fore.GREEN}✓ Created {len(expected_files)} smoothed surface files for {subject} with {fwhm}mm kernel{Style.RESET_ALL}"
+                        )
+                        smoothing_results[(subject, fwhm)] = True
+                    else:
+                        logger.error(
+                            f"{Fore.RED}✗ No smoothed surface files found for {subject} with {fwhm}mm kernel (expected pattern: {prefix}.mesh.thickness.resampled_32k.*){Style.RESET_ALL}"
+                        )
+                        smoothing_results[(subject, fwhm)] = False
+                else:
+                    logger.warning(f"No surface files found for subject {subject}")
+                    smoothing_results[(subject, fwhm)] = False
+
+        return smoothing_results
 
     def run_quality_assessment(self, participant_labels: Optional[List[str]] = None):
         """
@@ -774,8 +868,20 @@ class BIDSLongitudinalProcessor:
 )
 # Processing stages (opt-in)
 @click.option("--preproc", is_flag=True, help="Run preprocessing/segmentation")
-@click.option("--smooth-volume", is_flag=True, help="Run volume data smoothing")
-@click.option("--smooth-surface", is_flag=True, help="Run surface data smoothing")
+@click.option(
+    "--smooth-volume",
+    "smooth_volume",
+    type=str,
+    default=None,
+    help='Run volume data smoothing with specified FWHM kernel(s) in mm. Provide space-separated values (e.g., --smooth-volume "6 8 10"). Defaults to 6mm if flag used without values.',
+)
+@click.option(
+    "--smooth-surface",
+    "smooth_surface",
+    type=str,
+    default=None,
+    help='Run surface data smoothing with specified FWHM kernel(s) in mm. Provide space-separated values (e.g., --smooth-surface "12 15 20"). Defaults to 12mm if flag used without values.',
+)
 @click.option("--qa", is_flag=True, help="Run quality assessment")
 @click.option("--tiv", is_flag=True, help="Estimate total intracranial volume (TIV)")
 @click.option("--roi", is_flag=True, help="Extract ROI values")
@@ -784,18 +890,6 @@ class BIDSLongitudinalProcessor:
     "--no-surface", is_flag=True, help="Skip surface extraction during preprocessing"
 )
 @click.option("--no-validate", is_flag=True, help="Skip BIDS validation")
-# Smoothing parameters
-@click.option(
-    "--volume-fwhm",
-    default="6 6 6",
-    help='Volume smoothing kernel in mm (default: "6 6 6")',
-)
-@click.option(
-    "--surface-fwhm", default="12", help="Surface smoothing kernel in mm (default: 12)"
-)
-@click.option(
-    "--smooth-prefix", default="s", help='Prefix for smoothed files (default: "s")'
-)
 @click.option(
     "--config", type=click.Path(exists=True, path_type=Path), help="Configuration file"
 )
@@ -843,9 +937,6 @@ def main(
     roi,
     no_surface,
     no_validate,
-    volume_fwhm,
-    surface_fwhm,
-    smooth_prefix,
     config,
     n_jobs,
     work_dir,
@@ -891,8 +982,17 @@ def main(
       # Force cross-sectional (use first available session per subject)
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross
 
-      # Full pipeline: preproc + smoothing + QA + TIV
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume --qa --tiv
+      # Full pipeline: preproc + smoothing (default 6mm for volume, 12mm for surface) + QA + TIV
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 --smooth-surface 12 --qa --tiv
+
+      # Multiple smoothing kernels (creates s6, s8, s10 prefixed files)
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10
+
+      # Surface smoothing with multiple kernels
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-surface 12 15 20
+
+      # Both volume and surface with multiple kernels
+      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10 --smooth-surface 12 15
 
       # Process specific participants
       bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --participant-label 01 02
@@ -957,6 +1057,27 @@ def main(
         )
         sys.exit(1)
 
+    # Parse smoothing kernel values
+    volume_fwhm_list = None
+    if smooth_volume:
+        try:
+            volume_fwhm_list = [float(x) for x in smooth_volume.split()]
+        except ValueError:
+            logger.error(
+                f"{Fore.RED}❌ Invalid --smooth-volume values: {smooth_volume}. Expected space-separated numbers.{Style.RESET_ALL}"
+            )
+            sys.exit(1)
+
+    surface_fwhm_list = None
+    if smooth_surface:
+        try:
+            surface_fwhm_list = [float(x) for x in smooth_surface.split()]
+        except ValueError:
+            logger.error(
+                f"{Fore.RED}❌ Invalid --smooth-surface values: {smooth_surface}. Expected space-separated numbers.{Style.RESET_ALL}"
+            )
+            sys.exit(1)
+
     # Log processing stages
     stages = []
     if preproc:
@@ -964,9 +1085,11 @@ def main(
             f"Preprocessing{'(no surface)' if no_surface else '(with surface)'}"
         )
     if smooth_volume:
-        stages.append(f"Volume smoothing (FWHM={volume_fwhm})")
+        fwhm_str = ", ".join(f"{int(f)}mm" for f in volume_fwhm_list)
+        stages.append(f"Volume smoothing ({fwhm_str})")
     if smooth_surface:
-        stages.append(f"Surface smoothing (FWHM={surface_fwhm})")
+        fwhm_str = ", ".join(f"{int(f)}mm" for f in surface_fwhm_list)
+        stages.append(f"Surface smoothing ({fwhm_str})")
     if qa:
         stages.append("Quality assessment")
     if tiv:
@@ -1193,17 +1316,58 @@ def main(
         # Run additional stages on preprocessed data
         if smooth_volume:
             logger.info("Running volume smoothing stage...")
-            processor.smooth_volume_data(
+            volume_smooth_results = processor.smooth_volume_data(
                 participant_labels=participant_labels,
-                fwhm=volume_fwhm,
-                prefix=smooth_prefix,
+                fwhm_list=volume_fwhm_list,
             )
+
+            # Report volume smoothing results
+            successful = sum(1 for success in volume_smooth_results.values() if success)
+            total = len(volume_smooth_results)
+            if successful < total:
+                logger.warning(
+                    f"{Fore.YELLOW}⚠️  Volume smoothing: {successful}/{total} operations successful{Style.RESET_ALL}"
+                )
+                failed_items = [
+                    f"sub-{subj} ({fwhm}mm)"
+                    for (subj, fwhm), success in volume_smooth_results.items()
+                    if not success
+                ]
+                logger.warning(
+                    f"{Fore.YELLOW}Failed: {', '.join(failed_items)}{Style.RESET_ALL}"
+                )
+            else:
+                logger.info(
+                    f"{Fore.GREEN}✓ Volume smoothing completed successfully for all subjects and kernels{Style.RESET_ALL}"
+                )
 
         if smooth_surface:
             logger.info("Running surface smoothing stage...")
-            processor.smooth_surface_data(
-                participant_labels=participant_labels, fwhm=surface_fwhm
+            surface_smooth_results = processor.smooth_surface_data(
+                participant_labels=participant_labels, fwhm_list=surface_fwhm_list
             )
+
+            # Report surface smoothing results
+            successful = sum(
+                1 for success in surface_smooth_results.values() if success
+            )
+            total = len(surface_smooth_results)
+            if successful < total:
+                logger.warning(
+                    f"{Fore.YELLOW}⚠️  Surface smoothing: {successful}/{total} operations successful{Style.RESET_ALL}"
+                )
+                failed_items = [
+                    f"sub-{subj} ({fwhm}mm)"
+                    for (subj, fwhm), success in surface_smooth_results.items()
+                    if not success
+                ]
+                logger.warning(
+                    f"{Fore.YELLOW}Failed: {', '.join(failed_items)}{Style.RESET_ALL}"
+                )
+            else:
+                logger.info(
+                    f"{Fore.GREEN}✓ Surface smoothing completed successfully for all subjects and kernels{Style.RESET_ALL}"
+                )
 
         if qa:
             logger.info(

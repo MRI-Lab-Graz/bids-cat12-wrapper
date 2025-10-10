@@ -396,6 +396,134 @@ class CAT12Processor:
             logger.error(f"Error executing CAT12 script: {e}")
             return False
 
+    def smooth_volume(
+        self, input_files: List[str], fwhm: List[float], prefix: str
+    ) -> bool:
+        """
+        Smooth volume data using CAT12 standalone.
+
+        Args:
+            input_files: List of volume files to smooth (e.g., mwp1*.nii)
+            fwhm: FWHM smoothing kernel as list [x, y, z] in mm
+            prefix: Prefix for output files (e.g., 's6')
+
+        Returns:
+            True if smoothing successful
+
+        Example:
+            smooth_volume(['/path/mwp1file.nii'], [6, 6, 6], 's6')
+        """
+        try:
+            logger.info(f"Smoothing {len(input_files)} volume files with FWHM={fwhm}mm")
+
+            # Prepare command
+            cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
+            smooth_script = os.path.join(self.cat12_root, "cat_standalone_smooth.m")
+
+            # Format FWHM as MATLAB array: [6 6 6]
+            fwhm_str = f"[{' '.join(str(f) for f in fwhm)}]"
+
+            # Build command: cat_standalone.sh -m MCR -b script.m files -a1 "[6 6 6]" -a2 "'s6'"
+            cmd = [cat12_cmd, "-m", self.mcr_root, "-b", smooth_script]
+            cmd.extend(input_files)
+            cmd.extend(["-a1", fwhm_str, "-a2", f"'{prefix}'"])
+
+            # Set up environment
+            env = os.environ.copy()
+            env["LD_LIBRARY_PATH"] = self._get_ld_library_path()
+            if self.threads_per_job:
+                env["OMP_NUM_THREADS"] = str(self.threads_per_job)
+
+            logger.debug("CAT12 smooth command: %s", " ".join(cmd))
+
+            # Execute
+            result = subprocess.run(
+                cmd,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_seconds,
+            )
+
+            if result.returncode == 0:
+                logger.info("Volume smoothing completed successfully")
+                return True
+            else:
+                logger.error(f"Volume smoothing failed: {result.stderr}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            logger.error(f"Volume smoothing timed out after {self.timeout_seconds}s")
+            return False
+        except Exception as e:
+            logger.error(f"Error smoothing volumes: {e}", exc_info=True)
+            return False
+
+    def resample_and_smooth_surface(
+        self, lh_thickness_files: List[str], fwhm: float, mesh_size: int = 1
+    ) -> bool:
+        """
+        Resample and smooth surface data using CAT12 standalone.
+
+        Args:
+            lh_thickness_files: List of left hemisphere thickness files (e.g., lh.thickness.*)
+                               Right hemisphere is processed automatically
+            fwhm: FWHM smoothing kernel in mm (e.g., 12)
+            mesh_size: Mesh size (0=no resampling, 1=32k HCP, 2=164k)
+
+        Returns:
+            True if resampling/smoothing successful
+
+        Example:
+            resample_and_smooth_surface(['/path/lh.thickness.file'], 12, 1)
+        """
+        try:
+            logger.info(
+                f"Resampling and smoothing {len(lh_thickness_files)} surface files with FWHM={fwhm}mm"
+            )
+
+            # Prepare command
+            cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
+            resample_script = os.path.join(self.cat12_root, "cat_standalone_resample.m")
+
+            # Build command: cat_standalone.sh -m MCR -b script.m files -a1 "12" -a2 "1"
+            cmd = [cat12_cmd, "-m", self.mcr_root, "-b", resample_script]
+            cmd.extend(lh_thickness_files)
+            cmd.extend(["-a1", str(fwhm), "-a2", str(mesh_size)])
+
+            # Set up environment
+            env = os.environ.copy()
+            env["LD_LIBRARY_PATH"] = self._get_ld_library_path()
+            if self.threads_per_job:
+                env["OMP_NUM_THREADS"] = str(self.threads_per_job)
+
+            logger.debug("CAT12 resample command: %s", " ".join(cmd))
+
+            # Execute
+            result = subprocess.run(
+                cmd,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_seconds,
+            )
+
+            if result.returncode == 0:
+                logger.info("Surface resampling and smoothing completed successfully")
+                return True
+            else:
+                logger.error(f"Surface resampling/smoothing failed: {result.stderr}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            logger.error(
+                f"Surface resampling/smoothing timed out after {self.timeout_seconds}s"
+            )
+            return False
+        except Exception as e:
+            logger.error(f"Error resampling/smoothing surfaces: {e}", exc_info=True)
+            return False
+
     def _get_ld_library_path(self) -> str:
         """Get LD_LIBRARY_PATH for MATLAB Runtime."""
         mcr_paths = [
