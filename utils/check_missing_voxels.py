@@ -48,6 +48,10 @@ def parse_args():
     p.add_argument('--threshold', type=float, default=0.05, help='Fraction threshold to mark voxel as missing/excluded (default: 0.05)')
     p.add_argument('--fail-if-pct-excluded', type=float, default=None,
                    help='Exit with non-zero status if overall excluded voxels percentage exceeds this value (percent, e.g. 10)')
+    p.add_argument('--gm-mask', type=str, default=None,
+                   help='Path to a GM mask NIfTI. If provided, calculations are restricted to voxels inside this mask.')
+    p.add_argument('--require-gm-mask', action='store_true',
+                   help='Fail if a GM mask cannot be found or does not match the image grid.')
     return p.parse_args()
 
 
@@ -159,6 +163,38 @@ def main():
     data_shape = img0.shape
     affine = img0.affine if hasattr(img0, 'affine') else None
 
+    # Attempt to load a GM mask if requested or available in templates/
+    gm_mask_arr = None
+    gm_mask_path = None
+    if getattr(args, 'gm_mask', None):
+        gm_mask_path = args.gm_mask
+    else:
+        # prefer a repository template if present
+        default_template = os.path.join('templates', 'brainmask_GMtight.nii')
+        if os.path.exists(default_template):
+            gm_mask_path = default_template
+
+    if gm_mask_path is not None:
+        try:
+            gm_img = nb.load(gm_mask_path)
+            gm_mask_arr = gm_img.get_fdata(dtype=np.float32) != 0
+            if gm_mask_arr.shape != data_shape:
+                print(f'Warning: GM mask shape {gm_mask_arr.shape} != image data shape {data_shape}')
+                if getattr(args, 'require_gm_mask', False):
+                    print('ERROR: require-gm-mask is set but mask shape mismatches image template. Aborting.')
+                    return 1
+                else:
+                    print('Ignoring GM mask due to shape mismatch and continuing with whole-image calculations')
+                    gm_mask_arr = None
+            else:
+                print(f'Using GM mask: {gm_mask_path} (restricting calculations to mask voxels)')
+        except Exception as e:
+            print(f'Warning: failed to load GM mask {gm_mask_path}: {e}')
+            if getattr(args, 'require_gm_mask', False):
+                print('ERROR: require-gm-mask is set but GM mask could not be loaded. Aborting.')
+                return 1
+            gm_mask_arr = None
+
     # We'll accumulate a count of NaNs per voxel across images
     voxel_count = np.zeros(data_shape, dtype=np.int32)
     total = 0
@@ -196,9 +232,17 @@ def main():
     frac_missing = voxel_count.astype(np.float32) / float(total)
     exclude_mask = frac_missing > thresh
 
-    n_voxels = np.prod(data_shape)
-    n_excluded = int(exclude_mask.sum())
-    pct_excluded = 100.0 * n_excluded / float(n_voxels)
+    # If a GM mask is available, restrict exclusion stats and the saved mask to that region
+    if gm_mask_arr is not None:
+        n_voxels = int(gm_mask_arr.sum())
+        # restrict exclude_mask and subject masks to GM
+        exclude_mask = np.logical_and(exclude_mask, gm_mask_arr)
+        n_excluded = int(exclude_mask.sum())
+        pct_excluded = 100.0 * n_excluded / float(n_voxels) if n_voxels > 0 else 0.0
+    else:
+        n_voxels = int(np.prod(data_shape))
+        n_excluded = int(exclude_mask.sum())
+        pct_excluded = 100.0 * n_excluded / float(n_voxels)
 
     summary = {
         'n_images': int(total),
@@ -231,8 +275,10 @@ def main():
             writer = csv.writer(fh)
             writer.writerow(['subject', 'n_images', 'n_voxels_missing_any', 'pct_voxels_missing_any'])
             for subj, mask in sorted(subj_masks.items()):
+                if gm_mask_arr is not None:
+                    mask = np.logical_and(mask, gm_mask_arr)
                 n_missing = int(mask.sum())
-                pct = 100.0 * n_missing / float(n_voxels)
+                pct = 100.0 * n_missing / float(n_voxels) if n_voxels > 0 else 0.0
                 writer.writerow([subj, int(subj_counts.get(subj, 0)), n_missing, round(pct, 4)])
         print('✓ Written per-subject missing CSV to', subj_csv)
     except Exception as e:

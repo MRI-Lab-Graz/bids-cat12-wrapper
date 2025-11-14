@@ -543,12 +543,25 @@ fi
 # consistent across analyses.
 
 MASK_FILE=""
-TEMPLATE_MASK="$STATS_DIR/templates/brainmask_GMtight.nii"
+# Determine the template/GM mask to use. Allow override from config.ini via
+# MASKING.gm_mask (can be an absolute path or relative to the repo root).
+GM_MASK_CONFIG=$(get_ini_value "MASKING" "gm_mask" "")
+if [[ -n "$GM_MASK_CONFIG" ]]; then
+    if [[ "$GM_MASK_CONFIG" = /* ]]; then
+        TEMPLATE_MASK="$GM_MASK_CONFIG"
+    else
+        TEMPLATE_MASK="$STATS_DIR/$GM_MASK_CONFIG"
+    fi
+else
+    TEMPLATE_MASK="$STATS_DIR/templates/brainmask_GMtight.nii"
+fi
+
 if [[ -f "$TEMPLATE_MASK" ]]; then
-    echo "Using repo template mask: $TEMPLATE_MASK"
+    echo "Using GM mask: $TEMPLATE_MASK"
     MASK_FILE="$TEMPLATE_MASK"
 else
-    echo "No repo template mask found at $TEMPLATE_MASK — running without an explicit mask"
+    echo "No GM mask found at $TEMPLATE_MASK — running without an explicit mask"
+    MASK_FILE=""
 fi
 
 
@@ -620,13 +633,17 @@ echo ""
 echo "Running missing-voxel diagnostics (this is fast)"
 # Read optional failure threshold from config.ini (empty disables failure)
 MISSING_FAIL_PCT=$(get_ini_value "TFCE" "missing_fail_pct" "")
+GM_MASK_ARG=""
+if [[ -n "$MASK_FILE" ]]; then
+    GM_MASK_ARG="--gm-mask $MASK_FILE"
+fi
 if [[ -n "$MISSING_FAIL_PCT" && "$MISSING_FAIL_PCT" != "false" ]]; then
     python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 --fail-if-pct-excluded "$MISSING_FAIL_PCT" || {
         echo "❌ Missing-voxel fraction exceeded ${MISSING_FAIL_PCT}% — aborting pipeline."
         exit 1
     }
 else
-    python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 || {
+    python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 $GM_MASK_ARG || {
         echo "⚠️  Warning: missing-voxel diagnostic failed (see script output above). Continuing analysis."
     }
 fi
