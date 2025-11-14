@@ -28,28 +28,42 @@ def find_xml_for_subject(cat12_dir, subject, session=None):
         if not report_dir.exists():
             continue
 
-        # 1) Exact report files for session: cat_r*ses-<n>*<sub>*.xml
+        # Build candidate patterns - include both subject/session orders so we
+        # robustly match filenames like `cat_rsub-<id>_ses-<n>_...` and
+        # `cat_r_ses-<n>_sub-<id>_...`.
         patterns = []
         if session_token:
-            patterns.append(f"cat_r*{session_token}*{subj_norm}*.xml")
-            patterns.append(f"*{session_token}*{subj_norm}*.xml")
+            # Prefer report XMLs with either order
+            patterns.extend([
+                f"cat_r*{session_token}*{subj_norm}*.xml",
+                f"cat_r*{subj_norm}*{session_token}*.xml",
+                f"*{session_token}*{subj_norm}*.xml",
+                f"*{subj_norm}*{session_token}*.xml",
+            ])
+            # Fallback to long parameter XMLs in both orders
+            patterns.extend([
+                f"catlong*{session_token}*{subj_norm}*.xml",
+                f"catlong*{subj_norm}*{session_token}*.xml",
+            ])
         else:
-            patterns.append(f"cat_r*{subj_norm}*.xml")
-            patterns.append(f"*{subj_norm}*.xml")
+            patterns.extend([
+                f"cat_r*{subj_norm}*.xml",
+                f"catlong*{subj_norm}*.xml",
+                f"*{subj_norm}*.xml",
+            ])
 
-        # 2) Fallback to long parameter XMLs
-        if session_token:
-            patterns.append(f"catlong*{session_token}*{subj_norm}*.xml")
-        else:
-            patterns.append(f"catlong*{subj_norm}*.xml")
-
-        # 3) Any XML in the report folder
+        # Finally accept any XML
         patterns.append("*.xml")
 
+        # Try each pattern in order and return the first sensible match.
         for pat in patterns:
-            matches = list(report_dir.glob(pat))
+            matches = sorted(report_dir.glob(pat))
             if matches:
-                # Return the first match (deterministic order from glob)
+                # Prefer files whose name contains 'cat_r' (standard report)
+                for m in matches:
+                    if 'cat_r' in m.name:
+                        return str(m)
+                # Otherwise return the first match
                 return str(matches[0])
 
     return None
