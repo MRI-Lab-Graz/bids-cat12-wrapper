@@ -562,6 +562,19 @@ PY
     fi
 fi
 
+    # Generate an ASCII preview of the design matrix and save it to results
+    if [[ -f "$OUTPUT_DIR/design.json" ]]; then
+        echo "Generating ASCII design-matrix preview (text)..."
+        python3 "$STATS_DIR/utils/print_design_ascii.py" "$OUTPUT_DIR/design.json" --output "$OUTPUT_DIR/design_ascii.txt" --rows 20 || {
+            echo "⚠️  Warning: ASCII design preview generation failed"
+        }
+        if [[ -f "$OUTPUT_DIR/design_ascii.txt" ]]; then
+            echo "--- Design ASCII preview (first lines) ---"
+            head -n 30 "$OUTPUT_DIR/design_ascii.txt" || true
+            echo "-----------------------------------------"
+        fi
+    fi
+
 # ============================================================================
 # Step 2a: Explicit mask handling (use canonical repo template mask)
 # ============================================================================
