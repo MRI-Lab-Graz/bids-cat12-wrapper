@@ -533,6 +533,35 @@ if [[ -f "$TEMP_DIR/design.json" ]]; then
     echo "Design JSON copied to: $OUTPUT_DIR/design.json"
 fi
 
+# If covariates were resolved in the design, append them to the analysis name
+# so output folders reflect covariate usage (e.g., vbm_smooth_auto_tiv)
+if [[ -f "$TEMP_DIR/design.json" ]]; then
+    COV_LIST=$(python3 - <<PY
+import json
+d=json.load(open('$TEMP_DIR/design.json'))
+covs=list(d.get('covariates',{}).keys())
+print(','.join(covs))
+PY
+)
+    if [[ -n "$COV_LIST" ]]; then
+        # convert comma-separated to underscore-separated suffix
+        COV_SUFFIX=$(echo "$COV_LIST" | sed 's/,/_/g')
+        NEW_ANALYSIS_NAME="${ANALYSIS_NAME}_${COV_SUFFIX}"
+        NEW_OUTPUT_DIR="$STATS_DIR/results/${MODALITY}/${NEW_ANALYSIS_NAME}"
+        if [[ "$NEW_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
+            # Ensure parent exists
+            mkdir -p "$(dirname "$NEW_OUTPUT_DIR")"
+            # Move current output dir to new name (keep existing logs/files)
+            mv "$OUTPUT_DIR" "$NEW_OUTPUT_DIR" 2>/dev/null || true
+            OUTPUT_DIR="$NEW_OUTPUT_DIR"
+            ANALYSIS_NAME="$NEW_ANALYSIS_NAME"
+            LOG_DIR="$OUTPUT_DIR/logs"
+            LOG_FILE="$LOG_DIR/pipeline.log"
+            echo "Renamed results folder to include covariates: $OUTPUT_DIR"
+        fi
+    fi
+fi
+
 # ============================================================================
 # Step 2a: Explicit mask handling (use canonical repo template mask)
 # ============================================================================
