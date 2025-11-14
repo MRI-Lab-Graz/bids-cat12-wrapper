@@ -1,0 +1,892 @@
+{
+  "files": [
+    {
+      "subject": "sub-1291006",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291006/mri/mwp1rsub-1291006_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291006",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291006/mri/mwp2rsub-1291006_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291013",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291013/mri/mwp2rsub-1291013_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291013",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291013/mri/s9mwp1rsub-1291013_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291014",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291014/mri/s6mwp1rsub-1291014_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291014",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291014/mri/mwp2rsub-1291014_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291019",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291019/mri/s9mwp1rsub-1291019_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291019",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291019/mri/mwp2rsub-1291019_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291021",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291021/mri/mwp2rsub-1291021_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291021",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291021/mri/s6mwp1rsub-1291021_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291041",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291041/mri/s6mwp1rsub-1291041_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291041",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291041/mri/mwp2rsub-1291041_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291043",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291043/mri/mwp2rsub-1291043_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291043",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291043/mri/s6mwp1rsub-1291043_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291047",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291047/mri/mwp2rsub-1291047_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291047",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291047/mri/s6mwp1rsub-1291047_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291048",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291048/mri/s9mwp1rsub-1291048_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291048",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291048/mri/mwp2rsub-1291048_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291063",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291063/mri/mwp2rsub-1291063_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291063",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291063/mri/s9mwp1rsub-1291063_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291070",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291070/mri/mwp2rsub-1291070_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291070",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291070/mri/s6mwp1rsub-1291070_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291071",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291071/mri/mwp2rsub-1291071_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291071",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291071/mri/s9mwp1rsub-1291071_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291076",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291076/mri/s6mwp1rsub-1291076_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291076",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291076/mri/mwp2rsub-1291076_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291077",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291077/mri/s9mwp1rsub-1291077_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291077",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291077/mri/mwp2rsub-1291077_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291078",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291078/mri/mwp2rsub-1291078_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291078",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291078/mri/s6mwp1rsub-1291078_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291079",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291079/mri/mwp2rsub-1291079_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291079",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291079/mri/s9mwp1rsub-1291079_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291091",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291091/mri/s9mwp1rsub-1291091_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291091",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291091/mri/mwp2rsub-1291091_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291096",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291096/mri/mwp2rsub-1291096_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291096",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291096/mri/s6mwp1rsub-1291096_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291097",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291097/mri/mwp2rsub-1291097_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291097",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291097/mri/s9mwp1rsub-1291097_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291111",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291111/mri/s6mwp1rsub-1291111_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291111",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291111/mri/mwp2rsub-1291111_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291121",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291121/mri/mwp2rsub-1291121_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291121",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291121/mri/s9mwp1rsub-1291121_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291127",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291127/mri/s9mwp1rsub-1291127_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291127",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291127/mri/mwp2rsub-1291127_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291132",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291132/mri/mwp2rsub-1291132_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291132",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291132/mri/mwp1rsub-1291132_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291145",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291145/mri/s9mwp1rsub-1291145_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291145",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291145/mri/mwp2rsub-1291145_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291159",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291159/mri/mwp2rsub-1291159_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291159",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291159/mri/s9mwp1rsub-1291159_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291161",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291161/mri/mwp1rsub-1291161_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291161",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291161/mri/mwp2rsub-1291161_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291168",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291168/mri/s9mwp1rsub-1291168_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291168",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291168/mri/mwp2rsub-1291168_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291174",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291174/mri/mwp2rsub-1291174_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1291174",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1291174/mri/s9mwp1rsub-1291174_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292001",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292001/mri/s9mwp1rsub-1292001_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292001",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292001/mri/mwp2rsub-1292001_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292008",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292008/mri/s6mwp1rsub-1292008_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292008",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292008/mri/mwp2rsub-1292008_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292027",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292027/mri/mwp2rsub-1292027_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292027",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292027/mri/mwp1rsub-1292027_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292032",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292032/mri/s9mwp1rsub-1292032_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292032",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292032/mri/mwp2rsub-1292032_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292039",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292039/mri/mwp2rsub-1292039_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292039",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292039/mri/s6mwp1rsub-1292039_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292045",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292045/mri/mwp2rsub-1292045_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292045",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292045/mri/mwp1rsub-1292045_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292050",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292050/mri/s9mwp1rsub-1292050_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292050",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292050/mri/mwp2rsub-1292050_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292052",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292052/mri/mwp2rsub-1292052_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292052",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292052/mri/s9mwp1rsub-1292052_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292057",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292057/mri/mwp2rsub-1292057_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292057",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292057/mri/s6mwp1rsub-1292057_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292060",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292060/mri/mwp2rsub-1292060_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292060",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292060/mri/s6mwp1rsub-1292060_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292061",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292061/mri/mwp2rsub-1292061_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292061",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292061/mri/s9mwp1rsub-1292061_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292066",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292066/mri/s6mwp1rsub-1292066_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292066",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292066/mri/mwp2rsub-1292066_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292067",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292067/mri/s9mwp1rsub-1292067_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292067",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292067/mri/mwp2rsub-1292067_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292069",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292069/mri/mwp2rsub-1292069_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292069",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292069/mri/s9mwp1rsub-1292069_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292086",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292086/mri/mwp2rsub-1292086_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292086",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292086/mri/s6mwp1rsub-1292086_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292114",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292114/mri/mwp2rsub-1292114_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292114",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292114/mri/s9mwp1rsub-1292114_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292115",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292115/mri/mwp2rsub-1292115_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292115",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292115/mri/mwp1rsub-1292115_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292123",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292123/mri/mwp2rsub-1292123_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292123",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292123/mri/s9mwp1rsub-1292123_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292136",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292136/mri/s6mwp1rsub-1292136_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292136",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292136/mri/mwp2rsub-1292136_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292137",
+      "session": "1",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292137/mri/s9mwp1rsub-1292137_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292137",
+      "session": "3",
+      "group": "intervention_2w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292137/mri/mwp2rsub-1292137_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292140",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292140/mri/mwp2rsub-1292140_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292140",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292140/mri/mwp1rsub-1292140_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292146",
+      "session": "1",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292146/mri/mwp1rsub-1292146_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1292146",
+      "session": "3",
+      "group": "control",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1292146/mri/mwp2rsub-1292146_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293002",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293002/mri/mwp2rsub-1293002_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293002",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293002/mri/s9mwp1rsub-1293002_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293004",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293004/mri/s9mwp1rsub-1293004_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293004",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293004/mri/mwp2rsub-1293004_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293010",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293010/mri/mwp2rsub-1293010_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293010",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293010/mri/s9mwp1rsub-1293010_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293026",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293026/mri/mwp2rsub-1293026_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293026",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293026/mri/s6mwp1rsub-1293026_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293033",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293033/mri/s9mwp1rsub-1293033_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293033",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293033/mri/mwp2rsub-1293033_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293034",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293034/mri/mwp2rsub-1293034_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293034",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293034/mri/mwp1rsub-1293034_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293042",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293042/mri/s6mwp1rsub-1293042_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293042",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293042/mri/mwp2rsub-1293042_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293058",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293058/mri/mwp1rsub-1293058_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293058",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293058/mri/mwp2rsub-1293058_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293073",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293073/mri/mwp2rsub-1293073_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293073",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293073/mri/s6mwp1rsub-1293073_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293074",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293074/mri/s9mwp1rsub-1293074_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293074",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293074/mri/mwp2rsub-1293074_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293075",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293075/mri/s6mwp1rsub-1293075_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293075",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293075/mri/mwp2rsub-1293075_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293080",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293080/mri/s9mwp1rsub-1293080_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293080",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293080/mri/mwp2rsub-1293080_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293081",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293081/mri/mwp1rsub-1293081_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293081",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293081/mri/mwp2rsub-1293081_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293089",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293089/mri/mwp1rsub-1293089_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293089",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293089/mri/mwp2rsub-1293089_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293106",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293106/mri/mwp2rsub-1293106_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293106",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293106/mri/mwp1rsub-1293106_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293107",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293107/mri/mwp2rsub-1293107_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293107",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293107/mri/s9mwp1rsub-1293107_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293112",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293112/mri/s6mwp1rsub-1293112_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293112",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293112/mri/mwp2rsub-1293112_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293116",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293116/mri/s6mwp1rsub-1293116_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293116",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293116/mri/mwp2rsub-1293116_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293122",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293122/mri/mwp2rsub-1293122_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293122",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293122/mri/s9mwp1rsub-1293122_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293139",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293139/mri/mwp2rsub-1293139_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293139",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293139/mri/mwp1rsub-1293139_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293141",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293141/mri/mwp2rsub-1293141_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293141",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293141/mri/s6mwp1rsub-1293141_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293147",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293147/mri/s6mwp1rsub-1293147_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293147",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293147/mri/mwp2rsub-1293147_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293153",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293153/mri/mwp2rsub-1293153_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293153",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293153/mri/mwp1rsub-1293153_ses-3_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293171",
+      "session": "1",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293171/mri/s9mwp1rsub-1293171_ses-1_acq-mprage_T1w.nii"
+    },
+    {
+      "subject": "sub-1293171",
+      "session": "3",
+      "group": "intervention_4w",
+      "path": "/Volumes/Thunder/129_PK01/cat12/data/cat12/sub-1293171/mri/mwp2rsub-1293171_ses-3_acq-mprage_T1w.nii"
+    }
+  ]
+}

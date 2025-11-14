@@ -1,0 +1,11 @@
+{
+  "classes": [
+    "a",
+    "b",
+    "c"
+  ],
+  "cv_accuracy_mean": 0.25,
+  "cv_accuracy_std": 0.2041241452319315,
+  "permutation_score": 0.25,
+  "permutation_pvalue": 1.0
+}

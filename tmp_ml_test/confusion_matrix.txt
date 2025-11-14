@@ -1,0 +1,9 @@
+Confusion Matrix (Cross-Validated Predictions)
+============================================================
+
+Rows: True labels, Columns: Predicted labels
+Classes: a, b, c
+
+1	1	2
+1	0	3
+1	1	2

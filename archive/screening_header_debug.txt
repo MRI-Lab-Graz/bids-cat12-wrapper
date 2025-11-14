@@ -1,0 +1,4094 @@
+Header dump generated: 2025-11-04 14:57:30.752958
+Stats folder: .
+
+FILE: ./results/sbm/depth/RPV.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/ResMS.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFDR_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFDR_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFDR_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFWE_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFWE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_pFWE_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_p_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_p_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/TFCE_log_p_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFDR_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFDR_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFDR_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFWE_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFWE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_pFWE_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_p_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_p_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/T_log_p_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0036.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0037.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0038.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0039.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0040.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0041.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0042.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0043.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0044.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0045.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0046.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0047.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0048.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0049.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0050.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0051.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0052.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0053.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0054.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0055.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0056.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0057.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0058.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0059.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0060.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0061.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0062.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0063.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0064.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0065.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0066.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0067.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0068.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0069.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0070.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0071.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0072.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0073.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0074.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0075.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0076.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0077.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0078.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0079.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0080.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0081.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0082.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0083.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0084.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0085.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0086.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0087.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0088.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0089.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0090.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0091.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0092.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0093.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0094.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0095.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0096.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0097.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0098.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0099.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0100.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0101.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0102.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0103.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0104.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0105.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0106.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0107.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0108.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0109.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0110.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0111.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0112.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0113.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0114.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0115.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0116.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0118.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0119.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0120.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0121.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0122.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0123.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0124.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0125.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0126.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0127.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0128.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0129.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0130.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0131.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/beta_0132.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/con_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/ess_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/ess_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/ess_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/ess_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/mask.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/nullT_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/nullT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/nullT_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmF_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmF_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmF_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmF_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/depth/spmT_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/RPV.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/ResMS.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/Z_G1:_Time1_-_Time3_p0.5_pkFWE5_k79.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/Z_G1:_Time2_-_Time3_p0.5_pkFWE5_k79.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0036.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0037.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0038.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0039.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0040.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0041.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0042.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0043.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0044.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0045.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0046.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0047.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0048.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0049.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0050.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0051.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0052.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0053.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0054.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0055.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0056.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0057.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0058.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0059.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0060.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0061.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0062.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0063.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0064.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0065.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0066.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0067.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0068.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0069.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0070.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0071.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0072.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0073.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0074.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0075.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0076.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0077.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0078.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0079.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0080.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0081.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0082.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0083.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0084.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0085.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0086.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0087.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0088.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0089.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0090.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0091.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0092.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0093.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0094.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0095.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0096.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0097.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0098.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0099.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0100.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0101.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0102.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0103.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0104.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0105.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0106.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0107.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0108.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0109.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0110.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0111.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0112.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0113.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0114.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0115.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0116.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0118.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0119.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0120.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0121.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0122.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0123.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0124.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0125.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0126.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0127.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0128.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0129.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0130.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0131.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/beta_0132.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/con_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/ess_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/ess_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/ess_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/ess_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/mask.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmF_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmF_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmF_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmF_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/fractal/spmT_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/RPV.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/ResMS.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0036.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0037.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0038.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0039.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0040.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0041.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0042.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0043.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0044.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0045.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0046.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0047.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0048.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0049.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0050.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0051.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0052.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0053.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0054.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0055.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0056.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0057.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0058.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0059.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0060.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0061.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0062.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0063.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0064.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0065.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0066.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0067.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0068.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0069.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0070.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0071.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0072.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0073.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0074.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0075.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0076.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0077.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0078.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0079.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0080.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0081.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0082.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0083.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0084.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0085.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0086.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0087.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0088.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0089.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0090.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0091.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0092.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0093.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0094.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0095.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0096.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0097.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0098.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0099.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0100.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0101.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0102.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0103.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0104.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0105.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0106.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0107.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0108.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0109.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0110.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0111.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0112.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0113.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0114.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0115.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0116.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0118.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0119.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0120.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0121.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0122.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0123.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0124.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0125.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0126.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0127.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0128.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0129.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0130.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0131.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/beta_0132.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/gyrification/mask.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/RPV.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/ResMS.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0036.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0037.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0038.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0039.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0040.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0041.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0042.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0043.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0044.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0045.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0046.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0047.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0048.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0049.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0050.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0051.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0052.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0053.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0054.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0055.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0056.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0057.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0058.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0059.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0060.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0061.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0062.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0063.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0064.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0065.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0066.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0067.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0068.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0069.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0070.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0071.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0072.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0073.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0074.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0075.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0076.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0077.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0078.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0079.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0080.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0081.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0082.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0083.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0084.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0085.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0086.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0087.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0088.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0089.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0090.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0091.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0092.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0093.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0094.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0095.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0096.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0097.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0098.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0099.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0100.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0101.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0102.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0103.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0104.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0105.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0106.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0107.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0108.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0109.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0110.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0111.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0112.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0113.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0114.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0115.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0116.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0118.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0119.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0120.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0121.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0122.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0123.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0124.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0125.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0126.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0127.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0128.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0129.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0130.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0131.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/beta_0132.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/con_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/ess_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/ess_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/ess_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/ess_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/logP_G1:_Time1_-_Time3_p0.1_pkFWE5_k117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/logP_G2_Late_vs_G1_Early_p0.1_pkFWE5_k117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/mask.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmF_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmF_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmF_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmF_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/surf_int_control/spmT_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/RPV.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/ResMS.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/TFCE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/TFCE_log_pFDR_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/TFCE_log_pFWE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/TFCE_log_p_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/T_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/T_log_pFDR_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/T_log_pFWE_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/T_log_p_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0036.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0037.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0038.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0039.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0040.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0041.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0042.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0043.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0044.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0045.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0046.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0047.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0048.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0049.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0050.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0051.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0052.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0053.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0054.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0055.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0056.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0057.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0058.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0059.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0060.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0061.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0062.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0063.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0064.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0065.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0066.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0067.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0068.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0069.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0070.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0071.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0072.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0073.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0074.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0075.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0076.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0077.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0078.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0079.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0080.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0081.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0082.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0083.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0084.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0085.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0086.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0087.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0088.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0089.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0090.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0091.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0092.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0093.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0094.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0095.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0096.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0097.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0098.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0099.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0100.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0101.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0102.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0103.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0104.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0105.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0106.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0107.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0108.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0109.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0110.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0111.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0112.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0113.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0114.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0115.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0116.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0117.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0118.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0119.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0120.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0121.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0122.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0123.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0124.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0125.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0126.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0127.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0128.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0129.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0130.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0131.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/beta_0132.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/con_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/ess_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/ess_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/ess_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/ess_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/mask.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/nullT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmF_0028.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmF_0029.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmF_0033.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmF_0034.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0001.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0002.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0003.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0004.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0005.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0006.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0007.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0008.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0009.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0010.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0011.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0012.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0013.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0014.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0015.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0016.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0017.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0018.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0019.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0020.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0021.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0022.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0023.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0024.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0025.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0026.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0027.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0030.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0031.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0032.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/sbm/thickness/spmT_0035.gii
+  ERROR reading file: module 'nibabel.gifti' has no attribute 'read'
+
+FILE: ./results/vbm/s6_vbm_test/beta_0001.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0002.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0003.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0004.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0005.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0006.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0007.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0008.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/beta_0009.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmF_0001.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmF_0002.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmF_0003.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmF_0004.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0005.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0006.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0007.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0008.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0009.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0010.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0011.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0012.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0013.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0014.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0015.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0016.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0017.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0018.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0019.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0020.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0021.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0022.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0023.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0024.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0025.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0026.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0027.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0028.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0029.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0030.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0031.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0032.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0033.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0034.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0035.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0036.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0037.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0038.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0039.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0040.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/s6_vbm_test/spmT_0041.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0001.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0002.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0003.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0004.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0005.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0006.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0007.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0008.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/beta_0009.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmF_0001.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmF_0002.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmF_0003.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmF_0004.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0005.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0006.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0007.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0008.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0009.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0010.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0011.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0012.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0013.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0014.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0015.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0016.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0017.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0018.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0019.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0020.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0021.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0022.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0023.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0024.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0025.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0026.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0027.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0028.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0029.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0030.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0031.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0032.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0033.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0034.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0035.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0036.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0037.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0038.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0039.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0040.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+
+FILE: ./results/vbm/vbm_smooth_auto/spmT_0041.nii
+  TYPE: NIfTI
+  SHAPE: (113, 137, 113)
+  AFFINE:
+    -1.500000  0.000000  0.000000  84.000000
+     0.000000  1.500000  0.000000 -120.000000
+     0.000000  0.000000  1.500000 -72.000000
+     0.000000  0.000000  0.000000  1.000000
+  VOXEL_SIZES: (np.float32(1.5), np.float32(1.5), np.float32(1.5))
+  DATATYPE: float32
+

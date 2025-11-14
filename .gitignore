@@ -1,0 +1,19 @@
+# Ignore analysis results, temporary folders and environment
+results/
+report_latest.html
+*.log
+logs/
+.venv/
+.DS_Store
+__pycache__/
+*.pyc
+tmp/
+.tmp_* 
+
+# NIfTI / imaging outputs (if you want to keep them, remove these)
+*.nii
+*.nii.gz
+
+# macOS
+.Spotlight-V100
+.Trashes

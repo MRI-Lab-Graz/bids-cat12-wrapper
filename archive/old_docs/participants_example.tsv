@@ -1,0 +1,10 @@
+participant_id	session	group	age	sex	tiv
+sub-001	1	control	25	F	1500.5
+sub-001	2	control	25	F	1500.5
+sub-001	3	control	25	F	1500.5
+sub-002	1	intervention_2w	30	M	1550.2
+sub-002	2	intervention_2w	30	M	1550.2
+sub-002	3	intervention_2w	30	M	1550.2
+sub-003	1	intervention_4w	28	F	1480.8
+sub-003	2	intervention_4w	28	F	1480.8
+sub-003	3	intervention_4w	28	F	1480.8
