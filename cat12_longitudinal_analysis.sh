@@ -26,10 +26,17 @@
 #   --covariates <list>     Comma-separated covariate columns (e.g., "age,sex,tiv")
 #
 # TFCE OPTIONS:
+# TFCE OPTIONS:
 #   --n-perm <N> / --nperms <N>
 #                         Number of TFCE permutations (default: 5000)
 #   --pilot                Run pilot mode (100 permutations, 1 contrast)
 #   --skip-screening       Run TFCE on all contrasts (not recommended)
+#
+# Behavior note: the pipeline now runs TFCE in an automatic two-stage
+# probe-then-full strategy by default (a short probe run is performed to
+# inspect the permutation diagnostic `cc` and the full run will switch to
+# Freedman–Lane nuisance handling if the probe indicates instability). No
+# additional CLI flag is required to enable this behavior.
 #
 # SCREENING OPTIONS:
 #   --cluster-size <k>     Minimum cluster size for screening (default: 50)
@@ -120,6 +127,12 @@ SKIP_SCREENING=$(get_ini_value "SCREENING" "skip_screening" "false")
 
 N_PERM=$(get_ini_value "TFCE" "n_perm" "5000")
 PILOT_MODE=$(get_ini_value "TFCE" "pilot_mode" "false")
+
+# Two-stage TFCE probe parameters (automatic, no CLI flag required)
+# initial_perm: quick probe run to estimate cc (default: 100)
+# cc_threshold: if probe cc < threshold, use Freedman-Lane for full run
+INITIAL_PERM=$(get_ini_value "TFCE" "initial_perm" "100")
+CC_THRESHOLD=$(get_ini_value "TFCE" "cc_threshold" "0.98")
 
 N_JOBS=$(get_ini_value "PERFORMANCE" "parallel_jobs" "4")
 
@@ -757,10 +770,10 @@ if [[ "$SKIP_SCREENING" == false ]]; then
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
     
-    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); significant_contrasts = screen_contrasts('$OUTPUT_DIR', 'p_thresh', $UNCORRECTED_P, 'cluster_size', $CLUSTER_SIZE); fprintf('\n✓ Screening complete with %d significant contrasts\n\n', length(significant_contrasts)); exit;" || {
-            echo "Error: Screening failed"
-            exit 1
-        }
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults','FMRI'); spm_jobman('initcfg'); try, significant_contrasts = screen_contrasts('$OUTPUT_DIR','p_thresh',$UNCORRECTED_P,'cluster_size',$CLUSTER_SIZE); fprintf('\\n✓ Screening complete with %d significant contrasts\\n\\n', length(significant_contrasts)); fid=fopen(fullfile('$OUTPUT_DIR','logs','significant_contrasts.txt'),'w'); if fid>0, for ii=1:numel(significant_contrasts), fprintf(fid,'%d\\n',significant_contrasts(ii)); end; fclose(fid); end; catch e, fprintf('MATLAB_ERROR:%s\\n', e.message); end; exit;" || {
+        echo "Error: Screening failed"
+        exit 1
+    }
     
     echo "✓ Screening complete"
     echo ""
@@ -784,10 +797,36 @@ echo "│ STEP 6: TFCE Permutation Testing                                      
 echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
-"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS); exit;" 2>&1 | tee -a "$TFCE_LOG" || {
-        echo "Error: TFCE correction failed"
+# If screening was run and produced an (empty) significant list, skip TFCE.
+SKIP_TFCE=false
+SIGNIF_FILE="$OUTPUT_DIR/logs/significant_contrasts.txt"
+if [[ "$PILOT_MODE" != true && "$SKIP_SCREENING" == false && -f "$SIGNIF_FILE" ]]; then
+    if [[ ! -s "$SIGNIF_FILE" ]]; then
+        echo "No significant contrasts found by screening (file: $SIGNIF_FILE). Skipping TFCE step."
+        SKIP_TFCE=true
+    fi
+fi
+
+if [[ "$SKIP_TFCE" == true ]]; then
+    echo "Skipping TFCE step because no screened contrasts were significant."
+else
+if [[ "$PILOT_MODE" == true ]]; then
+    # In pilot mode run the quick TFCE directly (keep behavior simple)
+    echo "Pilot mode: running single short TFCE run (${N_PERM} perms)"
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS); exit;" 2>&1 | tee -a "$TFCE_LOG" || {
+        echo "Error: TFCE correction (pilot) failed"
         exit 1
     }
+else
+    # Default automatic two-stage TFCE: probe run then full run with automatic
+    # selection of nuisance handling based on probe cc. This is the pipeline's
+    # default behavior (no user flag required).
+    echo "Running automatic two-stage TFCE: probe=${INITIAL_PERM} perms -> full=${N_PERM} perms (cc threshold=${CC_THRESHOLD})"
+    "$STATS_DIR/utils/tfce_two_stage.sh" "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
+        echo "Error: Automatic two-stage TFCE failed"
+        exit 1
+    }
+fi
 
 echo "✓ TFCE correction complete"
 echo ""
@@ -808,6 +847,9 @@ echo ""
 # ============================================================================
 # Step 7: Generate HTML Report
 # ============================================================================
+
+fi
+
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
 echo "│ STEP 7: Generating HTML Report                                        │"

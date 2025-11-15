@@ -32,6 +32,7 @@ addParameter(p, 'use_screening', true, @islogical);
 addParameter(p, 'contrast_list', [], @isnumeric);
 addParameter(p, 'pilot', false, @islogical);
 addParameter(p, 'force', false, @islogical);
+addParameter(p, 'nuisance_method', '', @ischar);
 parse(p, stats_folder, varargin{:});
 
 stats_folder = p.Results.stats_folder;
@@ -185,6 +186,10 @@ for i = 1:length(contrasts_to_process)
     nuisance_method_str = 'smith'; % default
     if isfield(config.tfce, 'nuisance_method')
         nuisance_method_str = lower(config.tfce.nuisance_method);
+    end
+    % Allow user override via function parameter
+    if isfield(p.Results, 'nuisance_method') && ~isempty(p.Results.nuisance_method)
+        nuisance_method_str = lower(p.Results.nuisance_method);
     end
     switch nuisance_method_str
         case {'smith','2'}
