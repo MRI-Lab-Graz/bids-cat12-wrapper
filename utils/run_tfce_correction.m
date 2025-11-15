@@ -385,11 +385,34 @@ for i = 1:length(contrasts_to_process)
             try
                 spm_jobman('run', matlabbatch);
 
-                % Verify expected outputs exist in the TFCE folder. If the
-                % toolbox ran but produced no outputs, we'll attempt a
-                % fallback using Freedman-Lane nuisance handling.
-                if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
-                    fprintf('        ✓ TFCE complete\n\n');
+                % Verify expected outputs exist. Different TFCE toolbox
+                % versions write outputs either into a per-contrast folder
+                % (e.g. TFCE_0002/logP_max.nii) or into the stats folder
+                % with names like TFCE_0002.nii / TFCE_log_pFWE_0002.nii. We
+                % accept either pattern as success to avoid false negatives.
+                tfce_folder_ok = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                alt_out1 = fullfile(stats_folder, sprintf('TFCE_%04d.nii', con_idx));
+                alt_out2 = fullfile(stats_folder, sprintf('TFCE_log_pFWE_%04d.nii', con_idx));
+                alt_out3 = fullfile(stats_folder, sprintf('TFCE_log_p_%04d.nii', con_idx));
+                alt_out4 = fullfile(stats_folder, sprintf('TFCE_log_pFDR_%04d.nii', con_idx));
+                alt_ok = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+
+                if tfce_folder_ok || alt_ok
+                    if tfce_folder_ok
+                        fprintf('        ✓ TFCE complete (outputs in %s)\n\n', tfce_folder);
+                    else
+                        % Report which alternative file was found
+                        if exist(alt_out2, 'file')
+                            found = alt_out2;
+                        elseif exist(alt_out4, 'file')
+                            found = alt_out4;
+                        elseif exist(alt_out3, 'file')
+                            found = alt_out3;
+                        else
+                            found = alt_out1;
+                        end
+                        fprintf('        ✓ TFCE complete (found alternative output: %s)\n\n', found);
+                    end
                     tfce_success = tfce_success + 1;
                 else
                     fprintf('        ⚠ TFCE run finished but expected outputs not found. Trying fallback (Freedman-Lane)...\n');
@@ -404,8 +427,25 @@ for i = 1:length(contrasts_to_process)
                     end
                     try
                         spm_jobman('run', matlabbatch);
-                        if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
-                            fprintf('        ✓ TFCE complete after Freedman-Lane fallback\n\n');
+                        % re-check both folder and alternative files
+                        tfce_folder_ok_fb = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                        alt_ok_fb = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                        if tfce_folder_ok_fb || alt_ok_fb
+                            if tfce_folder_ok_fb
+                                fprintf('        ✓ TFCE complete after Freedman-Lane fallback (outputs in %s)\n\n', tfce_folder);
+                            else
+                                % report which alternative file was found
+                                if exist(alt_out2, 'file')
+                                    foundfb = alt_out2;
+                                elseif exist(alt_out4, 'file')
+                                    foundfb = alt_out4;
+                                elseif exist(alt_out3, 'file')
+                                    foundfb = alt_out3;
+                                else
+                                    foundfb = alt_out1;
+                                end
+                                fprintf('        ✓ TFCE complete after Freedman-Lane fallback (found alternative output: %s)\n\n', foundfb);
+                            end
                             tfce_success = tfce_success + 1;
                         else
                             fprintf('        ✗ Fallback run completed but outputs still missing\n\n');
