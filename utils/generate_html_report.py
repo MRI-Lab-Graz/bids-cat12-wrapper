@@ -5,6 +5,11 @@ Generate fMRIPrep-style HTML report for CAT12 longitudinal analysis
 
 import json
 import os
+import html
+import numpy as _np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as _plt
 from datetime import datetime
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -215,12 +220,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 1rem 0;
             border-radius: 4px;
         }}
+        .contrast-grid {{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px }}
+        .contrast-item {{ background:#fff; padding:8px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.06); text-align:center }}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>CAT12 Longitudinal Analysis</h1>
         <div class="subtitle">Statistical Parametric Mapping Analysis Report</div>
+        <div style="margin-top:0.5rem; font-size:0.95rem; opacity:0.95;">MRI-Lab Graz — Report prepared by Dr. Karl Koschutnig</div>
     </div>
     
     <div class="container">
@@ -258,6 +266,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <!-- Design Matrix -->
         <div class="section">
             <h3>Experimental Design</h3>
+            <p class="warning">Boilerplate: This report summarizes preprocessing and statistical estimation performed by the CAT12 longitudinal pipeline. Results are intended for exploratory analysis; ensure proper multiple-comparison correction and quality control before drawing inference.</p>
             <p><strong>Design Type:</strong> Flexible Factorial ({n_groups} groups x {n_sessions} timepoints)</p>
             
             <h4 style="margin-top: 1.5rem; color: #333;">Factors:</h4>
@@ -285,6 +294,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     {sample_distribution_rows}
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Commands Used -->
+        <div class="section">
+            <h3>Commands Used</h3>
+            <p style="color:#666;">The following high-level commands constitute the main processing steps executed for this analysis. The exact command-line used to invoke the pipeline is shown below.</p>
+            <ul>
+                <li><code>python3 utils/preflight_check.py --cat12-dir &lt;cat12-dir&gt; --participants &lt;participants.tsv&gt;</code> — verify inputs and required packages</li>
+                <li><code>python3 utils/parse_participants.py --cat12-dir ... --participants ...</code> — build design.json and file list</li>
+                <li><code>python3 utils/generate_spm_batch.py --design-file ... --output-dir ...</code> — create SPM batch</li>
+                <li><code>matlab -batch 'run(&quot;spm_batch.m&quot;)'</code> — SPM factorial design and model estimation</li>
+                <li><code>python3 utils/check_missing_voxels.py --spm SPM.mat --output-dir ... --gm-mask ...</code> — missing-voxel diagnostics</li>
+                <li><code>python3 utils/generate_tfce_images.py --output-dir ...</code> — prepare TFCE permutations and maps</li>
+                <li><code>python3 utils/generate_html_report.py --design-json ... --output ...</code> — generate this HTML summary</li>
+            </ul>
+            <h4 style="margin-top:1rem; color:#333;">Exact pipeline call:</h4>
+            <div class="code-block"><code>{command_line}</code></div>
+        </div>
+
+        <!-- TFCE FWE montages -->
+        <div class="section">
+            <h3>TFCE FWE Montages</h3>
+            <p style="color:#666;">Montages of FWE-corrected TFCE maps (single montage per FWE file).</p>
+            <div class="contrast-grid">
+                {tfce_moire_items}
+            </div>
         </div>
         
         <!-- Processing Steps -->
@@ -409,13 +444,81 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     with open(design_json_path) as f:
         design = json.load(f)
     
-    # Check for design matrix image
+    # Check for design matrix image (generate a simple visualization if missing)
     output_dir = kwargs.get('output_dir', '')
     design_matrix_img = None
+    # create a dedicated report directory inside the analysis output
+    report_dir = None
     if output_dir:
-        img_path = f"{output_dir}/design_matrix.png"
+        report_dir = os.path.join(output_dir, 'report')
+        os.makedirs(report_dir, exist_ok=True)
+        img_path = os.path.join(report_dir, "design_matrix.png")
         if os.path.exists(img_path):
-            design_matrix_img = "design_matrix.png"  # Relative path for HTML
+            design_matrix_img = os.path.basename(img_path)
+        else:
+            # Try to construct a compact design matrix visualization from the design JSON
+            try:
+                # Build rows in consistent order: groups -> sessions -> file order
+                groups = design.get('groups', {})
+                rows = []
+                row_meta = []
+                for gname in sorted(groups.keys()):
+                    sessions = groups[gname].get('sessions', {})
+                    for sname in sorted(sessions.keys()):
+                        files = sessions[sname]
+                        for f in files:
+                            rows.append((gname, sname))
+                            row_meta.append(f)
+
+                if rows:
+                    n_rows = len(rows)
+                    gnames = sorted(groups.keys())
+                    snames = sorted(list(groups.values())[0].get('sessions', {}).keys()) if groups else []
+                    covs = design.get('covariates', {})
+
+                    # columns: one-hot groups, one-hot sessions, then covariates (if numeric)
+                    cols = []
+                    for g in gnames:
+                        cols.append(('group', g))
+                    for s in snames:
+                        cols.append(('session', s))
+                    cov_names = [c for c in covs.keys()]
+                    for c in cov_names:
+                        cols.append(('cov', c))
+
+                    mat = _np.zeros((n_rows, len(cols)), dtype=float)
+                    for i, (g, s) in enumerate(rows):
+                        # group columns
+                        if g in gnames:
+                            mat[i, gnames.index(g)] = 1.0
+                        # session columns
+                        if s in snames:
+                            mat[i, len(gnames) + snames.index(s)] = 1.0
+                    # covariate columns
+                    for j, cname in enumerate(cov_names):
+                        vals = covs.get(cname, [])
+                        if len(vals) == n_rows:
+                            try:
+                                arr = _np.array(vals, dtype=float)
+                                # zscore for display
+                                arr = (arr - _np.nanmean(arr)) / (_np.nanstd(arr) + 1e-9)
+                                mat[:, len(gnames) + len(snames) + j] = arr
+                            except Exception:
+                                pass
+
+                    # create a figure
+                    fig, ax = _plt.subplots(figsize=(8, max(2, n_rows * 0.02)))
+                    im = ax.imshow(mat, aspect='auto', cmap='coolwarm')
+                    ax.set_xlabel('Design columns')
+                    ax.set_ylabel('Scans')
+                    ax.set_title('Design matrix (groups | sessions | covariates)')
+                    _plt.colorbar(im, ax=ax, fraction=0.02, pad=0.02)
+                    _plt.tight_layout()
+                    _plt.savefig(img_path, dpi=150)
+                    _plt.close(fig)
+                    design_matrix_img = os.path.basename(img_path)
+            except Exception:
+                design_matrix_img = None
     
     # Load TFCE summary if available
     tfce_summary = None
@@ -494,20 +597,34 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     else:
         design_matrix_image = ""
 
-    # Collect pipeline log (full terminal output) if present
+    # Collect pipeline log (summarize head/tail) if present
     pipeline_log = None
     if output_dir:
         cand_log = os.path.join(output_dir, 'logs', 'pipeline.log')
         if os.path.exists(cand_log):
             try:
                 with open(cand_log, 'r') as lf:
-                    pipeline_log = lf.read()
+                    full_log = lf.read()
+                # summarize: head (first 30 lines) and tail (last 30 lines)
+                lines = full_log.splitlines()
+                head = lines[:30]
+                tail = lines[-30:] if len(lines) > 30 else []
+                n_warn = sum(1 for L in lines if ('warn' in L.lower() or 'warning' in L.lower()))
+                n_err = sum(1 for L in lines if ('error' in L.lower() or 'traceback' in L.lower()))
+                summary = []
+                summary.append(f"Log lines: {len(lines)} | warnings: {n_warn} | errors: {n_err}")
+                summary.append('--- HEAD ---')
+                summary.extend(head)
+                if tail:
+                    summary.append('--- TAIL ---')
+                    summary.extend(tail)
+                pipeline_log = html.escape('\n'.join(summary))
             except Exception:
-                pipeline_log = None
+                pipeline_log = ''
 
-    # Generate thumbnails for TFCE result NIfTIs if possible
+    # Generate thumbnails / montages for TFCE result NIfTIs if possible
     tfce_thumbnails = []
-    if output_dir:
+    if output_dir and report_dir:
         # search for TFCE_log_pFWE_*.nii in output_dir and subdirs
         nifti_paths = []
         for root, dirs, files in os.walk(output_dir):
@@ -515,7 +632,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 if fn.startswith('TFCE_log_pFWE') and (fn.endswith('.nii') or fn.endswith('.nii.gz')):
                     nifti_paths.append(os.path.join(root, fn))
 
-        # Try to create thumbnails using nibabel + matplotlib if available
+        # Try to create montages using nibabel + matplotlib if available
         if nifti_paths:
             try:
                 import nibabel as nb
@@ -524,31 +641,103 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 matplotlib.use('Agg')
                 import matplotlib.pyplot as plt
 
+                def make_moire_single(nifti_path, out_png, ncols=8, nrows=1, dpi=100):
+                    img = nb.load(nifti_path)
+                    data = img.get_fdata()
+                    data = np.nan_to_num(np.abs(data))
+                    if data.ndim < 3:
+                        slice_imgs = [np.rot90(np.squeeze(data))]
+                    else:
+                        zsize = data.shape[2]
+                        idxs = np.linspace(0, zsize - 1, ncols * nrows, dtype=int)
+                        slice_imgs = [np.rot90(data[:, :, z]) for z in idxs]
+
+                    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 1.2, nrows * 1.2), dpi=dpi)
+                    for ax, sl in zip(axes.flat, slice_imgs):
+                        ax.imshow(sl, cmap='hot', interpolation='nearest')
+                        ax.axis('off')
+                    for ax in axes.flat[len(slice_imgs):]:
+                        ax.axis('off')
+                    plt.subplots_adjust(wspace=0.01, hspace=0.01)
+                    plt.savefig(out_png, bbox_inches='tight', pad_inches=0)
+                    plt.close(fig)
+
                 for npth in nifti_paths:
                     try:
-                        img = nb.load(npth)
-                        data = img.get_fdata()
-                        # choose middle axial slice
-                        if data.ndim == 3:
-                            z = data.shape[2] // 2
-                            slice_img = np.rot90(data[:, :, z])
-                        else:
-                            # fallback to flatten
-                            slice_img = np.rot90(np.squeeze(data))
-
-                        thumb_name = os.path.join(output_dir, os.path.basename(npth).replace('.nii.gz', '').replace('.nii', '') + '_thumb.png')
-                        plt.figure(figsize=(6, 4))
-                        plt.imshow(slice_img, cmap='hot', interpolation='nearest')
-                        plt.axis('off')
-                        plt.tight_layout()
-                        plt.savefig(thumb_name, dpi=150, bbox_inches='tight', pad_inches=0)
-                        plt.close()
-                        tfce_thumbnails.append({'nifti': npth, 'thumb': os.path.relpath(thumb_name, output_dir)})
+                        base = os.path.basename(npth).replace('.nii.gz', '').replace('.nii', '')
+                        outpng = os.path.join(report_dir, base + '_fwe_moire.png')
+                        if (not os.path.exists(outpng)) or (os.path.getmtime(npth) > os.path.getmtime(outpng)):
+                            make_moire_single(npth, outpng, ncols=8, nrows=1)
+                        # store nifti path relative to report dir and thumb filename in report dir
+                        tfce_thumbnails.append({'nifti': os.path.relpath(npth, report_dir), 'thumb': os.path.basename(outpng), 'name': base})
                     except Exception:
                         continue
             except Exception:
-                # matplotlib/nibabel not available - skip thumbnails
                 tfce_thumbnails = []
+
+    # Generate moire-style montages for contrast maps (spmT_*.nii and con_*.nii)
+    contrast_items = []
+    if output_dir and report_dir:
+        contrast_files = []
+        for root, dirs, files in os.walk(output_dir):
+            for fn in files:
+                if fn.startswith('spmT_') and (fn.endswith('.nii') or fn.endswith('.nii.gz')):
+                    contrast_files.append(os.path.join(root, fn))
+                if fn.startswith('con_') and (fn.endswith('.nii') or fn.endswith('.nii.gz')):
+                    contrast_files.append(os.path.join(root, fn))
+
+        try:
+            import nibabel as nb
+            import numpy as np
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+
+            def make_moire(nifti_path, out_png, ncols=8, nrows=4, dpi=100):
+                img = nb.load(nifti_path)
+                data = img.get_fdata()
+                # take absolute values (for T/contrast maps) and normalize
+                data = np.nan_to_num(np.abs(data))
+                # pick evenly spaced axial slices across the z-dimension
+                if data.ndim < 3:
+                    slice_imgs = [np.rot90(np.squeeze(data))]
+                else:
+                    zsize = data.shape[2]
+                    idxs = np.linspace(0, zsize - 1, ncols * nrows, dtype=int)
+                    slice_imgs = [np.rot90(data[:, :, z]) for z in idxs]
+
+                fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 1.2, nrows * 1.2), dpi=dpi)
+                for ax, sl in zip(axes.flat, slice_imgs):
+                    ax.imshow(sl, cmap='gray', interpolation='nearest')
+                    ax.axis('off')
+                # hide any remaining axes
+                for ax in axes.flat[len(slice_imgs):]:
+                    ax.axis('off')
+                plt.subplots_adjust(wspace=0.01, hspace=0.01)
+                plt.savefig(out_png, bbox_inches='tight', pad_inches=0)
+                plt.close(fig)
+
+            for cf in sorted(set(contrast_files)):
+                try:
+                    base = os.path.basename(cf).replace('.nii.gz', '').replace('.nii', '')
+                    outpng = os.path.join(report_dir, base + '_moire.png')
+                    # only create if missing or stale
+                    if (not os.path.exists(outpng)) or (os.path.getmtime(cf) > os.path.getmtime(outpng)):
+                        make_moire(cf, outpng)
+                    rel = os.path.basename(outpng)
+                    contrast_items.append({'nifti': os.path.relpath(cf, report_dir), 'thumb': rel, 'name': base})
+                except Exception:
+                    continue
+        except Exception:
+            contrast_items = []
+
+    # Build HTML items for contrasts
+    contrast_items_html = ''
+    if contrast_items:
+        for it in contrast_items:
+            contrast_items_html += f"<div class=\"contrast-item\"><a href=\"{it['nifti']}\"><img src=\"{it['thumb']}\" style=\"width:100%;height:auto;border-radius:4px;border:1px solid #ddd\"></a><div style=\"font-size:0.85rem;margin-top:0.4rem\">{it['name']}</div></div>"
+    else:
+        contrast_items_html = '<div style="color:#666;">No contrast images found to generate previews.</div>'
 
     
     # Processing steps
@@ -613,17 +802,23 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     if tfce_thumbnails:
         thumb_items = []
         for t in tfce_thumbnails:
-            # t['thumb'] is relative path under output_dir
-            thumb_items.append(f'<div style="display:inline-block;margin:8px;text-align:center;"><a href="{os.path.relpath(t["nifti"], output_dir)}"><img src="{t["thumb"]}" style="width:220px;height:auto;border:1px solid #ddd;border-radius:4px"></a><div style="font-size:0.85rem;margin-top:0.3rem">{os.path.basename(t["nifti"])}</div></div>')
+            # t['nifti'] and t['thumb'] are relative to report dir
+            thumb_items.append(f'<div style="display:inline-block;margin:8px;text-align:center;"><a href="{t["nifti"]}"><img src="{t["thumb"]}" style="width:420px;height:auto;border:1px solid #ddd;border-radius:4px"></a><div style="font-size:0.9rem;margin-top:0.3rem">{t.get("name", os.path.basename(t["nifti"]))}</div></div>')
         tfce_thumbs_section = f"""
         <div class="section">
-            <h3>Result Thumbnails</h3>
-            <p>Quick visual summaries of TFCE FWE-corrected maps. Click a thumbnail to download the full NIfTI.</p>
+            <h3>TFCE FWE Montages</h3>
+            <p>Montages of TFCE FWE-corrected maps. Each image is a single-row montage summarizing axial slices.</p>
             <div style="margin-top:1rem;">{''.join(thumb_items)}</div>
         </div>
         """
+        # items for the grid used later in the template (already relative to report dir)
+        tfce_moire_items = ''.join(f'<div class="contrast-item"><a href="{t["nifti"]}"><img src="{t["thumb"]}" style="width:100%;height:auto;border-radius:4px;border:1px solid #ddd"></a><div style="font-size:0.85rem;margin-top:0.4rem">{t.get("name", os.path.basename(t["nifti"]))}</div></div>' for t in tfce_thumbnails)
     
     # Format parameters
+    # ensure the command_line is HTML-escaped for safe display
+    cmdline = kwargs.get('command_line', '') or ''
+    cmdline = html.escape(cmdline)
+
     params = {
         'analysis_name': kwargs.get('analysis_name', 'Unnamed Analysis'),
         'modality': modality.upper(),
@@ -646,9 +841,11 @@ def generate_report(design_json_path, output_html_path, **kwargs):
         'n_contrasts': kwargs.get('n_contrasts', 'N/A'),
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'output_dir': kwargs.get('output_dir', 'N/A'),
-        'command_line': kwargs.get('command_line', 'N/A'),
+        'command_line': cmdline or 'N/A',
         'pipeline_log': pipeline_log or '',
         'tfce_thumbs_section': tfce_thumbs_section,
+        'tfce_moire_items': locals().get('tfce_moire_items', ''),
+        'contrast_items': contrast_items_html,
     }
 
     # Missing voxels diagnostics: include summary, thumb, links if present
@@ -689,11 +886,15 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     # Generate HTML
     html_content = HTML_TEMPLATE.format(**params)
     
-    # Write to file
-    with open(output_html_path, 'w') as f:
+    # Write to file inside report directory so report + images are colocated
+    if report_dir:
+        html_out = os.path.join(report_dir, os.path.basename(output_html_path) or 'report.html')
+    else:
+        html_out = output_html_path
+    with open(html_out, 'w') as f:
         f.write(html_content)
     
-    print(f"✓ HTML report generated: {output_html_path}")
+    print(f"✓ HTML report generated: {html_out}")
 
 
 if __name__ == '__main__':

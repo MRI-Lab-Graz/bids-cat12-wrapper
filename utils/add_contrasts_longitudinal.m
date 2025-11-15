@@ -341,6 +341,8 @@ for k = 1:numel(contrasts)
     end
 end
 
+% By default, do not delete existing contrasts: use SPM's 'add' behaviour
+% so newly generated contrasts are appended to any existing ones.
 matlabbatch{1}.spm.stats.con.delete = 0;
 
 spm('defaults','FMRI');
@@ -353,7 +355,25 @@ for k = 1:numel(contrasts)
     fprintf('  %02d. %s\n', k, contrasts{k}.name);
 end
 
-save(spm_file, 'SPM');
+% IMPORTANT: spm_jobman may update and save SPM.mat as part of the job.
+% Do NOT overwrite SPM.mat with the (potentially stale) local `SPM` variable
+% that was loaded at the start of this function. Instead, reload the saved
+% SPM.mat to report the up-to-date SPM.xCon contents (avoids clobbering
+% newly-added contrasts written by SPM itself).
+if exist(spm_file, 'file')
+    try
+        load(spm_file, 'SPM');
+        if isfield(SPM, 'xCon')
+            fprintf('\nSPM.mat now contains %d contrasts (SPM.xCon length)\n', length(SPM.xCon));
+        else
+            fprintf('\nSPM.mat does not contain SPM.xCon after running contrasts.\n');
+        end
+    catch ME
+        fprintf('\nWarning: could not reload SPM.mat to verify contrasts: %s\n', ME.message);
+    end
+else
+    fprintf('\nWarning: SPM.mat not found after running contrasts.\n');
+end
 
 end
 
