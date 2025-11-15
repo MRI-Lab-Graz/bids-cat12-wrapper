@@ -115,7 +115,7 @@ echo "┌───────────────────────�
 echo "│ CHECK 3: Parameter Estimates (beta_*.nii)                              │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
-beta_count=$(ls "$OUTPUT_DIR"/beta_*.nii 2>/dev/null | wc -l)
+beta_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'beta_*.nii' 2>/dev/null | wc -l)
 
 if (( beta_count > 0 )); then
     echo -e "${GREEN}✓ Beta parameter estimates exist${NC}"
@@ -134,12 +134,20 @@ echo "┌───────────────────────�
 echo "│ CHECK 4: Design Matrix Visualization                                   │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
+DESIGN_PNG=""
 if [[ -f "$OUTPUT_DIR/design_matrix.png" ]]; then
+    DESIGN_PNG="$OUTPUT_DIR/design_matrix.png"
+elif [[ -f "$OUTPUT_DIR/report/design_matrix.png" ]]; then
+    DESIGN_PNG="$OUTPUT_DIR/report/design_matrix.png"
+fi
+
+if [[ -n "$DESIGN_PNG" && -f "$DESIGN_PNG" ]]; then
     echo -e "${GREEN}✓ Design matrix image generated${NC}"
-    echo "  File: design_matrix.png"
+    echo "  File: $(basename "$DESIGN_PNG") (location: ${DESIGN_PNG#$OUTPUT_DIR/})"
     echo ""
 else
     echo -e "${YELLOW}⚠ Design matrix image not found${NC}"
+    echo "  Checked: $OUTPUT_DIR/design_matrix.png and $OUTPUT_DIR/report/design_matrix.png"
     echo ""
 fi
 
@@ -190,29 +198,34 @@ echo "┌───────────────────────�
 echo "│ CHECK 6: TFCE Permutation Testing (FWE correction)                     │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
-tfce_count=$(ls "$OUTPUT_DIR"/tfce_*_fwe.nii 2>/dev/null | wc -l)
-tfce_uncorr=$(ls "$OUTPUT_DIR"/tfce_*.nii 2>/dev/null | wc -l)
+# Search TFCE outputs in either the output root or the report subfolder (some report generators place assets there)
+tfce_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*_fwe.nii' 2>/dev/null | wc -l)
+tfce_uncorr=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*.nii' 2>/dev/null | grep -v '_fwe.nii' | wc -l)
 
 if (( tfce_count > 0 )); then
     echo -e "${GREEN}✓ TFCE results found (FWE-corrected)${NC}"
     echo "  Significant contrasts (p<0.05 FWE): $tfce_count"
     echo ""
     echo "  Contrasts with significant results:"
-    for f in "$OUTPUT_DIR"/tfce_*_fwe.nii; do
-        basename "$f" | sed 's/tfce_//; s/_fwe.nii//' | sed 's/^/    - /'
+    find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*_fwe.nii' 2>/dev/null | while read -r f; do
+        base=$(basename "$f")
+        label=$(echo "$base" | sed 's/tfce_//; s/_fwe.nii//')
+        echo "    - $label    (path: ${f#$OUTPUT_DIR/})"
     done
     echo ""
 elif (( tfce_uncorr > 0 )); then
     echo -e "${YELLOW}⚠ TFCE files exist but NO SIGNIFICANT RESULTS (p<0.05 FWE)${NC}"
-    echo "  Total TFCE outputs: $tfce_uncorr"
-    echo "  This is expected for pilot analyses or when effects are subtle"
+    echo "  Total TFCE outputs (unthresholded): $tfce_uncorr"
+    echo "  Note: TFCE outputs were produced but no voxels survived FWE correction."
+    echo "  This is expected for pilot analyses or when effects are subtle."
+    echo "  TFCE files were searched under: $OUTPUT_DIR and $OUTPUT_DIR/report/"
     echo ""
 else
     echo -e "${YELLOW}⚠ No TFCE results found${NC}"
-    echo "  Possible reasons:"
-    echo "    - No voxels passed initial screening (p<0.001 uncorrected)"
-    echo "    - TFCE permutation test found no voxels surviving FWE correction"
-    echo "    - Pilot mode was used (fewer permutations = less power)"
+    echo "  Possible reasons:" 
+    echo "    - No voxels passed initial screening (p<0.001 uncorrected) so TFCE was not executed" 
+    echo "    - TFCE permutation test did not produce any outputs (error or misconfiguration)" 
+    echo "    - Report assets may have been placed elsewhere; check $OUTPUT_DIR/report/ and logs/" 
     echo ""
 fi
 
@@ -262,10 +275,17 @@ echo "File counts:"
 echo "  - SPM.mat:           $(test -f "$OUTPUT_DIR/SPM.mat" && echo "✓" || echo "✗")"
 echo "  - Contrasts:         $total_con files"
 echo "  - Beta estimates:    $beta_count files"
-echo "  - Design matrix:     $(test -f "$OUTPUT_DIR/design_matrix.png" && echo "✓" || echo "✗")"
+echo "  - Design matrix:     $(test -f "$DESIGN_PNG" && echo "✓" || echo "✗")"
 echo "  - Screening results: $(test -f "$OUTPUT_DIR/screening_results.mat" && echo "✓" || echo "✗")"
 echo "  - TFCE significant:  $tfce_count contrasts"
-echo "  - HTML report:       $(test -f "$OUTPUT_DIR/report.html" && echo "✓" || echo "✗")"
+# Report file may live at top-level or in the `report/` subfolder
+REPORT_HTML=""
+if [[ -f "$OUTPUT_DIR/report.html" ]]; then
+    REPORT_HTML="$OUTPUT_DIR/report.html"
+elif [[ -f "$OUTPUT_DIR/report/report.html" ]]; then
+    REPORT_HTML="$OUTPUT_DIR/report/report.html"
+fi
+echo "  - HTML report:       $(test -f "$REPORT_HTML" && echo "✓" || echo "✗")"
 echo ""
 
 # Overall status

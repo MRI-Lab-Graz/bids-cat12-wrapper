@@ -832,6 +832,19 @@ python3 "$STATS_DIR/utils/generate_html_report.py" \
         echo "⚠️  Warning: HTML report generation failed"
     }
 
+# If the report generator wrote files into a `report/` subfolder, copy the
+# main assets to the top-level output directory so verification and quick
+# links work as expected.
+if [[ ! -f "$OUTPUT_DIR/report.html" && -f "$OUTPUT_DIR/report/report.html" ]]; then
+    echo "Note: moving report assets from $OUTPUT_DIR/report/ to $OUTPUT_DIR/"
+    cp -f "$OUTPUT_DIR/report/report.html" "$OUTPUT_DIR/report.html" || true
+    if [[ -f "$OUTPUT_DIR/report/design_matrix.png" ]]; then
+        cp -f "$OUTPUT_DIR/report/design_matrix.png" "$OUTPUT_DIR/design_matrix.png" || true
+    fi
+    # Also copy any TFCE moire thumbnails for the report root for backward compatibility
+    cp -f "$OUTPUT_DIR/report"/*moire*.png "$OUTPUT_DIR" 2>/dev/null || true
+fi
+
 # Create symlink in script directory for quick access
 if [[ -f "$OUTPUT_DIR/report.html" ]]; then
     LINK_NAME="$STATS_DIR/report_latest.html"

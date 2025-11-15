@@ -333,15 +333,115 @@ for i = 1:length(contrasts_to_process)
                 continue;
             end
 
+            % Print debug information about the contrast and design so
+            % it's recorded in the logs for later diagnosis.
+            try
+                con_struct = SPM.xCon(con_idx);
+                % contrast vector/matrix shape
+                if isfield(con_struct, 'c')
+                    cc = con_struct.c;
+                    try
+                        sz = size(cc);
+                        fprintf('        Contrast c shape: [%s]\n', sprintf('%d ', sz));
+                    catch
+                        fprintf('        Contrast c: (unable to determine shape)\n');
+                    end
+                    try
+                        nnz_c = sum(cc(:) ~= 0);
+                        fprintf('        Contrast nonzero elements: %d\n', nnz_c);
+                    catch
+                    end
+                end
+                if isfield(con_struct, 'STAT')
+                    fprintf('        Contrast STAT: %s\n', con_struct.STAT);
+                end
+            catch
+                fprintf('        (Could not read contrast structure for logging)\n');
+            end
+
+            % Print factor summary (names and levels) if available
+            try
+                if isfield(SPM, 'factor')
+                    fac = SPM.factor;
+                    if iscell(fac) || isa(fac, 'struct') || numel(fac) > 0
+                        % iterate factors
+                        for ff = 1:numel(fac)
+                            try
+                                fname = fac(ff).name;
+                                flevs = fac(ff).levels;
+                                fprintf('        Factor %d: %s (levels=%d)\n', ff, fname, flevs);
+                            catch
+                                % ignore per-factor failures
+                            end
+                        end
+                    end
+                end
+            catch
+                % ignore
+            end
+
             % Run TFCE via SPM batch runner to ensure toolbox receives the
             % matlabbatch (which now includes exchangeability if available).
             try
                 spm_jobman('run', matlabbatch);
-                fprintf('        ✓ TFCE complete\n\n');
-                tfce_success = tfce_success + 1;
+
+                % Verify expected outputs exist in the TFCE folder. If the
+                % toolbox ran but produced no outputs, we'll attempt a
+                % fallback using Freedman-Lane nuisance handling.
+                if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
+                    fprintf('        ✓ TFCE complete\n\n');
+                    tfce_success = tfce_success + 1;
+                else
+                    fprintf('        ⚠ TFCE run finished but expected outputs not found. Trying fallback (Freedman-Lane)...\n');
+                    % Fallback: set Freedman-Lane nuisance handling (1)
+                    try
+                        matlabbatch{1}.spm.tools.tfce_estimate.nuisance_method = 1;
+                        fallback_file = fullfile(logs_dir, sprintf('tfce_prepared_batch_contrast_%04d.fallback.mat', con_idx));
+                        save(fallback_file, 'matlabbatch');
+                        fprintf('        Saved fallback prepared batch to: %s\n', fallback_file);
+                    catch MEsavefb
+                        fprintf('        ⚠ Could not save fallback batch: %s\n', MEsavefb.message);
+                    end
+                    try
+                        spm_jobman('run', matlabbatch);
+                        if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
+                            fprintf('        ✓ TFCE complete after Freedman-Lane fallback\n\n');
+                            tfce_success = tfce_success + 1;
+                        else
+                            fprintf('        ✗ Fallback run completed but outputs still missing\n\n');
+                            tfce_failed = tfce_failed + 1;
+                        end
+                    catch MEfb
+                        fprintf('        ✗ TFCE fallback (Freedman-Lane) failed: %s\n\n', MEfb.message);
+                        tfce_failed = tfce_failed + 1;
+                    end
+                end
+
             catch MEsb
-                fprintf('        ✗ TFCE failed during spm_jobman run: %s\n\n', MEsb.message);
-                tfce_failed = tfce_failed + 1;
+                fprintf('        ✗ TFCE failed during spm_jobman run: %s\n', MEsb.message);
+                fprintf('        ✗ Attempting Freedman-Lane fallback...\n');
+                % Attempt fallback with Freedman-Lane nuisance method
+                try
+                    matlabbatch{1}.spm.tools.tfce_estimate.nuisance_method = 1;
+                    fallback_file = fullfile(logs_dir, sprintf('tfce_prepared_batch_contrast_%04d.fallback.mat', con_idx));
+                    save(fallback_file, 'matlabbatch');
+                    fprintf('        Saved fallback prepared batch to: %s\n', fallback_file);
+                catch MEsavefb2
+                    fprintf('        ⚠ Could not save fallback batch: %s\n', MEsavefb2.message);
+                end
+                try
+                    spm_jobman('run', matlabbatch);
+                    if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
+                        fprintf('        ✓ TFCE complete after Freedman-Lane fallback\n\n');
+                        tfce_success = tfce_success + 1;
+                    else
+                        fprintf('        ✗ Fallback run completed but outputs still missing\n\n');
+                        tfce_failed = tfce_failed + 1;
+                    end
+                catch MEfb2
+                    fprintf('        ✗ TFCE fallback (Freedman-Lane) failed: %s\n\n', MEfb2.message);
+                    tfce_failed = tfce_failed + 1;
+                end
             end
 
         catch MErunprep
