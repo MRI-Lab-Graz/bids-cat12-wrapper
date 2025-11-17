@@ -791,6 +791,46 @@ fi
 mkdir -p "$LOG_DIR"
 
 TFCE_LOG="$LOG_DIR/matlab_tfce.log"
+TFCE_SUMMARY="$LOG_DIR/tfce_cc_summary.json"
+
+print_tfce_summary_table() {
+    local summary_path="$1"
+    local threshold="$2"
+    python3 - "$summary_path" "$threshold" <<'PY'
+import json
+import sys
+
+summary_path = sys.argv[1]
+threshold = float(sys.argv[2])
+try:
+    with open(summary_path, 'r', encoding='utf-8') as fh:
+        data = json.load(fh)
+except FileNotFoundError:
+    print(f"  Summary file not found: {summary_path}")
+    sys.exit(1)
+except json.JSONDecodeError as exc:
+    print(f"  Could not parse summary JSON ({exc})")
+    sys.exit(1)
+
+if not data:
+    print("  (no contrasts recorded)")
+    sys.exit(0)
+
+print("  Contrast  Probe_cc  Recommended_full_method  Logged_full_method")
+for entry in data:
+    con = entry.get('contrast')
+    con_str = str(con) if con is not None else '--'
+    cc = entry.get('probe_cc')
+    try:
+        cc_val = float(cc) if cc is not None else None
+    except (TypeError, ValueError):
+        cc_val = None
+    cc_str = f"{cc_val:.4f}" if cc_val is not None else "--"
+    recommended = 'freedman-lane' if (cc_val is not None and cc_val < threshold) else 'smith'
+    logged = entry.get('chosen_full_method') or '--'
+    print(f"    {con_str:>4}     {cc_str:>8}  {recommended:<22} {logged:<18}")
+PY
+}
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
 echo "│ STEP 6: TFCE Permutation Testing                                      │"
@@ -822,10 +862,31 @@ else
     # selection of nuisance handling based on probe cc. This is the pipeline's
     # default behavior (no user flag required).
     echo "Running automatic two-stage TFCE: probe=${INITIAL_PERM} perms -> full=${N_PERM} perms (cc threshold=${CC_THRESHOLD})"
-    "$STATS_DIR/utils/tfce_two_stage.sh" "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
-        echo "Error: Automatic two-stage TFCE failed"
+    echo "  -> Probe phase (${INITIAL_PERM} permutations)"
+    "$STATS_DIR/utils/tfce_two_stage.sh" --probe-only "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
+        echo "Error: TFCE probe phase failed"
         exit 1
     }
+    if [[ ! -f "$TFCE_SUMMARY" ]]; then
+        echo "Error: Expected probe summary not found at $TFCE_SUMMARY"
+        exit 1
+    fi
+    echo "Probe summary (threshold=${CC_THRESHOLD}):"
+    print_tfce_summary_table "$TFCE_SUMMARY" "$CC_THRESHOLD"
+    echo ""
+
+    echo "  -> Full phase (${N_PERM} permutations)"
+    "$STATS_DIR/utils/tfce_two_stage.sh" --full-only "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
+        echo "Error: TFCE full phase failed"
+        exit 1
+    }
+
+    if [[ -f "$TFCE_SUMMARY" ]]; then
+        echo "Updated TFCE summary after full run:"
+        print_tfce_summary_table "$TFCE_SUMMARY" "$CC_THRESHOLD"
+    else
+        echo "Warning: TFCE summary JSON missing after full run ($TFCE_SUMMARY)"
+    fi
 fi
 
 echo "✓ TFCE correction complete"
