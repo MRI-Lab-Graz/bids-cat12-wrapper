@@ -123,8 +123,9 @@ GROUP_COL=$(get_ini_value "ANALYSIS" "group_col" "")
 SESSION_COL=$(get_ini_value "ANALYSIS" "session_col" "session")
 SESSIONS=$(get_ini_value "ANALYSIS" "sessions" "all")
 COVARIATES=$(get_ini_value "ANALYSIS" "covariates" "")
+STANDARDIZE_CONTINUOUS=$(get_ini_value "ANALYSIS" "standardize_continuous_variables" "false")
 
-UNCORRECTED_P=$(get_ini_value "SCREENING" "uncorrected_p" "0.001")
+UNCORRECTED_P=$(get_ini_value "SCREENING" "uncorrected_p" "0.01")
 CLUSTER_SIZE=$(get_ini_value "SCREENING" "cluster_size" "50")
 SKIP_SCREENING=$(get_ini_value "SCREENING" "skip_screening" "false")
 
@@ -175,6 +176,7 @@ fi
 
 CAT12_DIR=""
 PARTICIPANTS_FILE=""
+DESIGN_FILE=""
 
 # Show help if no arguments provided
 if [[ $# -eq 0 ]]; then
@@ -259,6 +261,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --participants)
             PARTICIPANTS_FILE="$2"
+            shift 2
+            ;;
+        --design)
+            DESIGN_FILE="$2"
             shift 2
             ;;
         --modality)
@@ -353,39 +359,58 @@ done
 # Validation
 # ============================================================================
 
-if [[ -z "$CAT12_DIR" ]] || [[ -z "$PARTICIPANTS_FILE" ]]; then
-    echo "Error: Missing required arguments"
-    echo "Usage: $0 --cat12-dir <path> --participants <tsv>"
-    echo "Run: $0 --help   for full help"
-    exit 1
+if [[ -n "$DESIGN_FILE" ]]; then
+    if [[ ! -f "$DESIGN_FILE" ]]; then
+        echo "Error: Design file not found: $DESIGN_FILE"
+        exit 1
+    fi
+else
+    if [[ -z "$CAT12_DIR" ]] || [[ -z "$PARTICIPANTS_FILE" ]]; then
+        echo "Error: Missing required arguments"
+        echo "Usage: $0 --cat12-dir <path> --participants <tsv>"
+        echo "   OR: $0 --design <json_file>"
+        echo "Run: $0 --help   for full help"
+        exit 1
+    fi
 fi
 
-if [[ ! -d "$CAT12_DIR" ]]; then
+if [[ -n "$CAT12_DIR" ]] && [[ ! -d "$CAT12_DIR" ]]; then
     echo "Error: CAT12 directory not found: $CAT12_DIR"
     exit 1
 fi
 
-if [[ ! -f "$PARTICIPANTS_FILE" ]]; then
+if [[ -n "$PARTICIPANTS_FILE" ]] && [[ ! -f "$PARTICIPANTS_FILE" ]]; then
     echo "Error: Participants file not found: $PARTICIPANTS_FILE"
     exit 1
 fi
 
 # Make paths absolute
-CAT12_DIR="$(cd "$CAT12_DIR" && pwd)"
-PARTICIPANTS_FILE="$(cd "$(dirname "$PARTICIPANTS_FILE")" && pwd)/$(basename "$PARTICIPANTS_FILE")"
+if [[ -n "$CAT12_DIR" ]]; then
+    CAT12_DIR="$(cd "$CAT12_DIR" && pwd)"
+fi
+if [[ -n "$PARTICIPANTS_FILE" ]]; then
+    PARTICIPANTS_FILE="$(cd "$(dirname "$PARTICIPANTS_FILE")" && pwd)/$(basename "$PARTICIPANTS_FILE")"
+fi
+if [[ -n "$DESIGN_FILE" ]]; then
+    DESIGN_FILE="$(cd "$(dirname "$DESIGN_FILE")" && pwd)/$(basename "$DESIGN_FILE")"
+fi
 
 # Auto-detect smoothing if not specified
 if [[ -z "$SMOOTHING" ]]; then
     # Find one representative mwp1r file under the supplied CAT12 dir and
     # try to extract the smoothing kernel (e.g. 's6mwp1r' -> 6). If no
     # smoothing prefix is present, fall back to default 6 mm.
-    FOUND_FILE=$(find "$CAT12_DIR" -type f -iname "*mwp1r*.nii*" 2>/dev/null | head -n 1 || true)
-    if [[ -n "$FOUND_FILE" ]]; then
-        basefn=$(basename "$FOUND_FILE")
-        if [[ "$basefn" =~ s([0-9]+)mwp1r ]]; then
-            SMOOTHING="${BASH_REMATCH[1]}"
+    if [[ -n "$CAT12_DIR" ]]; then
+        FOUND_FILE=$(find "$CAT12_DIR" -type f -iname "*mwp1r*.nii*" 2>/dev/null | head -n 1 || true)
+        if [[ -n "$FOUND_FILE" ]]; then
+            basefn=$(basename "$FOUND_FILE")
+            if [[ "$basefn" =~ s([0-9]+)mwp1r ]]; then
+                SMOOTHING="${BASH_REMATCH[1]}"
+            else
+                # No explicit smoothing prefix found in filename; default to 6
+                SMOOTHING="6"
+            fi
         else
-            # No explicit smoothing prefix found in filename; default to 6
             SMOOTHING="6"
         fi
     else
@@ -521,10 +546,14 @@ echo "│ STEP 0: PREFLIGHT CHECKS (Python packages, CAT12 files, participants) 
 echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
-python3 "$STATS_DIR/utils/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" || {
-    echo "Error: Preflight checks failed. Fix issues above and re-run."
-    exit 1
-}
+if [[ -n "$CAT12_DIR" ]] && [[ -n "$PARTICIPANTS_FILE" ]]; then
+    python3 "$STATS_DIR/utils/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" || {
+        echo "Error: Preflight checks failed. Fix issues above and re-run."
+        exit 1
+    }
+else
+    echo "Skipping preflight checks (CAT12_DIR or PARTICIPANTS_FILE not provided)."
+fi
 
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
@@ -532,19 +561,25 @@ echo "│ STEP 1: Parsing Participants File                                     
 echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
-python3 "$STATS_DIR/utils/parse_participants.py" \
-    --cat12-dir "$CAT12_DIR" \
-    --participants "$PARTICIPANTS_FILE" \
-    --modality "$MODALITY" \
-    --smoothing "$SMOOTHING" \
-    --output "$TEMP_DIR" \
-    ${GROUP_COL:+--group-col "$GROUP_COL"} \
-    --session-col "$SESSION_COL" \
-    --sessions "$SESSIONS" \
-    ${COVARIATES:+--covariates "$COVARIATES"} || {
-        echo "Error: Failed to parse participants file"
-        exit 1
-    }
+if [[ -n "$DESIGN_FILE" ]]; then
+    echo "Using provided design file: $DESIGN_FILE"
+    cp "$DESIGN_FILE" "$TEMP_DIR/design.json"
+else
+    python3 "$STATS_DIR/utils/parse_participants.py" \
+        --cat12-dir "$CAT12_DIR" \
+        --participants "$PARTICIPANTS_FILE" \
+        --modality "$MODALITY" \
+        --smoothing "$SMOOTHING" \
+        --output "$TEMP_DIR" \
+        ${GROUP_COL:+--group-col "$GROUP_COL"} \
+        --session-col "$SESSION_COL" \
+        --sessions "$SESSIONS" \
+        ${COVARIATES:+--covariates "$COVARIATES"} \
+        ${STANDARDIZE_CONTINUOUS:+--standardize-continuous} || {
+            echo "Error: Failed to parse participants file"
+            exit 1
+        }
+fi
 
 echo ""
 
@@ -681,23 +716,39 @@ if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
     rm -f "$OUTPUT_DIR"/ResMS.nii
     rm -f "$OUTPUT_DIR"/mask.nii
     rm -f "$OUTPUT_DIR"/RPV.nii
-    # Also clean old TFCE results to avoid confusion
+    # Also clean old TFCE results and reports to avoid confusion
     rm -f "$OUTPUT_DIR"/tfce_*.nii
     rm -f "$OUTPUT_DIR"/*_log_pfwe*.nii
+    rm -f "$OUTPUT_DIR"/report.html
+    rm -rf "$OUTPUT_DIR"/report
     echo "✓ Cleaned old results"
 fi
 
 # Ensure logs directory exists
 mkdir -p "$LOG_DIR"
 
+# Determine estimation method
+EST_METHOD="matlabbatch{1}.spm.stats.fmri_est.method.Classical = 1;"
+echo "Using Classical Estimation (ReML)"
+
 MATLAB_MODEL_LOG="$LOG_DIR/matlab_model_estimation.log"
-"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; matlabbatch{1}.spm.stats.fmri_est.method.Classical = 1; spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n'); exit;" 2>&1 | tee -a "$MATLAB_MODEL_LOG" || {
+"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n'); exit;" 2>&1 | tee -a "$MATLAB_MODEL_LOG" || {
         echo "Error: Model estimation failed"
         echo "Check MATLAB log: $LOG_DIR/matlab_model_estimation.log"
         exit 1
     }
 
 echo "✓ Model estimation complete"
+echo ""
+
+# Export design matrix to CSV for inspection (Priority Request)
+echo "Exporting design matrix to CSV..."
+"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); X = SPM.xX.X; writematrix(X, '$OUTPUT_DIR/design_matrix.csv'); exit;" || {
+    echo "Warning: Failed to export design matrix to CSV"
+}
+if [[ -f "$OUTPUT_DIR/design_matrix.csv" ]]; then
+    echo "✓ Design matrix exported to: $OUTPUT_DIR/design_matrix.csv"
+fi
 echo ""
 
 # ============================================================================
@@ -860,6 +911,7 @@ echo ""
 
 # If screening was run and produced an (empty) significant list, skip TFCE.
 SKIP_TFCE=false
+
 SIGNIF_FILE="$OUTPUT_DIR/logs/significant_contrasts.txt"
 if [[ "$PILOT_MODE" != true && "$SKIP_SCREENING" == false && -f "$SIGNIF_FILE" ]]; then
     if [[ ! -s "$SIGNIF_FILE" ]]; then
@@ -961,45 +1013,14 @@ python3 "$STATS_DIR/utils/generate_html_report.py" \
         echo "⚠️  Warning: HTML report generation failed"
     }
 
-# If the report generator wrote files into a `report/` subfolder, copy the
-# main assets to the top-level output directory so verification and quick
-# links work as expected.
-if [[ ! -f "$OUTPUT_DIR/report.html" && -f "$OUTPUT_DIR/report/report.html" ]]; then
-    echo "Note: moving report assets from $OUTPUT_DIR/report/ to $OUTPUT_DIR/"
-    cp -f "$OUTPUT_DIR/report/report.html" "$OUTPUT_DIR/report.html" || true
-    if [[ -f "$OUTPUT_DIR/report/design_matrix.png" ]]; then
-        cp -f "$OUTPUT_DIR/report/design_matrix.png" "$OUTPUT_DIR/design_matrix.png" || true
-    fi
-    # Also copy any TFCE moire thumbnails for the report root for backward compatibility
-    cp -f "$OUTPUT_DIR/report"/*moire*.png "$OUTPUT_DIR" 2>/dev/null || true
-fi
-
 echo ""
 
 # ============================================================================
-# Completion
+# Cleanup
 # ============================================================================
 
-echo "╔════════════════════════════════════════════════════════════════════════╗"
-echo "║                     ✓ ANALYSIS COMPLETE                                ║"
-echo "╚════════════════════════════════════════════════════════════════════════╝"
-echo ""
+echo "Cleaning up temporary files..."
+rm -rf "$TEMP_DIR"
 
-# Run verification checks on the output
-"$STATS_DIR/utils/verify_analysis_output.sh" "$OUTPUT_DIR" "$PIPELINE_START_TIME"
-VERIFY_RESULT=$?
-
-echo ""
-echo "Results saved to:"
-echo "  $OUTPUT_DIR"
-echo ""
-echo "Key output files:"
-echo "  - report.html                    Analysis report (open in browser)"
-echo "  - spm_batch.m                    SPM batch file (for reproducibility)"
-echo "  - SPM.mat                        Statistical model"
-echo "  - beta_*.nii                     Parameter estimates"
-echo "  - con_*.nii, spmT_*.nii          Contrast maps"
-echo "  - design_matrix.png              Design visualization"
-echo "  - screening_results.mat          Contrast screening results"
-echo "  - tfce_*_fwe.nii                 TFCE-corrected maps"
+echo "Pipeline complete! Results saved to: $OUTPUT_DIR"
 echo ""

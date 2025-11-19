@@ -100,9 +100,18 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     if output_dir:
         report_dir = os.path.join(output_dir, "report")
         os.makedirs(report_dir, exist_ok=True)
-        img_path = os.path.join(report_dir, "design_matrix.png")
-        if os.path.exists(img_path):
-            design_matrix_img = os.path.basename(img_path)
+        
+        # Prefer the MATLAB-generated design matrix image if available
+        matlab_img_path = os.path.join(output_dir, "design_matrix.png")
+        report_img_path = os.path.join(report_dir, "design_matrix.png")
+        
+        if os.path.exists(matlab_img_path):
+            # Copy it to the report directory
+            import shutil
+            shutil.copy2(matlab_img_path, report_img_path)
+            design_matrix_img = "design_matrix.png"
+        elif os.path.exists(report_img_path):
+            design_matrix_img = "design_matrix.png"
         else:
             # Try to construct a compact design matrix visualization from the design JSON
             try:
@@ -170,9 +179,9 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                     ax.set_title("Design matrix (groups | sessions | covariates)")
                     # _plt.colorbar(im, ax=ax, fraction=0.02, pad=0.02) # Colorbar not needed for binary
                     _plt.tight_layout()
-                    _plt.savefig(img_path, dpi=150)
+                    _plt.savefig(report_img_path, dpi=150)
                     _plt.close(fig)
-                    design_matrix_img = os.path.basename(img_path)
+                    design_matrix_img = os.path.basename(report_img_path)
             except Exception:
                 design_matrix_img = None
 
@@ -258,9 +267,49 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     covariates = design.get("covariates", {})
     if covariates:
         cov_list = ", ".join(f"<code>{cov}</code>" for cov in covariates.keys())
+        
+        # Build summary table for covariates
+        cov_table_rows = []
+        for cov_name, values in covariates.items():
+            try:
+                # Convert to numeric array, handling potential non-numeric values gracefully
+                vals = _np.array(values, dtype=float)
+                mean_val = _np.nanmean(vals)
+                std_val = _np.nanstd(vals)
+                min_val = _np.nanmin(vals)
+                max_val = _np.nanmax(vals)
+                
+                cov_table_rows.append(f"""
+                <tr>
+                    <td><strong>{cov_name}</strong></td>
+                    <td>{mean_val:.2f} ± {std_val:.2f}</td>
+                    <td>{min_val:.2f} - {max_val:.2f}</td>
+                </tr>
+                """)
+            except Exception:
+                # Fallback for non-numeric covariates if any slip through
+                cov_table_rows.append(f"""
+                <tr>
+                    <td><strong>{cov_name}</strong></td>
+                    <td colspan="2"><em>Non-numeric or mixed data</em></td>
+                </tr>
+                """)
+
         covariates_section = f"""
             <h4 style="margin-top: 1.5rem; color: #333;">Covariates:</h4>
-            <p>{cov_list}</p>
+            <p>Included covariates: {cov_list}</p>
+            <table class="table table-sm table-bordered" style="width: auto; min-width: 50%;">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Covariate</th>
+                        <th>Mean ± SD</th>
+                        <th>Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(cov_table_rows)}
+                </tbody>
+            </table>
         """
     else:
         covariates_section = ""

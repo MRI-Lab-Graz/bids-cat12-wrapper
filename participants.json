@@ -1,0 +1,42 @@
+{
+    "participant_id": {
+        "Description": "Unique participant identifier"
+    },
+    "nr_sessions": {
+        "Description": "Number of sessions"
+    },
+    "group": {
+        "Description": "Group assignment including training duration",
+                "Levels": {
+            "control": "control group",
+            "intervention_2w": "2 weeks intervention group",
+            "intervention_4w": "4 weeks intervention group"
+        }
+    },
+    "group_ml": {
+        "Description": "Group assignment",
+                "Levels": {
+            "control": "control group",
+            "intervention": "intervention group"
+        }
+    },
+    "age": {
+        "Description": "Age",
+        "Units": "years"
+    },
+    "sex": {
+        "Description": "Sex",
+        "Levels": {
+            "F": "Female",
+            "M": "Male"
+        }
+    },
+    "size": {
+        "Description": "Size",
+        "Units": "meters"
+    },
+    "weight": {
+        "Description": "Weight",
+        "Units": "kilograms"
+    }
+}

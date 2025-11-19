@@ -358,8 +358,49 @@ def parse_participants(args):
 
     # Parse covariate columns
     covariate_cols = []
+    categorical_covariates = set()
+    
     if args.covariates:
         covariate_cols = [c.strip() for c in args.covariates.split(",")]
+        
+        # --------------------------------------------------------------------
+        # Auto-encode categorical covariates (BIDS-aware)
+        # --------------------------------------------------------------------
+        json_path = Path(args.participants).with_suffix('.json')
+        sidecar = {}
+        if json_path.exists():
+            try:
+                with open(json_path, 'r') as f:
+                    sidecar = json.load(f)
+                print(f"Loaded BIDS sidecar: {json_path.name}")
+            except Exception as e:
+                print(f"Warning: Could not read {json_path.name}: {e}")
+
+        for cov in covariate_cols:
+            if cov in df.columns:
+                # Check if encoding is needed:
+                # 1. Explicit "Levels" in JSON sidecar
+                # 2. Non-numeric data type in DataFrame
+                is_categorical = False
+                if cov in sidecar and "Levels" in sidecar[cov]:
+                    is_categorical = True
+                elif not pd.api.types.is_numeric_dtype(df[cov]):
+                    is_categorical = True
+
+                if is_categorical:
+                    categorical_covariates.add(cov)
+                    # Get unique values, sorted for deterministic mapping
+                    unique_vals = sorted(df[cov].dropna().unique())
+                    mapping = {val: i for i, val in enumerate(unique_vals)}
+                    
+                    print(f"  → Auto-encoding categorical covariate '{cov}':")
+                    for val, code in mapping.items():
+                        print(f"      '{val}' -> {code}")
+                    
+                    # Apply mapping to DataFrame
+                    df[cov] = df[cov].map(mapping)
+        # --------------------------------------------------------------------
+
         # Check which covariates are already in participants.tsv
         missing_cov = [col for col in covariate_cols if col not in df.columns]
         if missing_cov:
@@ -556,6 +597,30 @@ def parse_participants(args):
     if dropped_covariates:
         print(f"⚠ Continuing without covariates: {', '.join(dropped_covariates)}")
 
+    # Standardize continuous covariates if requested
+    if args.standardize_continuous:
+        import numpy as np
+        print("\nStandardizing continuous covariates (z-score)...")
+        for cov, values in resolved_covariates.items():
+            if cov in categorical_covariates:
+                print(f"  Skipping categorical covariate: {cov}")
+                continue
+            
+            try:
+                vals = np.array(values)
+                mean_val = np.nanmean(vals)
+                std_val = np.nanstd(vals)
+                
+                if std_val == 0:
+                    print(f"  ⚠ Warning: Covariate '{cov}' has zero variance, skipping standardization")
+                    continue
+                    
+                z_vals = (vals - mean_val) / std_val
+                resolved_covariates[cov] = z_vals.tolist()
+                print(f"  ✓ Standardized '{cov}' (mean={mean_val:.2f}, sd={std_val:.2f})")
+            except Exception as e:
+                print(f"  ⚠ Failed to standardize '{cov}': {e}")
+
     design["covariates"] = resolved_covariates
 
     # Validate design
@@ -645,6 +710,11 @@ if __name__ == "__main__":
         "--allow-missing-covariates",
         action="store_true",
         help="Continue with available covariates even if some values are missing",
+    )
+    parser.add_argument(
+        "--standardize-continuous",
+        action="store_true",
+        help="Standardize (z-score) continuous covariates",
     )
     parser.add_argument(
         "--output", required=True, help="Output directory for design files"
