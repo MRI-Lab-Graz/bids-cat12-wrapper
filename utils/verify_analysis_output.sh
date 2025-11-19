@@ -33,21 +33,30 @@ echo "└───────────────────────�
 
 if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
     size=$(stat -f%z "$OUTPUT_DIR/SPM.mat" 2>/dev/null || stat -c%s "$OUTPUT_DIR/SPM.mat" 2>/dev/null)
-    size_mb=$(echo "scale=2; $size / 1048576" | bc)
+    size=${size:-0}
+    
+    if command -v bc &> /dev/null; then
+        size_mb=$(echo "scale=2; $size / 1048576" | bc)
+    else
+        size_mb="?"
+    fi
     
     if (( size > 100000 )); then  # At least 100KB
         echo -e "${GREEN}✓ SPM.mat exists${NC}"
         echo "  Size: $size_mb MB"
         echo ""
+        spm_status="✓"
     else
         echo -e "${RED}✗ SPM.mat exists but is suspiciously small${NC}"
         echo "  Size: $size_mb MB (expected > 0.1 MB)"
         check_failed=1
+        spm_status="✗ (small)"
         echo ""
     fi
 else
     echo -e "${RED}✗ SPM.mat NOT FOUND${NC}"
     check_failed=1
+    spm_status="✗"
     echo ""
 fi
 
@@ -70,21 +79,22 @@ echo ""
 
 total_con=$((con_count + spmt_count + spmf_count))
 if (( total_con > 0 )); then
-    # Check file sizes
-    con_size=$(du -sh "$OUTPUT_DIR"/con_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
-    spmt_size=$(du -sh "$OUTPUT_DIR"/spmT_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
+    # Check file sizes (Total size)
+    con_size=$(du -ch "$OUTPUT_DIR"/con_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
+    spmt_size=$(du -ch "$OUTPUT_DIR"/spmT_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
     
     echo -e "${GREEN}✓ Contrast files present${NC}"
     echo "  Total: $total_con files"
     if [[ -n "$con_size" ]]; then
-        echo "  Sample sizes: con=$con_size, spmT=$spmt_size"
+        echo "  Total sizes: con=$con_size, spmT=$spmt_size"
     fi
     
     # List all contrasts
     echo ""
     echo "Contrasts (in order):"
     i=1
-    for f in "$OUTPUT_DIR"/spmT_????.nii; do
+    # Use consistent glob pattern
+    for f in "$OUTPUT_DIR"/spmT_*.nii; do
         # Extract just the number from spmT_XXXX
         num=$(basename "$f" | sed 's/spmT_//' | sed 's/.nii//')
         # Try to read from screening file for descriptive names
@@ -199,17 +209,20 @@ echo "│ CHECK 6: TFCE Permutation Testing (FWE correction)                    
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
 # Search TFCE outputs in either the output root or the report subfolder (some report generators place assets there)
-tfce_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*_fwe.nii' 2>/dev/null | wc -l)
-tfce_uncorr=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*.nii' 2>/dev/null | grep -v '_fwe.nii' | wc -l)
+# Use case-insensitive search (-iname) to handle TFCE vs tfce naming variations
+# Updated to match TFCE_log_pFWE_*.nii pattern as well
+tfce_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) 2>/dev/null | wc -l)
+tfce_uncorr=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -iname 'tfce_*.nii' 2>/dev/null | grep -vi '_fwe.nii' | grep -vi '_log_pfwe' | wc -l)
 
 if (( tfce_count > 0 )); then
     echo -e "${GREEN}✓ TFCE results found (FWE-corrected)${NC}"
-    echo "  Significant contrasts (p<0.05 FWE): $tfce_count"
+    echo "  FWE-corrected maps found: $tfce_count"
     echo ""
-    echo "  Contrasts with significant results:"
-    find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'tfce_*_fwe.nii' 2>/dev/null | while read -r f; do
+    echo "  Contrasts with FWE-corrected maps:"
+    find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) 2>/dev/null | while read -r f; do
         base=$(basename "$f")
-        label=$(echo "$base" | sed 's/tfce_//; s/_fwe.nii//')
+        # Clean up label for display
+        label=$(echo "$base" | sed 's/tfce_//I; s/_fwe.nii//I; s/_log_pfwe//I; s/.nii//I; s/^_//')
         echo "    - $label    (path: ${f#$OUTPUT_DIR/})"
     done
     echo ""
@@ -272,7 +285,7 @@ echo ""
 echo "Output directory: $OUTPUT_DIR"
 echo ""
 echo "File counts:"
-echo "  - SPM.mat:           $(test -f "$OUTPUT_DIR/SPM.mat" && echo "✓" || echo "✗")"
+echo "  - SPM.mat:           ${spm_status:-✗}"
 echo "  - Contrasts:         $total_con files"
 echo "  - Beta estimates:    $beta_count files"
 echo "  - Design matrix:     $(test -f "$DESIGN_PNG" && echo "✓" || echo "✗")"

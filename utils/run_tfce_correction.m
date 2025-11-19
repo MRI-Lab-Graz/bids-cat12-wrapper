@@ -112,10 +112,24 @@ end
 
 if pilot_mode
     % Pilot mode: select 1 random contrast
+    if isempty(contrasts_to_process)
+         fprintf('🧪 PILOT MODE: No significant contrasts found. Falling back to random selection from ALL contrasts.\n');
+         contrasts_to_process = 1:n_total_contrasts;
+    else
+         fprintf('🧪 PILOT MODE: Selecting from %d significant contrasts.\n', length(contrasts_to_process));
+    end
+
     rng('shuffle');
-    selected = contrasts_to_process(randperm(length(contrasts_to_process), 1));
-    contrasts_to_process = selected;
-    fprintf('🧪 PILOT MODE: Testing with 1 random contrast (#%d)\n\n', selected);
+    if ~isempty(contrasts_to_process)
+        % Shuffle the list to pick a random starting point
+        % We will iterate through them and STOP after the first success.
+        shuffled_indices = contrasts_to_process(randperm(length(contrasts_to_process)));
+        contrasts_to_process = shuffled_indices;
+        fprintf('🧪 PILOT MODE: Will attempt contrasts in random order until one succeeds.\n');
+        fprintf('   First candidate: Contrast #%d\n\n', contrasts_to_process(1));
+    else
+        fprintf('🧪 PILOT MODE: No contrasts available to process.\n');
+    end
 end
 
 fprintf('TFCE Parameters:\n');
@@ -395,12 +409,29 @@ for i = 1:length(contrasts_to_process)
                 % (e.g. TFCE_0002/logP_max.nii) or into the stats folder
                 % with names like TFCE_0002.nii / TFCE_log_pFWE_0002.nii. We
                 % accept either pattern as success to avoid false negatives.
+                
+                % Wait a moment for filesystem to sync (external drives can be slow)
+                pause(2);
+                
                 tfce_folder_ok = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
                 alt_out1 = fullfile(stats_folder, sprintf('TFCE_%04d.nii', con_idx));
                 alt_out2 = fullfile(stats_folder, sprintf('TFCE_log_pFWE_%04d.nii', con_idx));
                 alt_out3 = fullfile(stats_folder, sprintf('TFCE_log_p_%04d.nii', con_idx));
                 alt_out4 = fullfile(stats_folder, sprintf('TFCE_log_pFDR_%04d.nii', con_idx));
-                alt_ok = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                
+                % Retry check a few times if not found immediately
+                for retry = 1:3
+                    alt_ok = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                    if tfce_folder_ok || alt_ok
+                        break;
+                    end
+                    if retry < 3
+                        fprintf('        ... waiting for file system (%ds) ...\n', retry);
+                        pause(2);
+                        % Re-check folder
+                        tfce_folder_ok = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                    end
+                end
 
                 if tfce_folder_ok || alt_ok
                     if tfce_folder_ok
@@ -432,9 +463,25 @@ for i = 1:length(contrasts_to_process)
                     end
                     try
                         spm_jobman('run', matlabbatch);
+                        
+                        % Wait for filesystem
+                        pause(2);
+                        
                         % re-check both folder and alternative files
                         tfce_folder_ok_fb = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
-                        alt_ok_fb = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                        
+                        % Retry loop for fallback
+                        for retry = 1:3
+                            alt_ok_fb = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                            if tfce_folder_ok_fb || alt_ok_fb
+                                break;
+                            end
+                            if retry < 3
+                                pause(2);
+                                tfce_folder_ok_fb = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                            end
+                        end
+
                         if tfce_folder_ok_fb || alt_ok_fb
                             if tfce_folder_ok_fb
                                 fprintf('        ✓ TFCE complete after Freedman-Lane fallback (outputs in %s)\n\n', tfce_folder);
@@ -476,6 +523,20 @@ for i = 1:length(contrasts_to_process)
                 end
                 try
                     spm_jobman('run', matlabbatch);
+                    
+                    % Wait for filesystem
+                    pause(2);
+                    
+                    % Retry loop for second fallback
+                    for retry = 1:3
+                        if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
+                            break;
+                        end
+                        if retry < 3
+                            pause(2);
+                        end
+                    end
+
                     if exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
                         fprintf('        ✓ TFCE complete after Freedman-Lane fallback\n\n');
                         tfce_success = tfce_success + 1;
@@ -497,6 +558,17 @@ for i = 1:length(contrasts_to_process)
     catch ME
         fprintf('        ✗ TFCE failed: %s\n\n', ME.message);
         tfce_failed = tfce_failed + 1;
+    end
+
+    % In pilot mode, stop after the first successful run or 3 attempts
+    if pilot_mode
+        if tfce_success >= 1
+            fprintf('🧪 PILOT MODE: Success! Stopping after 1 contrast.\n');
+            break;
+        elseif (tfce_failed + tfce_skipped) >= 3
+            fprintf('🧪 PILOT MODE: Stopping after 3 failed/skipped attempts.\n');
+            break;
+        end
     end
 end
 

@@ -355,6 +355,25 @@ for k = 1:numel(contrasts)
     fprintf('  %02d. %s\n', k, contrasts{k}.name);
 end
 
+% Save contrast list to JSON for reporting
+json_file = fullfile(stats_dir, 'contrasts.json');
+fid = fopen(json_file, 'w');
+if fid > 0
+    fprintf(fid, '[\n');
+    for k = 1:numel(contrasts)
+        % Escape quotes in name
+        safe_name = strrep(contrasts{k}.name, '"', '\"');
+        if k < numel(contrasts)
+            fprintf(fid, '  {"index": %d, "name": "%s"},\n', k, safe_name);
+        else
+            fprintf(fid, '  {"index": %d, "name": "%s"}\n', k, safe_name);
+        end
+    end
+    fprintf(fid, ']\n');
+    fclose(fid);
+    fprintf('Saved contrast list to: %s\n', json_file);
+end
+
 % IMPORTANT: spm_jobman may update and save SPM.mat as part of the job.
 % Do NOT overwrite SPM.mat with the (potentially stale) local `SPM` variable
 % that was loaded at the start of this function. Instead, reload the saved

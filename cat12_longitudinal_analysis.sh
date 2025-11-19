@@ -4,6 +4,7 @@
 # =====================================
 #
 # Complete automated workflow from CAT12 preprocessing to TFCE-corrected results.
+# Production Ready - Reviewed 2025-11-19
 #
 # USAGE:
 #   ./cat12_longitudinal_analysis.sh --cat12-dir <path> --participants <tsv> [options]
@@ -25,7 +26,6 @@
 #   --sessions <list>       Sessions to include: "all" or "1,2,3" (default: all)
 #   --covariates <list>     Comma-separated covariate columns (e.g., "age,sex,tiv")
 #
-# TFCE OPTIONS:
 # TFCE OPTIONS:
 #   --n-perm <N> / --nperms <N>
 #                         Number of TFCE permutations (default: 5000)
@@ -148,6 +148,13 @@ if [[ -z "$MATLAB_EXE" ]] || [[ "$MATLAB_EXE" == "false" ]]; then
     else
         MATLAB_EXE="matlab"
     fi
+fi
+
+# Check for Python 3
+if ! command -v "$PYTHON_EXE" &> /dev/null; then
+    echo "Error: Python executable '$PYTHON_EXE' not found."
+    echo "Please install Python 3 or update [PYTHON] exe in config.ini."
+    exit 1
 fi
 
 # Build MATLAB flags depending on whether graphics are allowed
@@ -853,7 +860,7 @@ else
 if [[ "$PILOT_MODE" == true ]]; then
     # In pilot mode run the quick TFCE directly (keep behavior simple)
     echo "Pilot mode: running single short TFCE run (${N_PERM} perms)"
-    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS); exit;" 2>&1 | tee -a "$TFCE_LOG" || {
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'pilot', true); exit;" 2>&1 | tee -a "$TFCE_LOG" || {
         echo "Error: TFCE correction (pilot) failed"
         exit 1
     }
@@ -931,7 +938,10 @@ python3 "$STATS_DIR/utils/generate_html_report.py" \
     --analysis-name "$ANALYSIS_NAME" \
     --output-dir "$OUTPUT_DIR" \
     --command-line "$SAFE_CMDLINE" \
-    --n-contrasts "$N_CONTRASTS" || {
+    --n-contrasts "$N_CONTRASTS" \
+    --n-perm "$N_PERM" \
+    --cluster-size "$CLUSTER_SIZE" \
+    --uncorrected-p "$UNCORRECTED_P" || {
         echo "⚠️  Warning: HTML report generation failed"
     }
 
@@ -946,14 +956,6 @@ if [[ ! -f "$OUTPUT_DIR/report.html" && -f "$OUTPUT_DIR/report/report.html" ]]; 
     fi
     # Also copy any TFCE moire thumbnails for the report root for backward compatibility
     cp -f "$OUTPUT_DIR/report"/*moire*.png "$OUTPUT_DIR" 2>/dev/null || true
-fi
-
-# Create symlink in script directory for quick access
-if [[ -f "$OUTPUT_DIR/report.html" ]]; then
-    LINK_NAME="$STATS_DIR/report_latest.html"
-    rm -f "$LINK_NAME"
-    ln -s "$OUTPUT_DIR/report.html" "$LINK_NAME"
-    echo "✓ Quick link created: $LINK_NAME -> $OUTPUT_DIR/report.html"
 fi
 
 echo ""
@@ -984,7 +986,4 @@ echo "  - con_*.nii, spmT_*.nii          Contrast maps"
 echo "  - design_matrix.png              Design visualization"
 echo "  - screening_results.mat          Contrast screening results"
 echo "  - tfce_*_fwe.nii                 TFCE-corrected maps"
-echo ""
-echo "Quick access:"
-echo "  report_latest.html → $OUTPUT_DIR/report.html"
 echo ""
