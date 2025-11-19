@@ -69,6 +69,9 @@ set -euo pipefail
 # command line into reports). Store as array to preserve spacing and quoting.
 ORIGINAL_ARGS=("$@")
 
+# Capture pipeline start time for filtering old results
+PIPELINE_START_TIME=$(date +%s)
+
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 STATS_DIR="$SCRIPT_DIR"
@@ -667,10 +670,21 @@ echo ""
 
 mkdir -p "$OUTPUT_DIR"
 
-# Delete any existing SPM.mat to avoid "Overwrite?" dialog in headless mode
+# Delete any existing SPM.mat and derived files to ensure a clean estimation
 if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
-    rm -f "$OUTPUT_DIR/SPM.mat"
-    echo "Removed existing SPM.mat to avoid overwrite dialog"
+    echo "Removing existing model and derived files to ensure consistency..."
+    rm -f "$OUTPUT_DIR"/SPM.mat
+    rm -f "$OUTPUT_DIR"/beta_*.nii
+    rm -f "$OUTPUT_DIR"/con_*.nii
+    rm -f "$OUTPUT_DIR"/spmT_*.nii
+    rm -f "$OUTPUT_DIR"/spmF_*.nii
+    rm -f "$OUTPUT_DIR"/ResMS.nii
+    rm -f "$OUTPUT_DIR"/mask.nii
+    rm -f "$OUTPUT_DIR"/RPV.nii
+    # Also clean old TFCE results to avoid confusion
+    rm -f "$OUTPUT_DIR"/tfce_*.nii
+    rm -f "$OUTPUT_DIR"/*_log_pfwe*.nii
+    echo "✓ Cleaned old results"
 fi
 
 # Ensure logs directory exists
@@ -906,7 +920,8 @@ echo ""
 echo "Generating TFCE results summary..."
 python3 "$STATS_DIR/utils/generate_tfce_images.py" \
     --output-dir "$OUTPUT_DIR" \
-    --fwe-threshold 0.05 || {
+    --fwe-threshold 0.05 \
+    --start-time "$PIPELINE_START_TIME" || {
         echo "⚠️  Warning: TFCE summary generation failed"
     }
 
@@ -941,7 +956,8 @@ python3 "$STATS_DIR/utils/generate_html_report.py" \
     --n-contrasts "$N_CONTRASTS" \
     --n-perm "$N_PERM" \
     --cluster-size "$CLUSTER_SIZE" \
-    --uncorrected-p "$UNCORRECTED_P" || {
+    --uncorrected-p "$UNCORRECTED_P" \
+    --start-time "$PIPELINE_START_TIME" || {
         echo "⚠️  Warning: HTML report generation failed"
     }
 
@@ -970,7 +986,7 @@ echo "╚═══════════════════════�
 echo ""
 
 # Run verification checks on the output
-"$STATS_DIR/utils/verify_analysis_output.sh" "$OUTPUT_DIR"
+"$STATS_DIR/utils/verify_analysis_output.sh" "$OUTPUT_DIR" "$PIPELINE_START_TIME"
 VERIFY_RESULT=$?
 
 echo ""

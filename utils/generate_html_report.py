@@ -310,6 +310,8 @@ def generate_report(design_json_path, output_html_path, **kwargs):
 
     # Generate thumbnails / montages for TFCE result NIfTIs if possible
     tfce_thumbnails = []
+    start_time = kwargs.get("start_time")
+    
     if output_dir and report_dir:
         # search for TFCE_log_pFWE_*.nii in output_dir and subdirs
         nifti_paths = []
@@ -318,7 +320,16 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 if fn.startswith("TFCE_log_pFWE") and (
                     fn.endswith(".nii") or fn.endswith(".nii.gz")
                 ):
-                    nifti_paths.append(os.path.join(root, fn))
+                    fpath = os.path.join(root, fn)
+                    # Filter by start time if provided
+                    if start_time is not None:
+                        try:
+                            mtime = os.path.getmtime(fpath)
+                            if mtime < start_time:
+                                continue
+                        except OSError:
+                            continue
+                    nifti_paths.append(fpath)
 
         # Try to create montages using nibabel + matplotlib if available
         if nifti_paths and nb:
@@ -649,6 +660,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--uncorrected-p", type=float, default=0.001, help="Uncorrected p threshold"
     )
+    parser.add_argument(
+        "--start-time", type=float, default=None, help="Unix timestamp of pipeline start"
+    )
 
     args = parser.parse_args()
 
@@ -662,4 +676,5 @@ if __name__ == "__main__":
         n_perm=args.n_perm,
         cluster_size=args.cluster_size,
         uncorrected_p=args.uncorrected_p,
+        start_time=args.start_time,
     )

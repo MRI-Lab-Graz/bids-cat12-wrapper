@@ -14,7 +14,7 @@ import os
 import json
 
 
-def find_tfce_results(output_dir, fwe_threshold=0.05):
+def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
     """
     Find all TFCE result directories and extract significant results.
 
@@ -64,6 +64,15 @@ def find_tfce_results(output_dir, fwe_threshold=0.05):
         if not os.path.exists(fwe_file):
             continue
 
+        # Filter by start time if provided
+        if start_time is not None:
+            try:
+                mtime = os.path.getmtime(fwe_file)
+                if mtime < start_time:
+                    continue
+            except OSError:
+                continue
+
         contrast_name = contrast_names.get(contrast_idx, f"Contrast {contrast_idx}")
 
         results.append(
@@ -82,6 +91,15 @@ def find_tfce_results(output_dir, fwe_threshold=0.05):
     ) + glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.nii"))
 
     for fpath in root_tfce_files:
+        # Filter by start time if provided
+        if start_time is not None:
+            try:
+                mtime = os.path.getmtime(fpath)
+                if mtime < start_time:
+                    continue
+            except OSError:
+                continue
+
         basename = os.path.basename(fpath)
         try:
             # Try to extract contrast index from various patterns
@@ -151,6 +169,12 @@ def main():
         default=0.05,
         help="FWE-corrected threshold (default: 0.05)",
     )
+    parser.add_argument(
+        "--start-time",
+        type=float,
+        default=None,
+        help="Unix timestamp of pipeline start (filter older results)",
+    )
 
     args = parser.parse_args()
 
@@ -159,10 +183,13 @@ def main():
     print("=" * 80 + "\n")
 
     print(f"Output directory: {args.output_dir}")
-    print(f"FWE threshold: p < {args.fwe_threshold}\n")
+    print(f"FWE threshold: p < {args.fwe_threshold}")
+    if args.start_time:
+        print(f"Filtering results created before: {args.start_time}")
+    print()
 
     # Find TFCE results
-    tfce_results = find_tfce_results(args.output_dir, args.fwe_threshold)
+    tfce_results = find_tfce_results(args.output_dir, args.fwe_threshold, args.start_time)
 
     if not tfce_results:
         print("⚠ No TFCE results found")

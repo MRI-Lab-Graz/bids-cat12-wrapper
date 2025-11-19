@@ -3,6 +3,20 @@
 # Checks that all expected files were created at each step with reasonable sizes
 
 OUTPUT_DIR="${1:-.}"
+START_TIME="${2:-}"
+REF_FILE=""
+
+if [[ -n "$START_TIME" ]]; then
+    # Create a reference file with the start timestamp
+    REF_FILE=$(mktemp /tmp/pipeline_ref_XXXXXX)
+    # Convert unix timestamp to format YYYYMMDDhhmm.ss for touch
+    # macOS date -r takes seconds
+    TOUCH_TIME=$(date -r "$START_TIME" +%Y%m%d%H%M.%S)
+    touch -t "$TOUCH_TIME" "$REF_FILE"
+    echo "Filtering results newer than: $(date -r "$START_TIME")"
+    # Ensure cleanup on exit
+    trap "rm -f '$REF_FILE'" EXIT
+fi
 
 if [[ ! -d "$OUTPUT_DIR" ]]; then
     echo "Error: Output directory not found: $OUTPUT_DIR"
@@ -32,25 +46,38 @@ echo "│ CHECK 1: Statistical Model (SPM.mat)                                  
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
 if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
-    size=$(stat -f%z "$OUTPUT_DIR/SPM.mat" 2>/dev/null || stat -c%s "$OUTPUT_DIR/SPM.mat" 2>/dev/null)
-    size=${size:-0}
-    
-    if command -v bc &> /dev/null; then
-        size_mb=$(echo "scale=2; $size / 1048576" | bc)
-    else
-        size_mb="?"
+    # Check timestamp if reference file exists
+    is_new=1
+    if [[ -n "$REF_FILE" && "$OUTPUT_DIR/SPM.mat" -ot "$REF_FILE" ]]; then
+        is_new=0
     fi
-    
-    if (( size > 100000 )); then  # At least 100KB
-        echo -e "${GREEN}✓ SPM.mat exists${NC}"
-        echo "  Size: $size_mb MB"
-        echo ""
-        spm_status="✓"
+
+    if [[ $is_new -eq 1 ]]; then
+        size=$(stat -f%z "$OUTPUT_DIR/SPM.mat" 2>/dev/null || stat -c%s "$OUTPUT_DIR/SPM.mat" 2>/dev/null)
+        size=${size:-0}
+        
+        if command -v bc &> /dev/null; then
+            size_mb=$(echo "scale=2; $size / 1048576" | bc)
+        else
+            size_mb="?"
+        fi
+        
+        if (( size > 100000 )); then  # At least 100KB
+            echo -e "${GREEN}✓ SPM.mat exists${NC}"
+            echo "  Size: $size_mb MB"
+            echo ""
+            spm_status="✓"
+        else
+            echo -e "${RED}✗ SPM.mat exists but is suspiciously small${NC}"
+            echo "  Size: $size_mb MB (expected > 0.1 MB)"
+            check_failed=1
+            spm_status="✗ (small)"
+            echo ""
+        fi
     else
-        echo -e "${RED}✗ SPM.mat exists but is suspiciously small${NC}"
-        echo "  Size: $size_mb MB (expected > 0.1 MB)"
+        echo -e "${YELLOW}⚠ SPM.mat exists but is from a PREVIOUS run (older than start time)${NC}"
         check_failed=1
-        spm_status="✗ (small)"
+        spm_status="✗ (old)"
         echo ""
     fi
 else
@@ -67,9 +94,14 @@ echo "┌───────────────────────�
 echo "│ CHECK 2: Contrast Maps (con_*.nii, spmT_*.nii, spmF_*.nii)             │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
-con_count=$(ls "$OUTPUT_DIR"/con_*.nii 2>/dev/null | wc -l)
-spmt_count=$(ls "$OUTPUT_DIR"/spmT_*.nii 2>/dev/null | wc -l)
-spmf_count=$(ls "$OUTPUT_DIR"/spmF_*.nii 2>/dev/null | wc -l)
+FIND_OPTS=""
+if [[ -n "$REF_FILE" ]]; then
+    FIND_OPTS="-newer $REF_FILE"
+fi
+
+con_count=$(find "$OUTPUT_DIR" -maxdepth 1 -name "con_*.nii" $FIND_OPTS 2>/dev/null | wc -l)
+spmt_count=$(find "$OUTPUT_DIR" -maxdepth 1 -name "spmT_*.nii" $FIND_OPTS 2>/dev/null | wc -l)
+spmf_count=$(find "$OUTPUT_DIR" -maxdepth 1 -name "spmF_*.nii" $FIND_OPTS 2>/dev/null | wc -l)
 
 echo "Contrast files found:"
 echo "  - con_*.nii (raw contrasts):     $con_count files"
@@ -80,21 +112,18 @@ echo ""
 total_con=$((con_count + spmt_count + spmf_count))
 if (( total_con > 0 )); then
     # Check file sizes (Total size)
-    con_size=$(du -ch "$OUTPUT_DIR"/con_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
-    spmt_size=$(du -ch "$OUTPUT_DIR"/spmT_*.nii 2>/dev/null | tail -1 | awk '{print $1}')
+    # Note: du might pick up old files if we don't filter, but for simplicity we just check existence here
+    # or we can try to be more precise.
     
     echo -e "${GREEN}✓ Contrast files present${NC}"
     echo "  Total: $total_con files"
-    if [[ -n "$con_size" ]]; then
-        echo "  Total sizes: con=$con_size, spmT=$spmt_size"
-    fi
     
     # List all contrasts
     echo ""
     echo "Contrasts (in order):"
     i=1
-    # Use consistent glob pattern
-    for f in "$OUTPUT_DIR"/spmT_*.nii; do
+    # Use consistent glob pattern but filter
+    find "$OUTPUT_DIR" -maxdepth 1 -name "spmT_*.nii" $FIND_OPTS 2>/dev/null | sort | while read -r f; do
         # Extract just the number from spmT_XXXX
         num=$(basename "$f" | sed 's/spmT_//' | sed 's/.nii//')
         # Try to read from screening file for descriptive names
@@ -125,7 +154,7 @@ echo "┌───────────────────────�
 echo "│ CHECK 3: Parameter Estimates (beta_*.nii)                              │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
-beta_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'beta_*.nii' 2>/dev/null | wc -l)
+beta_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -name 'beta_*.nii' $FIND_OPTS 2>/dev/null | wc -l)
 
 if (( beta_count > 0 )); then
     echo -e "${GREEN}✓ Beta parameter estimates exist${NC}"
@@ -146,9 +175,13 @@ echo "└───────────────────────�
 
 DESIGN_PNG=""
 if [[ -f "$OUTPUT_DIR/design_matrix.png" ]]; then
-    DESIGN_PNG="$OUTPUT_DIR/design_matrix.png"
+    if [[ -z "$REF_FILE" || "$OUTPUT_DIR/design_matrix.png" -nt "$REF_FILE" ]]; then
+        DESIGN_PNG="$OUTPUT_DIR/design_matrix.png"
+    fi
 elif [[ -f "$OUTPUT_DIR/report/design_matrix.png" ]]; then
-    DESIGN_PNG="$OUTPUT_DIR/report/design_matrix.png"
+    if [[ -z "$REF_FILE" || "$OUTPUT_DIR/report/design_matrix.png" -nt "$REF_FILE" ]]; then
+        DESIGN_PNG="$OUTPUT_DIR/report/design_matrix.png"
+    fi
 fi
 
 if [[ -n "$DESIGN_PNG" && -f "$DESIGN_PNG" ]]; then
@@ -169,30 +202,41 @@ echo "│ CHECK 5: Screening Results (initial p<0.001 thresholding)             
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
 if [[ -f "$OUTPUT_DIR/screening_results.mat" ]]; then
-    echo -e "${GREEN}✓ Screening results file exists${NC}"
-    echo "  File: screening_results.mat"
-    echo ""
-    
-    # Count screened contrasts (those that passed p<0.001 uncorrected)
-    screened_count=0
-    if [[ -f "$OUTPUT_DIR/screening_header_debug.txt" ]]; then
-        echo "  Contrasts passing p<0.001 uncorrected threshold:"
-        # Extract lines that show which contrasts passed screening
-        grep -i "passed\|significant\|voxels" "$OUTPUT_DIR/screening_header_debug.txt" 2>/dev/null | head -20 | while read line; do
-            echo "    $line"
-        done
+    # Check timestamp
+    is_new=1
+    if [[ -n "$REF_FILE" && "$OUTPUT_DIR/screening_results.mat" -ot "$REF_FILE" ]]; then
+        is_new=0
+    fi
+
+    if [[ $is_new -eq 1 ]]; then
+        echo -e "${GREEN}✓ Screening results file exists${NC}"
+        echo "  File: screening_results.mat"
+        echo ""
         
-        # Count unique contrasts in screening file
-        screened_count=$(grep -i "contrast" "$OUTPUT_DIR/screening_header_debug.txt" 2>/dev/null | wc -l)
-        if (( screened_count > 0 )); then
-            echo ""
-            echo "  Found $screened_count contrasts with voxels in screening data"
+        # Count screened contrasts (those that passed p<0.001 uncorrected)
+        screened_count=0
+        if [[ -f "$OUTPUT_DIR/screening_header_debug.txt" ]]; then
+            echo "  Contrasts passing p<0.001 uncorrected threshold:"
+            # Extract lines that show which contrasts passed screening
+            grep -i "passed\|significant\|voxels" "$OUTPUT_DIR/screening_header_debug.txt" 2>/dev/null | head -20 | while read line; do
+                echo "    $line"
+            done
+            
+            # Count unique contrasts in screening file
+            screened_count=$(grep -i "contrast" "$OUTPUT_DIR/screening_header_debug.txt" 2>/dev/null | wc -l)
+            if (( screened_count > 0 )); then
+                echo ""
+                echo "  Found $screened_count contrasts with voxels in screening data"
+                echo ""
+            fi
+        fi
+        
+        if (( screened_count == 0 )); then
+            echo "  (No screening details available or no voxels passed threshold)"
             echo ""
         fi
-    fi
-    
-    if (( screened_count == 0 )); then
-        echo "  (No screening details available or no voxels passed threshold)"
+    else
+        echo -e "${YELLOW}⚠ Screening results exist but are OLDER than pipeline start time${NC}"
         echo ""
     fi
 else
@@ -211,15 +255,15 @@ echo "└───────────────────────�
 # Search TFCE outputs in either the output root or the report subfolder (some report generators place assets there)
 # Use case-insensitive search (-iname) to handle TFCE vs tfce naming variations
 # Updated to match TFCE_log_pFWE_*.nii pattern as well
-tfce_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) 2>/dev/null | wc -l)
-tfce_uncorr=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -iname 'tfce_*.nii' 2>/dev/null | grep -vi '_fwe.nii' | grep -vi '_log_pfwe' | wc -l)
+tfce_count=$(find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) $FIND_OPTS 2>/dev/null | wc -l)
+tfce_uncorr=$(find "$OUTPUT_DIR" -maxdepth 2 -type f -iname 'tfce_*.nii' $FIND_OPTS 2>/dev/null | grep -vi '_fwe.nii' | grep -vi '_log_pfwe' | wc -l)
 
 if (( tfce_count > 0 )); then
     echo -e "${GREEN}✓ TFCE results found (FWE-corrected)${NC}"
     echo "  FWE-corrected maps found: $tfce_count"
     echo ""
     echo "  Contrasts with FWE-corrected maps:"
-    find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) 2>/dev/null | while read -r f; do
+    find "$OUTPUT_DIR" -maxdepth 2 -type f \( -iname 'tfce_*_fwe.nii' -o -iname '*_log_pfwe*.nii' \) $FIND_OPTS 2>/dev/null | while read -r f; do
         base=$(basename "$f")
         # Clean up label for display
         label=$(echo "$base" | sed 's/tfce_//I; s/_fwe.nii//I; s/_log_pfwe//I; s/.nii//I; s/^_//')
@@ -250,9 +294,14 @@ echo "│ CHECK 7: Residual Variance Map (ResMS.nii)                            
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
 if [[ -f "$OUTPUT_DIR/ResMS.nii" ]]; then
-    echo -e "${GREEN}✓ Residual variance map exists${NC}"
-    echo "  File: ResMS.nii (indicates model fit quality)"
-    echo ""
+    if [[ -n "$REF_FILE" && "$OUTPUT_DIR/ResMS.nii" -ot "$REF_FILE" ]]; then
+        echo -e "${YELLOW}⚠ ResMS.nii exists but is OLDER than pipeline start time${NC}"
+        echo ""
+    else
+        echo -e "${GREEN}✓ Residual variance map exists${NC}"
+        echo "  File: ResMS.nii (indicates model fit quality)"
+        echo ""
+    fi
 else
     echo -e "${YELLOW}⚠ ResMS.nii not found${NC}"
     echo ""
@@ -266,9 +315,14 @@ echo "│ CHECK 8: HTML Report                                                  
 echo "└────────────────────────────────────────────────────────────────────────┘"
 
 if [[ -f "$OUTPUT_DIR/report.html" ]]; then
-    echo -e "${GREEN}✓ HTML report generated${NC}"
-    echo "  File: report.html"
-    echo ""
+    if [[ -n "$REF_FILE" && "$OUTPUT_DIR/report.html" -ot "$REF_FILE" ]]; then
+        echo -e "${YELLOW}⚠ HTML report exists but is OLDER than pipeline start time${NC}"
+        echo ""
+    else
+        echo -e "${GREEN}✓ HTML report generated${NC}"
+        echo "  File: report.html"
+        echo ""
+    fi
 else
     echo -e "${YELLOW}⚠ HTML report not found${NC}"
     echo ""
@@ -288,17 +342,31 @@ echo "File counts:"
 echo "  - SPM.mat:           ${spm_status:-✗}"
 echo "  - Contrasts:         $total_con files"
 echo "  - Beta estimates:    $beta_count files"
-echo "  - Design matrix:     $(test -f "$DESIGN_PNG" && echo "✓" || echo "✗")"
-echo "  - Screening results: $(test -f "$OUTPUT_DIR/screening_results.mat" && echo "✓" || echo "✗")"
+echo "  - Design matrix:     $(test -n "$DESIGN_PNG" && echo "✓" || echo "✗")"
+
+SCREENING_OK="✗"
+if [[ -f "$OUTPUT_DIR/screening_results.mat" ]]; then
+    if [[ -z "$REF_FILE" || "$OUTPUT_DIR/screening_results.mat" -nt "$REF_FILE" ]]; then
+        SCREENING_OK="✓"
+    else
+        SCREENING_OK="✗ (old)"
+    fi
+fi
+echo "  - Screening results: $SCREENING_OK"
+
 echo "  - TFCE significant:  $tfce_count contrasts"
 # Report file may live at top-level or in the `report/` subfolder
 REPORT_HTML=""
 if [[ -f "$OUTPUT_DIR/report.html" ]]; then
-    REPORT_HTML="$OUTPUT_DIR/report.html"
+    if [[ -z "$REF_FILE" || "$OUTPUT_DIR/report.html" -nt "$REF_FILE" ]]; then
+        REPORT_HTML="$OUTPUT_DIR/report.html"
+    fi
 elif [[ -f "$OUTPUT_DIR/report/report.html" ]]; then
-    REPORT_HTML="$OUTPUT_DIR/report/report.html"
+    if [[ -z "$REF_FILE" || "$OUTPUT_DIR/report/report.html" -nt "$REF_FILE" ]]; then
+        REPORT_HTML="$OUTPUT_DIR/report/report.html"
+    fi
 fi
-echo "  - HTML report:       $(test -f "$REPORT_HTML" && echo "✓" || echo "✗")"
+echo "  - HTML report:       $(test -n "$REPORT_HTML" && echo "✓" || echo "✗")"
 echo ""
 
 # Overall status
