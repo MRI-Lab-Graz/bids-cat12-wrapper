@@ -512,12 +512,12 @@ def generate_report(design_json_path, output_html_path, **kwargs):
 
         tfce_table_rows = []
         for c in tfce_contrasts:
-            if c.get("has_results"):
-                status_icon = "✓"
-                status_class = "bg-success text-white"
-            else:
-                status_icon = "○"
-                status_class = "bg-secondary text-white"
+            # Only show contrasts that have significant results
+            if not c.get("has_results"):
+                continue
+                
+            status_icon = "✓"
+            status_class = "bg-success text-white"
 
             tfce_table_rows.append(
                 f"""
@@ -528,6 +528,9 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 </tr>
             """
             )
+        
+        if not tfce_table_rows:
+            tfce_table_rows.append('<tr><td colspan="3" class="text-center text-muted">No significant clusters found at FWE < 0.05</td></tr>')
 
         tfce_results_section = f"""
         <div class="alert alert-info">
@@ -559,26 +562,53 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     if tfce_thumbnails:
         thumb_items = []
         for t in tfce_thumbnails:
-            # t['nifti'] and t['thumb'] are relative to report dir
-            thumb_items.append(
-                f"""
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <a href="{t['nifti']}" target="_blank">
-                        <img src="{t['thumb']}" class="card-img-top" alt="{t.get('name', 'TFCE Map')}">
-                    </a>
-                    <div class="card-footer text-center small text-muted">
-                        {t.get("name", os.path.basename(t["nifti"]))}
+            # Check if this thumbnail corresponds to a significant contrast
+            # We can check if the image is empty (all black) or if the contrast index is in the significant list
+            # But simpler: make_moire_single already masks out non-significant voxels.
+            # If the image is purely black, it might still be generated.
+            # Let's rely on the fact that we only want to show "interesting" things.
+            # However, the user specifically asked to "only put it in the report if sign."
+            
+            # Try to match thumbnail to contrast index and check significance from summary
+            is_significant = False
+            if tfce_summary and "contrasts" in tfce_summary:
+                # Extract index from name or filename
+                # t['name'] might be "1: Interaction"
+                try:
+                    c_idx = int(t['name'].split(':')[0])
+                    for c in tfce_summary["contrasts"]:
+                        if c.get("index") == c_idx and c.get("has_results"):
+                            is_significant = True
+                            break
+                except (ValueError, IndexError):
+                    # Fallback: if we can't parse index, assume significant if file exists?
+                    # Or maybe just check if the image has non-background pixels?
+                    # For now, let's be strict if we have the summary.
+                    pass
+            
+            if is_significant:
+                # t['nifti'] and t['thumb'] are relative to report dir
+                thumb_items.append(
+                    f"""
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <a href="{t['nifti']}" target="_blank">
+                            <img src="{t['thumb']}" class="card-img-top" alt="{t.get('name', 'TFCE Map')}">
+                        </a>
+                        <div class="card-footer text-center small text-muted">
+                            {t.get("name", os.path.basename(t["nifti"]))}
+                        </div>
                     </div>
                 </div>
+                """
+                )
+        
+        if thumb_items:
+            tfce_thumbs_section = f"""
+            <div class="row mt-4">
+                {''.join(thumb_items)}
             </div>
             """
-            )
-        tfce_thumbs_section = f"""
-        <div class="row mt-4">
-            {''.join(thumb_items)}
-        </div>
-        """
         # Append to results section
         tfce_results_section += tfce_thumbs_section
 

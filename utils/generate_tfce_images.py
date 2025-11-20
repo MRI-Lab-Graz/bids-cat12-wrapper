@@ -142,13 +142,31 @@ def generate_summary_json(tfce_results, output_dir, fwe_threshold=0.05):
         "contrasts": [],
     }
 
+    # Calculate log threshold: -log10(0.05) approx 1.301
+    import numpy as np
+    import nibabel as nb
+    log_threshold = -np.log10(fwe_threshold)
+
     for res in tfce_results:
+        has_results = False
+        try:
+            # Check if any voxel exceeds the threshold
+            img = nb.load(res["fwe_file"])
+            data = img.get_fdata()
+            # Check max value
+            if np.nanmax(data) > log_threshold:
+                has_results = True
+        except Exception as e:
+            print(f"Warning: Could not check results for {res['fwe_file']}: {e}")
+            # Fallback: assume true if file exists so we don't hide potential errors
+            has_results = os.path.exists(res["fwe_file"])
+
         summary["contrasts"].append(
             {
                 "index": res["contrast_idx"],
                 "name": res["contrast_name"],
                 "fwe_file": os.path.relpath(res["fwe_file"], output_dir),
-                "has_results": os.path.exists(res["fwe_file"]),
+                "has_results": has_results,
             }
         )
 
