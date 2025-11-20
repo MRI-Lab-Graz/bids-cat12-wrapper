@@ -224,6 +224,11 @@ if n_groups >= 2 && n_times >= 2
                 contrasts{con_idx} = struct('name', sprintf('Interaction: (G%d vs G%d) trajectory', g1, g2), ...
                                             'weights', weights);
                 con_idx = con_idx + 1;
+                
+                % Add inverse interaction contrast (G2 vs G1)
+                contrasts{con_idx} = struct('name', sprintf('Interaction: (G%d vs G%d) trajectory', g2, g1), ...
+                                            'weights', -weights);
+                con_idx = con_idx + 1;
             end
         end
     end

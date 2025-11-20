@@ -391,13 +391,26 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 # Convert p-value to -log10(p)
                 log_threshold = -_np.log10(fwe_p_thresh)
 
-                def make_moire_single(nifti_path, out_png, ncols=8, nrows=1, dpi=100, threshold=1.301):
-                    img = nb.load(nifti_path)
-                    data = img.get_fdata()
-                    # TFCE files are -log10(p), so we threshold at -log10(0.05) ~ 1.301
-                    # Mask out values below threshold
+                def make_moire_single(
+                    nifti_path,
+                    out_png,
+                    ncols=8,
+                    nrows=1,
+                    dpi=100,
+                    threshold=1.301,
+                    data=None,
+                    cmap="hot",
+                    title=None,
+                ):
+                    if data is None:
+                        img = nb.load(nifti_path)
+                        data = img.get_fdata()
+
+                    data = _np.array(data, copy=True)
                     data_masked = _np.ma.masked_less(data, threshold)
-                    
+                    if _np.all(_np.isnan(data_masked)):
+                        return False
+
                     if data.ndim < 3:
                         slice_imgs = [_np.rot90(_np.squeeze(data_masked))]
                     else:
@@ -405,36 +418,33 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                         idxs = _np.linspace(0, zsize - 1, ncols * nrows, dtype=int)
                         slice_imgs = [_np.rot90(data_masked[:, :, z]) for z in idxs]
 
-                    # Create figure with extra space for colorbar
                     fig = _plt.figure(figsize=(ncols * 1.2 + 1, nrows * 1.2), dpi=dpi)
-                    
-                    # Grid for slices
-                    gs = fig.add_gridspec(nrows, ncols + 1, width_ratios=[1]*ncols + [0.1])
-                    
-                    # Find global max for consistent color scaling
-                    vmax = _np.nanmax(data)
-                    if vmax < threshold:
-                        vmax = threshold + 1 # Avoid error if nothing significant
-                    
-                    # Plot slices
+                    gs = fig.add_gridspec(nrows, ncols + 1, width_ratios=[1] * ncols + [0.1])
+
+                    vmax = _np.nanmax(data_masked)
+                    if _np.isnan(vmax) or vmax < threshold:
+                        vmax = threshold + 1
+
                     for i, sl in enumerate(slice_imgs):
                         if i >= ncols * nrows:
                             break
                         r, c = divmod(i, ncols)
                         ax = fig.add_subplot(gs[r, c])
-                        # Use 'hot' colormap, background black (via facecolor)
-                        ax.imshow(sl, cmap="hot", interpolation="nearest", vmin=threshold, vmax=vmax)
+                        ax.imshow(sl, cmap=cmap, interpolation="nearest", vmin=threshold, vmax=vmax)
                         ax.axis("off")
-                    
-                    # Add colorbar
+
                     cax = fig.add_subplot(gs[:, -1])
                     norm = matplotlib.colors.Normalize(vmin=threshold, vmax=vmax)
-                    cb = _plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap="hot"), cax=cax)
+                    cb = _plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax)
                     cb.set_label("-log10(p)")
-                    
+
+                    if title:
+                        fig.suptitle(title, fontsize=10)
+
                     _plt.subplots_adjust(wspace=0.01, hspace=0.01, right=0.9)
                     _plt.savefig(out_png, bbox_inches="tight", pad_inches=0.1)
                     _plt.close(fig)
+                    return True
 
                 for npth in nifti_paths:
                     try:
@@ -443,10 +453,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                             .replace(".nii.gz", "")
                             .replace(".nii", "")
                         )
-                        outpng = os.path.join(report_dir, base + "_fwe_moire.png")
-                        
-                        # Determine contrast name
-                        # Try to parse index from filename (e.g. TFCE_0001_log_pFWE or TFCE_log_pFWE_0001)
+
                         c_name = base
                         c_idx = None
                         parts = base.split('_')
@@ -454,23 +461,77 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                             if p.isdigit():
                                 c_idx = int(p)
                                 break
-                        
+
                         if c_idx in contrast_names:
                             c_name = f"{c_idx}: {contrast_names[c_idx]}"
-                        
-                        if (not os.path.exists(outpng)) or (
-                            os.path.getmtime(npth) > os.path.getmtime(outpng)
-                        ):
-                            make_moire_single(npth, outpng, ncols=8, nrows=1, threshold=log_threshold)
-                        # store nifti path relative to report dir and thumb filename in report dir
-                        tfce_thumbnails.append(
-                            {
-                                "nifti": os.path.relpath(npth, report_dir),
-                                "thumb": os.path.basename(outpng),
-                                "name": c_name,
-                            }
+
+                        t_map_path = (
+                            os.path.join(output_dir, f"spmT_{c_idx:04d}.nii")
+                            if c_idx is not None
+                            else None
                         )
-                    except Exception:
+
+                        tfce_img = nb.load(npth)
+                        tfce_data = tfce_img.get_fdata()
+                        t_data = None
+                        if t_map_path and os.path.exists(t_map_path):
+                            try:
+                                t_data = nb.load(t_map_path).get_fdata()
+                            except Exception:
+                                t_data = None
+
+                        def _append_thumb(mask, suffix, direction_label, cmap):
+                            if not _np.any(mask):
+                                return
+                            data_masked = _np.where(mask, tfce_data, _np.nan)
+                            outpng = os.path.join(
+                                report_dir,
+                                f"{base}_{suffix}_fwe.png",
+                            )
+                            updated = make_moire_single(
+                                npth,
+                                outpng,
+                                ncols=8,
+                                nrows=1,
+                                threshold=log_threshold,
+                                data=data_masked,
+                                cmap=cmap,
+                                title=f"{c_name} ({direction_label})",
+                            )
+                            if updated:
+                                tfce_thumbnails.append(
+                                    {
+                                        "nifti": os.path.relpath(npth, report_dir),
+                                        "thumb": os.path.basename(outpng),
+                                        "name": f"{c_name} ({direction_label})",
+                                        "direction": direction_label,
+                                    }
+                                )
+
+                        if t_data is not None:
+                            pos_mask = (tfce_data > log_threshold) & (t_data > 0)
+                            neg_mask = (tfce_data > log_threshold) & (t_data < 0)
+                            _append_thumb(pos_mask, "pos", "+", "hot")
+                            _append_thumb(neg_mask, "neg", "−", "winter")
+
+                        # Fallback: if no directional thumbnails were produced, keep combined view
+                        if not any(t.get("nifti") == os.path.relpath(npth, report_dir) for t in tfce_thumbnails):
+                            outpng = os.path.join(report_dir, base + "_fwe_moire.png")
+                            needs_update = (not os.path.exists(outpng)) or (
+                                os.path.getmtime(npth) > os.path.getmtime(outpng)
+                            )
+                            if needs_update:
+                                make_moire_single(npth, outpng, ncols=8, nrows=1, threshold=log_threshold)
+                            tfce_thumbnails.append(
+                                {
+                                    "nifti": os.path.relpath(npth, report_dir),
+                                    "thumb": os.path.basename(outpng),
+                                    "name": c_name,
+                                    "direction": "±",
+                                }
+                            )
+                    except Exception as exc:
+                        print(f"Warning: Failed to build TFCE thumbnail for {npth}: {exc}")
                         continue
             except Exception:
                 tfce_thumbnails = []
@@ -562,46 +623,24 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     if tfce_thumbnails:
         thumb_items = []
         for t in tfce_thumbnails:
-            # Check if this thumbnail corresponds to a significant contrast
-            # We can check if the image is empty (all black) or if the contrast index is in the significant list
-            # But simpler: make_moire_single already masks out non-significant voxels.
-            # If the image is purely black, it might still be generated.
-            # Let's rely on the fact that we only want to show "interesting" things.
-            # However, the user specifically asked to "only put it in the report if sign."
-            
-            # Try to match thumbnail to contrast index and check significance from summary
-            is_significant = False
-            if tfce_summary and "contrasts" in tfce_summary:
-                # Extract index from name or filename
-                # t['name'] might be "1: Interaction"
-                try:
-                    c_idx = int(t['name'].split(':')[0])
-                    for c in tfce_summary["contrasts"]:
-                        if c.get("index") == c_idx and c.get("has_results"):
-                            is_significant = True
-                            break
-                except (ValueError, IndexError):
-                    # Fallback: if we can't parse index, assume significant if file exists?
-                    # Or maybe just check if the image has non-background pixels?
-                    # For now, let's be strict if we have the summary.
-                    pass
-            
-            if is_significant:
-                # t['nifti'] and t['thumb'] are relative to report dir
-                thumb_items.append(
-                    f"""
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <a href="{t['nifti']}" target="_blank">
-                            <img src="{t['thumb']}" class="card-img-top" alt="{t.get('name', 'TFCE Map')}">
-                        </a>
-                        <div class="card-footer text-center small text-muted">
-                            {t.get("name", os.path.basename(t["nifti"]))}
-                        </div>
+            direction_badge = t.get("direction", "")
+            badge_text = direction_badge if direction_badge in {"+", "-", "±"} else direction_badge
+
+            thumb_items.append(
+                f"""
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <a href="{t['nifti']}" target="_blank">
+                        <img src="{t['thumb']}" class="card-img-top" alt="{t.get('name', 'TFCE Map')}">
+                    </a>
+                    <div class="card-footer text-center small text-muted">
+                        {t.get("name", os.path.basename(t["nifti"]))}
+                        {f"<span class='badge bg-secondary ms-2'>{badge_text}</span>" if badge_text else ''}
                     </div>
                 </div>
-                """
-                )
+            </div>
+            """
+            )
         
         if thumb_items:
             tfce_thumbs_section = f"""
@@ -609,7 +648,6 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 {''.join(thumb_items)}
             </div>
             """
-        # Append to results section
         tfce_results_section += tfce_thumbs_section
 
     # Generate methods text
