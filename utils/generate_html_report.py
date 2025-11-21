@@ -473,6 +473,12 @@ def generate_report(design_json_path, output_html_path, **kwargs):
 
                         tfce_img = nb.load(npth)
                         tfce_data = tfce_img.get_fdata()
+
+                        # Skip if no significant voxels
+                        vmax = _np.nanmax(tfce_data)
+                        if _np.isnan(vmax) or vmax <= log_threshold:
+                            continue
+
                         t_data = None
                         if t_map_path and os.path.exists(t_map_path):
                             try:

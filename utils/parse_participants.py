@@ -252,7 +252,29 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
                 continue
 
             if smoothing_kw:
-                matches = sorted(matches, key=lambda p: smoothing_kw not in p.name)
+                # STRICT FILTERING: Only accept files that match the requested smoothing
+                # This prevents mixing s6, s9, and unsmoothed files in the same analysis.
+                filtered_matches = []
+                for m in matches:
+                    # Check if filename starts with s<N> or contains s<N>.mesh
+                    # We use the robust extractor to be sure
+                    s_val = extract_smoothing_from_filename(m.name)
+                    
+                    # Case 1: Requested smoothing is explicit (e.g. 6, 8, 9)
+                    if isinstance(args.smoothing, int):
+                        if s_val == args.smoothing:
+                            filtered_matches.append(m)
+                    # Case 2: Requested smoothing is string/auto (should be resolved by now, but just in case)
+                    elif str(s_val) == str(args.smoothing):
+                        filtered_matches.append(m)
+                        
+                matches = filtered_matches
+
+            if not matches:
+                return None
+
+            # If multiple matches remain (unlikely with strict smoothing), pick the first one
+            # that looks like a VBM file
             for match in matches:
                 if "mwp1" in match.name:
                     return str(match)
