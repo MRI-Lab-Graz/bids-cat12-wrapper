@@ -83,7 +83,10 @@ def _sanitize_label(s):
 def generate_cells_code(design, subject_map):
     """Generate MATLAB code for factorial design cells.
 
-    Each cell levels vector now contains three entries: [Group Level, Time Level, Subject Level].
+    For volume data (e.g. VBM), SPM expects NIfTI paths with an implicit
+    first-volume index (",1"). For surface data (e.g. cortical thickness),
+    we pass GIfTI file paths *without* an added volume index.
+
     subject_map is a dict mapping subject id string -> subject level index (1-based).
     """
     groups = list(design['groups'].keys())
@@ -116,10 +119,13 @@ def generate_cells_code(design, subject_map):
             # of scans. To be explicit and robust, we also include subject mapping in comments.
 
             for filepath in files:
-                # Add ',1' for volume selection in NIfTI files
-                # Escape single quotes for MATLAB by doubling them
+                # For NIfTI volumes, SPM expects a volume index (",1").
+                # For GIfTI surface files (.gii), no volume index is used.
                 safe_fp = str(filepath).replace("'", "''")
-                cell_code += f"    '{safe_fp},1'\n"
+                if str(filepath).lower().endswith('.gii'):
+                    cell_code += f"    '{safe_fp}'\n"
+                else:
+                    cell_code += f"    '{safe_fp},1'\n"
 
             cell_code += "};\n"
             # Append a comment mapping the cell to subjects (helpful for debugging)

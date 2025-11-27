@@ -55,11 +55,17 @@ def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
         except (IndexError, ValueError):
             continue
 
-        # Look for FWE-corrected files
+        # Look for FWE-corrected files (NIfTI or GIfTI)
         fwe_file = os.path.join(tfce_dir, "logP_max.nii")
+        if not os.path.exists(fwe_file):
+            fwe_file = os.path.join(tfce_dir, "logP_max.gii")
+        
         if not os.path.exists(fwe_file):
             # Try alternative naming
             fwe_file = os.path.join(tfce_dir, "TFCE_log_pFWE.nii")
+        
+        if not os.path.exists(fwe_file):
+            fwe_file = os.path.join(tfce_dir, "TFCE_log_pFWE.gii")
 
         if not os.path.exists(fwe_file):
             continue
@@ -85,10 +91,11 @@ def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
         )
 
     # Also check for newer naming convention (files in root)
-    # Matches TFCE_log_pFWE_0001.nii AND TFCE_0001_log_pFWE.nii
-    root_tfce_files = glob.glob(
-        os.path.join(output_dir, "TFCE_*_log_pFWE.nii")
-    ) + glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.nii"))
+    # Matches TFCE_log_pFWE_0001.nii/.gii AND TFCE_0001_log_pFWE.nii/.gii
+    root_tfce_files = glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.nii")) + \
+                      glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.nii")) + \
+                      glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.gii")) + \
+                      glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.gii"))
 
     for fpath in root_tfce_files:
         # Filter by start time if provided
@@ -105,7 +112,7 @@ def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
             # Try to extract contrast index from various patterns
             # Pattern 1: TFCE_0001_log_pFWE.nii
             if basename.startswith("TFCE_") and "_log_pFWE" in basename:
-                parts = basename.replace(".nii", "").split("_")
+                parts = basename.replace(".nii", "").replace(".gii", "").split("_")
                 # Find the part that is a digit
                 for p in parts:
                     if p.isdigit():

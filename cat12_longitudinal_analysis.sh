@@ -565,6 +565,23 @@ if [[ -n "$DESIGN_FILE" ]]; then
     echo "Using provided design file: $DESIGN_FILE"
     cp "$DESIGN_FILE" "$TEMP_DIR/design.json"
 else
+    # If modality is thickness, drop TIV as a covariate even if the user
+    # requested it. TIV is not an appropriate covariate for cortical
+    # thickness and would remove the effect of interest.
+    if [[ "$MODALITY" == "thickness" && -n "$COVARIATES" ]]; then
+        COVARIATES=$(python3 - <<PY
+cov_str = "${COVARIATES}"
+parts = [c.strip() for c in cov_str.split(',') if c.strip().lower() != 'tiv']
+print(','.join(parts))
+PY
+)
+        if [[ -z "$COVARIATES" ]]; then
+            echo "Thickness modality: removed TIV from covariates; no covariates remain."
+        else
+            echo "Thickness modality: removed TIV from covariates. Using: $COVARIATES"
+        fi
+    fi
+
     python3 "$STATS_DIR/utils/parse_participants.py" \
         --cat12-dir "$CAT12_DIR" \
         --participants "$PARTICIPANTS_FILE" \
@@ -634,34 +651,38 @@ fi
     fi
 
 # ============================================================================
-# Step 2a: Explicit mask handling (use canonical repo template mask)
+# Step 2a: Explicit mask handling
 # ============================================================================
 
-# We no longer generate per-results VBM masks (mask_vbm.nii). Instead the
-# pipeline prefers the repo-level canonical CAT12 tight brainmask located at
-# $STATS_DIR/templates/brainmask_GMtight.nii when present. This keeps masking
-# consistent across analyses.
-
+# For cortical thickness (surface-based GIfTI analysis) we do not use an
+# explicit volumetric GM mask. The design/batch utilities will instead work
+# directly with surface files.
 MASK_FILE=""
-# Determine the template/GM mask to use. Allow override from config.ini via
-# MASKING.gm_mask (can be an absolute path or relative to the repo root).
-GM_MASK_CONFIG=$(get_ini_value "MASKING" "gm_mask" "")
-if [[ -n "$GM_MASK_CONFIG" ]]; then
-    if [[ "$GM_MASK_CONFIG" = /* ]]; then
-        TEMPLATE_MASK="$GM_MASK_CONFIG"
+
+if [[ "$MODALITY" != "thickness" ]]; then
+    # For non-thickness modalities we prefer the repo-level canonical CAT12
+    # tight brainmask located at templates/brainmask_GMtight.nii (or an
+    # override from config.ini) to keep masking consistent across analyses.
+    GM_MASK_CONFIG=$(get_ini_value "MASKING" "gm_mask" "")
+    if [[ -n "$GM_MASK_CONFIG" ]]; then
+        if [[ "$GM_MASK_CONFIG" = /* ]]; then
+            TEMPLATE_MASK="$GM_MASK_CONFIG"
+        else
+            TEMPLATE_MASK="$STATS_DIR/$GM_MASK_CONFIG"
+        fi
     else
-        TEMPLATE_MASK="$STATS_DIR/$GM_MASK_CONFIG"
+        TEMPLATE_MASK="$STATS_DIR/templates/brainmask_GMtight.nii"
+    fi
+
+    if [[ -f "$TEMPLATE_MASK" ]]; then
+        echo "Using GM mask: $TEMPLATE_MASK"
+        MASK_FILE="$TEMPLATE_MASK"
+    else
+        echo "No GM mask found at $TEMPLATE_MASK — running without an explicit mask"
+        MASK_FILE=""
     fi
 else
-    TEMPLATE_MASK="$STATS_DIR/templates/brainmask_GMtight.nii"
-fi
-
-if [[ -f "$TEMPLATE_MASK" ]]; then
-    echo "Using GM mask: $TEMPLATE_MASK"
-    MASK_FILE="$TEMPLATE_MASK"
-else
-    echo "No GM mask found at $TEMPLATE_MASK — running without an explicit mask"
-    MASK_FILE=""
+    echo "Thickness modality detected – running without an explicit GM mask"
 fi
 
 
@@ -760,19 +781,25 @@ echo ""
 echo "Running missing-voxel diagnostics (this is fast)"
 # Read optional failure threshold from config.ini (empty disables failure)
 MISSING_FAIL_PCT=$(get_ini_value "TFCE" "missing_fail_pct" "")
-GM_MASK_ARG=""
-if [[ -n "$MASK_FILE" ]]; then
-    GM_MASK_ARG="--gm-mask $MASK_FILE"
-fi
-if [[ -n "$MISSING_FAIL_PCT" && "$MISSING_FAIL_PCT" != "false" ]]; then
-    python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 --fail-if-pct-excluded "$MISSING_FAIL_PCT" || {
-        echo "❌ Missing-voxel fraction exceeded ${MISSING_FAIL_PCT}% — aborting pipeline."
-        exit 1
-    }
+
+# Thickness is surface-based; skip volumetric missing-voxel diagnostics.
+if [[ "$MODALITY" == "thickness" ]]; then
+    echo "Skipping volumetric missing-voxel diagnostic for thickness modality"
 else
-    python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 $GM_MASK_ARG || {
-        echo "⚠️  Warning: missing-voxel diagnostic failed (see script output above). Continuing analysis."
-    }
+    GM_MASK_ARG=""
+    if [[ -n "$MASK_FILE" ]]; then
+        GM_MASK_ARG="--gm-mask $MASK_FILE"
+    fi
+    if [[ -n "$MISSING_FAIL_PCT" && "$MISSING_FAIL_PCT" != "false" ]]; then
+        python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 --fail-if-pct-excluded "$MISSING_FAIL_PCT" || {
+            echo "❌ Missing-voxel fraction exceeded ${MISSING_FAIL_PCT}% — aborting pipeline."
+            exit 1
+        }
+    else
+        python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 $GM_MASK_ARG || {
+            echo "⚠️  Warning: missing-voxel diagnostic failed (see script output above). Continuing analysis."
+        }
+    fi
 fi
 
 
@@ -806,9 +833,16 @@ echo ""
 # Verify contrasts were written to disk. If none found, fail early with diagnostics.
 echo "Verifying contrast files written to: $OUTPUT_DIR"
 shopt -s nullglob
-cons=( "$OUTPUT_DIR"/con_*.nii )
-spmTs=( "$OUTPUT_DIR"/spmT_*.nii )
-spmFs=( "$OUTPUT_DIR"/spmF_*.nii )
+if [[ "$MODALITY" == "vbm" ]]; then
+    cons=( "$OUTPUT_DIR"/con_*.nii )
+    spmTs=( "$OUTPUT_DIR"/spmT_*.nii )
+    spmFs=( "$OUTPUT_DIR"/spmF_*.nii )
+else
+    # Surface-based modalities (e.g. thickness) write GIfTI outputs
+    cons=( "$OUTPUT_DIR"/con_*.gii )
+    spmTs=( "$OUTPUT_DIR"/spmT_*.gii )
+    spmFs=( "$OUTPUT_DIR"/spmF_*.gii )
+fi
 if [[ ${#cons[@]} -eq 0 && ${#spmTs[@]} -eq 0 && ${#spmFs[@]} -eq 0 ]]; then
     echo "ERROR: No contrast or statistic files found in $OUTPUT_DIR after adding contrasts."
     echo "Contents of results folder:";
@@ -931,35 +965,20 @@ if [[ "$PILOT_MODE" == true ]]; then
         exit 1
     }
 else
-    # Default automatic two-stage TFCE: probe run then full run with automatic
-    # selection of nuisance handling based on probe cc. This is the pipeline's
-    # default behavior (no user flag required).
-    echo "Running automatic two-stage TFCE: probe=${INITIAL_PERM} perms -> full=${N_PERM} perms (cc threshold=${CC_THRESHOLD})"
-    echo "  -> Probe phase (${INITIAL_PERM} permutations)"
-    "$STATS_DIR/utils/tfce_two_stage.sh" --probe-only "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
-        echo "Error: TFCE probe phase failed"
-        exit 1
-    }
-    if [[ ! -f "$TFCE_SUMMARY" ]]; then
-        echo "Error: Expected probe summary not found at $TFCE_SUMMARY"
-        exit 1
-    fi
-    echo "Probe summary (threshold=${CC_THRESHOLD}):"
-    print_tfce_summary_table "$TFCE_SUMMARY" "$CC_THRESHOLD"
-    echo ""
-
-    echo "  -> Full phase (${N_PERM} permutations)"
-    "$STATS_DIR/utils/tfce_two_stage.sh" --full-only "$OUTPUT_DIR" "$INITIAL_PERM" "$N_PERM" "$CC_THRESHOLD" 2>&1 | tee -a "$TFCE_LOG" || {
-        echo "Error: TFCE full phase failed"
-        exit 1
-    }
-
-    if [[ -f "$TFCE_SUMMARY" ]]; then
-        echo "Updated TFCE summary after full run:"
-        print_tfce_summary_table "$TFCE_SUMMARY" "$CC_THRESHOLD"
+    # Standard TFCE run (single stage, no probe)
+    echo "Running TFCE correction (${N_PERM} permutations)"
+    
+    # Convert SKIP_SCREENING (bash string) to MATLAB boolean
+    if [[ "$SKIP_SCREENING" == "true" ]]; then
+        USE_SCREENING="false"
     else
-        echo "Warning: TFCE summary JSON missing after full run ($TFCE_SUMMARY)"
+        USE_SCREENING="true"
     fi
+
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'use_screening', $USE_SCREENING); exit;" 2>&1 | tee -a "$TFCE_LOG" || {
+        echo "Error: TFCE correction failed"
+        exit 1
+    }
 fi
 
 echo "✓ TFCE correction complete"
@@ -992,7 +1011,13 @@ echo "└───────────────────────�
 echo ""
 
 # Provide number of contrasts to the report generator (count con_*.nii)
-N_CONTRASTS=$(ls -1 "$OUTPUT_DIR"/con_*.nii 2>/dev/null | wc -l)
+# Provide number of contrasts to the report generator, using extension
+# appropriate for modality (.nii for VBM, .gii for surface modalities).
+if [[ "$MODALITY" == "vbm" ]]; then
+    N_CONTRASTS=$(ls -1 "$OUTPUT_DIR"/con_*.nii 2>/dev/null | wc -l)
+else
+    N_CONTRASTS=$(ls -1 "$OUTPUT_DIR"/con_*.gii 2>/dev/null | wc -l)
+fi
 
 # Build a safely-quoted command-line string from the original args. Use
 # printf '%q' so special characters and quotes are escaped and the result

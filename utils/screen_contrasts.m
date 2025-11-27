@@ -62,6 +62,14 @@ fprintf('%s\n', repmat('─', 1, 80));
 fprintf('Screening contrasts:\n');
 fprintf('%s\n\n', repmat('─', 1, 80));
 
+% Determine file extension for statistic images (NIfTI vs GIfTI)
+% Check for any GIfTI statistic files (spmT_*.gii or spmF_*.gii)
+if ~isempty(dir(fullfile(stats_folder, 'spm*.gii')))
+    stat_ext = '.gii';
+else
+    stat_ext = '.nii';
+end
+
 % Screen each contrast
 for con_idx = 1:n_contrasts
     con_name = SPM.xCon(con_idx).name;
@@ -87,55 +95,72 @@ for con_idx = 1:n_contrasts
     
     if is_f_contrast
         % F-contrast - use spmF file
-        stat_file = fullfile(stats_folder, sprintf('spmF_%04d.nii', con_idx));
+        stat_file = fullfile(stats_folder, sprintf('spmF_%04d%s', con_idx, stat_ext));
         stat_type = 'F';
     else
         % T-contrast - use spmT file
-        stat_file = fullfile(stats_folder, sprintf('spmT_%04d.nii', con_idx));
+        stat_file = fullfile(stats_folder, sprintf('spmT_%04d%s', con_idx, stat_ext));
         stat_type = 'T';
     end
     
     if ~exist(stat_file, 'file')
-        fprintf('        ⚠ spm%s_%04d.nii not found, skipping\n\n', stat_type, con_idx);
+        fprintf('        ⚠ spm%s_%04d%s not found, skipping\n\n', stat_type, con_idx, stat_ext);
         continue;
     end
     
     % Load statistic map
-    V = spm_vol(stat_file);
-    % Log header and dimension info to help debug orientation/affine issues
-    try
-        debug_file = fullfile(stats_folder, 'screening_header_debug.txt');
-        fid = fopen(debug_file, 'a');
-        fprintf(fid, 'Contrast %d (%s) - %s\n', con_idx, con_name, datestr(now));
-        fprintf(fid, '  stat_file: %s\n', stat_file);
-        fprintf(fid, '  dims: [%d %d %d]\n', V.dim(1), V.dim(2), V.dim(3));
-        % print datatype (V.dt can be a pair)
-        if isfield(V, 'dt') && ~isempty(V.dt)
-            try
-                dt_str = mat2str(V.dt);
-            catch
-                dt_str = '<unknown dt>';
-            end
-        else
-            dt_str = '<no dt>'; 
-        end
-        fprintf(fid, '  dt: %s\n', dt_str);
-        fprintf(fid, '  mat:\n');
-        for r = 1:size(V.mat,1)
-            fprintf(fid, '    %s\n', mat2str(V.mat(r,:)));
-        end
-        fprintf(fid, '\n');
-        fclose(fid);
-    catch
-        % If logging fails, don't crash screening - just continue
+    if strcmpi(stat_ext, '.gii')
+        % GIfTI handling
         try
-            if exist('fid','var') && fid > 0, fclose(fid); end
-        catch, end
-    end
+            fprintf('        Loading GIfTI: %s\n', stat_file);
+            g = gifti(stat_file);
+            % Ensure Y is a numeric array, not a file_array
+            Y = double(g.cdata);
+            fprintf('        Loaded GIfTI data. Size: %s, Class: %s\n', mat2str(size(Y)), class(Y));
+            % For surfaces, Y is typically N x 1
+        catch ME
+            fprintf('        ⚠ Error loading GIfTI: %s\n', ME.message);
+            continue;
+        end
+    else
+        % NIfTI handling
+        V = spm_vol(stat_file);
+        % Log header and dimension info to help debug orientation/affine issues
+        try
+            debug_file = fullfile(stats_folder, 'screening_header_debug.txt');
+            fid = fopen(debug_file, 'a');
+            fprintf(fid, 'Contrast %d (%s) - %s\n', con_idx, con_name, datestr(now));
+            fprintf(fid, '  stat_file: %s\n', stat_file);
+            fprintf(fid, '  dims: [%d %d %d]\n', V.dim(1), V.dim(2), V.dim(3));
+            % print datatype (V.dt can be a pair)
+            if isfield(V, 'dt') && ~isempty(V.dt)
+                try
+                    dt_str = mat2str(V.dt);
+                catch
+                    dt_str = '<unknown dt>';
+                end
+            else
+                dt_str = '<no dt>'; 
+            end
+            fprintf(fid, '  dt: %s\n', dt_str);
+            fprintf(fid, '  mat:\n');
+            for r = 1:size(V.mat,1)
+                fprintf(fid, '    %s\n', mat2str(V.mat(r,:)));
+            end
+            fprintf(fid, '\n');
+            fclose(fid);
+        catch
+            % If logging fails, don't crash screening - just continue
+            try
+                if exist('fid','var') && fid > 0, fclose(fid); end
+            catch, end
+        end
 
-    [Y, XYZ] = spm_read_vols(V);
+        [Y, XYZ] = spm_read_vols(V);
+    end
     
     % Get degrees of freedom and convert to threshold
+    fprintf('        Calculating threshold (Type: %s)...\n', stat_type);
     if is_f_contrast
         % For F-contrasts, compute numerator and denominator degrees of
         % freedom defensively. Some SPM versions store the F-contrast
@@ -168,10 +193,14 @@ for con_idx = 1:n_contrasts
             end
         end
 
+        fprintf('        F-contrast: df_num=%d, df_den=%f\n', df_num, df_den);
+
         % Compute F threshold and threshold the map
         try
             f_thresh = finv(1 - p_thresh, df_num, df_den);
-        catch
+            fprintf('        F-threshold: %f\n', f_thresh);
+        catch ME
+            fprintf('        ⚠ Error in finv: %s\n', ME.message);
             % If finv fails for any reason, set a very high threshold so no voxels pass
             f_thresh = Inf;
         end
@@ -180,54 +209,85 @@ for con_idx = 1:n_contrasts
     else
         % For T-contrasts, use T-distribution
         df = SPM.xX.erdf;
+        fprintf('        T-contrast: df=%f\n', df);
         t_thresh = spm_invTcdf(1 - p_thresh, df);
+        fprintf('        T-threshold: %f\n', t_thresh);
         Y_thresh = Y;
         Y_thresh(abs(Y_thresh) < t_thresh) = 0;
     end
     
+    fprintf('        Thresholding complete.\n');
+    
     % Find clusters using connected components
     if any(Y_thresh(:) ~= 0)
-        % Use bwconncomp for 3D connectivity analysis
-        try
-            % Create binary mask of significant voxels
-            sig_mask = Y_thresh > 0;
+        % Create binary mask of significant voxels
+        sig_mask = Y_thresh > 0;
+        
+        if strcmpi(stat_ext, '.gii')
+            % For surfaces, we can't easily do topological clustering without the mesh.
+            % As a screening proxy, we just count the total number of significant vertices.
+            % If total_sig_vertices >= cluster_size, we pass it.
+            n_sig_vertices = sum(sig_mask(:));
             
-            % Find connected components (6-connectivity for 3D)
-            CC = bwconncomp(sig_mask, 6);
-            
-            % Get cluster sizes
-            cluster_sizes = cellfun(@numel, CC.PixelIdxList);
-            
-            % Find clusters above size threshold
-            large_clusters = cluster_sizes(cluster_sizes >= cluster_size);
-            n_sig_clusters = length(large_clusters);
-            
-            if n_sig_clusters > 0
-                % This contrast has significant clusters
+            if n_sig_vertices >= cluster_size
+                n_sig_clusters = 1; % Treat as "at least one cluster"
                 significant_contrasts = [significant_contrasts, con_idx];
                 
-                fprintf('        ✓ SIGNIFICANT: %d cluster(s) ≥ %d voxels\n', ...
-                        n_sig_clusters, cluster_size);
+                fprintf('        ✓ SIGNIFICANT: %d significant vertices (≥ %d)\n', ...
+                        n_sig_vertices, cluster_size);
                 
-                % Store detailed results
                 screening_results(con_idx).name = con_name;
-                screening_results(con_idx).n_clusters = n_sig_clusters;
+                screening_results(con_idx).n_clusters = 1; % Dummy value
                 screening_results(con_idx).max_t = max(abs(Y(:)));
                 screening_results(con_idx).significant = true;
             else
-                fprintf('        ○ No clusters ≥ %d voxels\n', cluster_size);
+                fprintf('        ○ %d significant vertices (below threshold %d)\n', ...
+                        n_sig_vertices, cluster_size);
                 screening_results(con_idx).name = con_name;
                 screening_results(con_idx).n_clusters = 0;
                 screening_results(con_idx).max_t = max(abs(Y(:)));
                 screening_results(con_idx).significant = false;
             end
-        catch ME
-            fprintf('        ⚠ Error in cluster analysis: %s\n', ME.message);
-            fprintf('        ○ Could not analyze clusters\n');
-            screening_results(con_idx).name = con_name;
-            screening_results(con_idx).n_clusters = 0;
-            screening_results(con_idx).max_t = max(abs(Y(:)));
-            screening_results(con_idx).significant = false;
+        else
+            % Use bwconncomp for 3D connectivity analysis (NIfTI)
+            try
+                % Find connected components (6-connectivity for 3D)
+                CC = bwconncomp(sig_mask, 6);
+                
+                % Get cluster sizes
+                cluster_sizes = cellfun(@numel, CC.PixelIdxList);
+                
+                % Find clusters above size threshold
+                large_clusters = cluster_sizes(cluster_sizes >= cluster_size);
+                n_sig_clusters = length(large_clusters);
+                
+                if n_sig_clusters > 0
+                    % This contrast has significant clusters
+                    significant_contrasts = [significant_contrasts, con_idx];
+                    
+                    fprintf('        ✓ SIGNIFICANT: %d cluster(s) ≥ %d voxels\n', ...
+                            n_sig_clusters, cluster_size);
+                    
+                    % Store detailed results
+                    screening_results(con_idx).name = con_name;
+                    screening_results(con_idx).n_clusters = n_sig_clusters;
+                    screening_results(con_idx).max_t = max(abs(Y(:)));
+                    screening_results(con_idx).significant = true;
+                else
+                    fprintf('        ○ No clusters ≥ %d voxels\n', cluster_size);
+                    screening_results(con_idx).name = con_name;
+                    screening_results(con_idx).n_clusters = 0;
+                    screening_results(con_idx).max_t = max(abs(Y(:)));
+                    screening_results(con_idx).significant = false;
+                end
+            catch ME
+                fprintf('        ⚠ Error in cluster analysis: %s\n', ME.message);
+                fprintf('        ○ Could not analyze clusters\n');
+                screening_results(con_idx).name = con_name;
+                screening_results(con_idx).n_clusters = 0;
+                screening_results(con_idx).max_t = max(abs(Y(:)));
+                screening_results(con_idx).significant = false;
+            end
         end
     else
         fprintf('        ○ No voxels above threshold\n');

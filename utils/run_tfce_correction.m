@@ -160,7 +160,7 @@ for i = 1:length(contrasts_to_process)
     % Check if TFCE already exists
     tfce_folder = fullfile(stats_folder, sprintf('TFCE_%04d', con_idx));
     if exist(tfce_folder, 'dir') && ~force_analysis
-        if exist(fullfile(tfce_folder, 'logP_max.nii'), 'file')
+        if exist(fullfile(tfce_folder, 'logP_max.nii'), 'file') || exist(fullfile(tfce_folder, 'logP_max.gii'), 'file')
             fprintf('        ⊙ TFCE results already exist, skipping\n\n');
             tfce_skipped = tfce_skipped + 1;
             continue;
@@ -176,12 +176,28 @@ for i = 1:length(contrasts_to_process)
     % Parallel jobs
     matlabbatch{1}.spm.tools.tfce_estimate.nproc = n_jobs;
     % Mask: prefer canonical repo template mask
-    utils_dir = fileparts(fileparts(mfilename('fullpath')));
-    template_mask = fullfile(utils_dir, 'templates', 'brainmask_GMtight.nii');
-    if exist(template_mask, 'file')
-        matlabbatch{1}.spm.tools.tfce_estimate.mask = {template_mask};
-    else
+    % Check if we are working with GIfTI files (surface data)
+    is_surface = false;
+    if isfield(SPM.xY, 'VY') && ~isempty(SPM.xY.VY)
+        [~,~,ext] = fileparts(SPM.xY.VY(1).fname);
+        if strcmpi(ext, '.gii')
+            is_surface = true;
+        end
+    elseif ~isempty(dir(fullfile(stats_folder, '*.gii')))
+         is_surface = true;
+    end
+
+    if is_surface
+        fprintf('        Surface data detected: disabling volumetric mask.\n');
         matlabbatch{1}.spm.tools.tfce_estimate.mask = '';
+    else
+        utils_dir = fileparts(fileparts(mfilename('fullpath')));
+        template_mask = fullfile(utils_dir, 'templates', 'brainmask_GMtight.nii');
+        if exist(template_mask, 'file')
+            matlabbatch{1}.spm.tools.tfce_estimate.mask = {template_mask};
+        else
+            matlabbatch{1}.spm.tools.tfce_estimate.mask = '';
+        end
     end
     % Contrast query
     matlabbatch{1}.spm.tools.tfce_estimate.conspec.titlestr = con_name; % results title
@@ -413,15 +429,21 @@ for i = 1:length(contrasts_to_process)
                 % Wait a moment for filesystem to sync (external drives can be slow)
                 pause(2);
                 
-                tfce_folder_ok = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                tfce_folder_ok = exist(tfce_folder, 'dir') && (exist(fullfile(tfce_folder, 'logP_max.nii'), 'file') || exist(fullfile(tfce_folder, 'logP_max.gii'), 'file'));
                 alt_out1 = fullfile(stats_folder, sprintf('TFCE_%04d.nii', con_idx));
                 alt_out2 = fullfile(stats_folder, sprintf('TFCE_log_pFWE_%04d.nii', con_idx));
                 alt_out3 = fullfile(stats_folder, sprintf('TFCE_log_p_%04d.nii', con_idx));
                 alt_out4 = fullfile(stats_folder, sprintf('TFCE_log_pFDR_%04d.nii', con_idx));
                 
+                alt_out1_gii = fullfile(stats_folder, sprintf('TFCE_%04d.gii', con_idx));
+                alt_out2_gii = fullfile(stats_folder, sprintf('TFCE_log_pFWE_%04d.gii', con_idx));
+                alt_out3_gii = fullfile(stats_folder, sprintf('TFCE_log_p_%04d.gii', con_idx));
+                alt_out4_gii = fullfile(stats_folder, sprintf('TFCE_log_pFDR_%04d.gii', con_idx));
+                
                 % Retry check a few times if not found immediately
                 for retry = 1:3
-                    alt_ok = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file');
+                    alt_ok = exist(alt_out1, 'file') || exist(alt_out2, 'file') || exist(alt_out3, 'file') || exist(alt_out4, 'file') || ...
+                             exist(alt_out1_gii, 'file') || exist(alt_out2_gii, 'file') || exist(alt_out3_gii, 'file') || exist(alt_out4_gii, 'file');
                     if tfce_folder_ok || alt_ok
                         break;
                     end
@@ -429,7 +451,7 @@ for i = 1:length(contrasts_to_process)
                         fprintf('        ... waiting for file system (%ds) ...\n', retry);
                         pause(2);
                         % Re-check folder
-                        tfce_folder_ok = exist(tfce_folder, 'dir') && exist(fullfile(tfce_folder, 'logP_max.nii'), 'file');
+                        tfce_folder_ok = exist(tfce_folder, 'dir') && (exist(fullfile(tfce_folder, 'logP_max.nii'), 'file') || exist(fullfile(tfce_folder, 'logP_max.gii'), 'file'));
                     end
                 end
 
@@ -444,8 +466,16 @@ for i = 1:length(contrasts_to_process)
                             found = alt_out4;
                         elseif exist(alt_out3, 'file')
                             found = alt_out3;
-                        else
+                        elseif exist(alt_out1, 'file')
                             found = alt_out1;
+                        elseif exist(alt_out2_gii, 'file')
+                            found = alt_out2_gii;
+                        elseif exist(alt_out4_gii, 'file')
+                            found = alt_out4_gii;
+                        elseif exist(alt_out3_gii, 'file')
+                            found = alt_out3_gii;
+                        else
+                            found = alt_out1_gii;
                         end
                         fprintf('        ✓ TFCE complete (found alternative output: %s)\n\n', found);
                     end
