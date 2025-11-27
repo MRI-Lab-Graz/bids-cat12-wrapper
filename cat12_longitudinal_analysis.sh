@@ -131,6 +131,7 @@ SKIP_SCREENING=$(get_ini_value "SCREENING" "skip_screening" "false")
 
 N_PERM=$(get_ini_value "TFCE" "n_perm" "5000")
 PILOT_MODE=$(get_ini_value "TFCE" "pilot_mode" "false")
+NO_TFCE=false
 
 # Two-stage TFCE probe parameters (automatic, no CLI flag required)
 # initial_perm: quick probe run to estimate cc (default: 100)
@@ -203,6 +204,7 @@ if [[ $# -eq 0 ]]; then
     echo "  --n-perm <N>            TFCE permutations (default: 5000)"
     echo "  --pilot                 Quick test mode (100 permutations)"
     echo "  --skip-screening        Run TFCE on all contrasts (not recommended)"
+    echo "  --no-tfce               Stop after screening (skip TFCE correction)"
     echo ""
     echo "SCREENING OPTIONS:"
     echo "  --uncorrected-p <p>     P-value threshold (default: 0.001)"
@@ -310,6 +312,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-screening)
             SKIP_SCREENING=true
+            shift
+            ;;
+        --no-tfce)
+            NO_TFCE=true
             shift
             ;;
         --cluster-size)
@@ -547,7 +553,7 @@ echo "└───────────────────────�
 echo ""
 
 if [[ -n "$CAT12_DIR" ]] && [[ -n "$PARTICIPANTS_FILE" ]]; then
-    python3 "$STATS_DIR/utils/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" || {
+    python3 "$STATS_DIR/utils/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" --modality "$MODALITY" || {
         echo "Error: Preflight checks failed. Fix issues above and re-run."
         exit 1
     }
@@ -888,6 +894,16 @@ else
     echo "│ STEP 5: Skipped (running TFCE on all contrasts)                       │"
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
+fi
+
+if [[ "$NO_TFCE" == true ]]; then
+    echo "┌────────────────────────────────────────────────────────────────────────┐"
+    echo "│ STEP 6: Skipped (TFCE disabled by --no-tfce)                          │"
+    echo "└────────────────────────────────────────────────────────────────────────┘"
+    echo ""
+    echo "Pipeline stopping early as requested."
+    echo "Results saved to: $OUTPUT_DIR"
+    exit 0
 fi
 
 # ============================================================================

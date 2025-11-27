@@ -455,7 +455,7 @@ def check_covariates_presence(
     return overall_ok
 
 
-def check_cat12_dir(cat12_dir: str, smoothing: str) -> bool:
+def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bool:
     candidates = [
         cat12_dir,
         os.path.join(cat12_dir, "data", "cat12"),
@@ -470,19 +470,36 @@ def check_cat12_dir(cat12_dir: str, smoothing: str) -> bool:
         print(f"ERROR: Expected CAT12 data folder not found. Tried: {candidates}")
         return False
 
-    if smoothing:
-        pattern = f"*s{smoothing}mwp1r*.nii*"
+    # Determine pattern based on modality
+    if modality == "vbm":
+        if smoothing:
+            pattern = f"*s{smoothing}mwp1r*.nii*"
+        else:
+            pattern = "*mwp1r*.nii*"
+        # VBM files are typically in 'mri' subfolder
+        search_path = os.path.join(data_dir, "**", "mri", pattern)
     else:
-        pattern = "*mwp1r*.nii*"
-    samples = glob.glob(os.path.join(data_dir, "**", pattern), recursive=True)
+        # Surface modalities (thickness, gyrification, etc.)
+        # Pattern: s{smoothing}.mesh.{modality}.resampled*.gii
+        # Location: 'surf' subfolder
+        if smoothing:
+            pattern = f"s{smoothing}.mesh.{modality}.resampled*.gii"
+        else:
+            pattern = f"*.mesh.{modality}.resampled*.gii"
+        search_path = os.path.join(data_dir, "**", "surf", pattern)
+
+    samples = glob.glob(search_path, recursive=True)
+    
+    if not samples:
+        # Fallback search without specific subfolder if strict structure not found
+        fallback_path = os.path.join(data_dir, "**", pattern)
+        samples = glob.glob(fallback_path, recursive=True)
+
     if not samples:
         print(
-            f"WARNING: No smoothed mwp1r NIfTI files found with pattern {pattern} under {data_dir}"
+            f"WARNING: No files found with pattern {pattern} under {data_dir} (modality: {modality})"
         )
-        samples = glob.glob(os.path.join(data_dir, "*mwp1r*.nii"))
-        if not samples:
-            print(f"ERROR: No mwp1r files found under {data_dir}")
-            return False
+        return False
 
     sample = samples[0]
     if len(samples) > 1:
@@ -493,13 +510,17 @@ def check_cat12_dir(cat12_dir: str, smoothing: str) -> bool:
         import nibabel as nb  # noqa: F401
 
         img = nb.load(sample)
-        hdr = img.header
-        data_shape = hdr.get_data_shape()
-        print(
-            f"✓ Sample NIfTI OK: {os.path.basename(sample)} shape={data_shape} bytes={os.path.getsize(sample)}"
-        )
+        # For GIfTI (surface), header handling is different than NIfTI
+        if sample.endswith('.gii'):
+             print(f"✓ Sample GIfTI OK: {os.path.basename(sample)} (surface data)")
+        else:
+            hdr = img.header
+            data_shape = hdr.get_data_shape()
+            print(
+                f"✓ Sample NIfTI OK: {os.path.basename(sample)} shape={data_shape} bytes={os.path.getsize(sample)}"
+            )
     except Exception as exc:
-        print(f"ERROR: Failed to read sample NIfTI {sample}: {exc}")
+        print(f"ERROR: Failed to read sample file {sample}: {exc}")
         return False
 
     return True
@@ -602,6 +623,11 @@ def main() -> None:
         default="session",
         help="Column to read session IDs from when participants.tsv is scan-level",
     )
+    parser.add_argument(
+        "--modality",
+        default="vbm",
+        help="Analysis modality (vbm, thickness, gyrification, etc.)",
+    )
     args = parser.parse_args()
 
     overall_ok = True
@@ -615,7 +641,7 @@ def main() -> None:
         overall_ok = False
 
     print("\n=== Preflight: CAT12 files ===")
-    if not check_cat12_dir(args.cat12_dir, args.smoothing):
+    if not check_cat12_dir(args.cat12_dir, args.smoothing, args.modality):
         overall_ok = False
 
     print("\n=== Preflight: Participants file ===")
