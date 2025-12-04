@@ -21,7 +21,7 @@ class CAT12ScriptGenerator:
 
     def __init__(self, config: Dict):
         self.config = config
-        self.template_dir = Path(__file__).parent.parent / "scripts"
+        self.template_dir = Path(__file__).parent.parent / "templates"
 
     def load_segmentation_config(self, config_path: Path) -> Dict:
         """

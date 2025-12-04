@@ -1,0 +1,46 @@
+#!/bin/bash
+# Run CAT12 Longitudinal Stats Pipeline
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source environment variables
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+fi
+
+# Activate virtual environment if not already active
+if [ -z "$VIRTUAL_ENV" ]; then
+    if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+        source "$SCRIPT_DIR/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment not found. Please run installation script."
+        exit 1
+    fi
+fi
+
+# Check for --nohup argument
+USE_NOHUP=false
+ARGS=()
+for arg in "$@"; do
+    if [ "$arg" == "--nohup" ]; then
+        USE_NOHUP=true
+    else
+        ARGS+=("$arg")
+    fi
+done
+
+if [ "$USE_NOHUP" = true ]; then
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    LOG_FILE="cat12_stats_${TIMESTAMP}.log"
+    
+    echo "Running in background (nohup)..."
+    echo "Log file: $LOG_FILE"
+    
+    nohup "$SCRIPT_DIR/scripts/stats/cat12_longitudinal_analysis.sh" "${ARGS[@]}" > "$LOG_FILE" 2>&1 &
+    PID=$!
+    echo "Process ID: $PID"
+    echo "You can monitor progress with: tail -f $LOG_FILE"
+else
+    # Run the command normally
+    "$SCRIPT_DIR/scripts/stats/cat12_longitudinal_analysis.sh" "$@"
+fi

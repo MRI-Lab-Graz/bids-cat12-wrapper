@@ -15,6 +15,7 @@ import time
 import json
 
 # Add utils to path
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
 from cat12_utils import CAT12Processor, CAT12ScriptGenerator, CAT12QualityChecker
 
 logger = logging.getLogger(__name__)

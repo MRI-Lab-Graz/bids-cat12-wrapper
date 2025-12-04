@@ -36,7 +36,7 @@ from tqdm import tqdm
 import click
 
 # Import custom utilities
-sys.path.append(os.path.join(os.path.dirname(__file__), "utils"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
 from bids_utils import BIDSValidator, BIDSSessionManager  # noqa: E402
 from cat12_utils import CAT12Processor, CAT12ScriptGenerator  # noqa: E402
 
@@ -435,7 +435,7 @@ class BIDSLongitudinalProcessor:
                 # Generate quality report
                 self._generate_quality_report(subject, subject_output_dir)
                 # Generate per-subject HTML boilerplate log
-                from utils.generate_boilerplate import main as boilerplate_main
+                from generate_boilerplate import main as boilerplate_main
 
                 # Compose CLI args for subject
                 subject_cli_args = cli_args if cli_args else "N/A"
@@ -1323,7 +1323,7 @@ def main(
                 config_path=config_path_str,
             )
             # After all subjects processed, generate main boilerplate summary (Markdown)
-            from utils.generate_boilerplate import main as boilerplate_main
+            from generate_boilerplate import main as boilerplate_main
 
             all_subjects_list = list(longitudinal_subjects.keys())
             all_sessions_list = []

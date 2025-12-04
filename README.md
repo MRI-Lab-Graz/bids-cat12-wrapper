@@ -28,7 +28,7 @@ A BIDS App for longitudinal neuroimaging data processing using CAT12 standalone 
 Run the dedicated installation script:
 
 ```bash
-./install_cat12_standalone.sh
+./scripts/install_cat12_standalone.sh
 ```
 
 This script will:
@@ -37,211 +37,116 @@ This script will:
 - Install required BIDS and processing dependencies
 - Create all dependencies within the project directory (no system-wide changes)
 
-### 2. Activate Environment
+### 2. Activate Environment (Optional)
+
+The wrapper scripts (`cat12_prepro` and `cat12_stats`) automatically handle environment activation. You only need to manually activate the environment if you plan to run python scripts directly or use the environment for other purposes.
 
 ```bash
 # Activate the CAT12 environment
 source activate_cat12.sh
 ```
 
-### 3. Process BIDS Dataset
+### 3. Run Pipeline
 
-The script follows **BIDS App conventions** and **automatically detects longitudinal data** (multiple sessions).
+The pipeline is divided into two main stages: **Preprocessing** and **Statistics**.
+
+#### A. Preprocessing (`cat12_prepro`)
+
+Use `cat12_prepro` to process your BIDS dataset. It automatically handles longitudinal data (multiple sessions).
 
 ```bash
-# Preprocessing only (auto-detects longitudinal if multiple sessions exist)
-python bids_cat12_processor.py /path/to/bids /path/to/output participant --preproc
+# Basic usage: Preprocessing only
+./cat12_prepro /path/to/bids_input /path/to/output_dir participant --preproc
 
-# Volume-only analysis (no surface extraction)  
-python bids_cat12_processor.py /path/to/bids /path/to/output participant --preproc --no-surface
-
-# Full pipeline: preprocessing + smoothing + QA + TIV
-python bids_cat12_processor.py /path/to/bids /path/to/output participant \
+# Full pipeline: Preprocessing + Smoothing + QA + TIV
+./cat12_prepro /path/to/bids_input /path/to/output_dir participant \
     --preproc --smooth-volume --smooth-surface --qa --tiv
 
-# Process specific participants
-python bids_cat12_processor.py /path/to/bids /path/to/output participant \
+# Run on specific participants
+./cat12_prepro /path/to/bids_input /path/to/output_dir participant \
     --preproc --participant-label 01 02
 ```
 
-**Key Points:**
-- All processing stages are **opt-in** (you must specify what you want)
-- Longitudinal processing is **automatic** when multiple sessions exist
-- Use `--no-surface` to skip surface extraction (faster, volume-only)
+**Key Flags:**
+- `--preproc`: Enable preprocessing (segmentation/normalization).
+- `--smooth-volume`: Smooth volume data (default 6mm).
+- `--smooth-surface`: Smooth surface data.
+- `--qa`: Generate quality assurance reports.
+- `--tiv`: Calculate Total Intracranial Volume.
+- `--no-surface`: Skip surface extraction (faster, volume-only).
 
-## Installation Details
+#### B. Statistics (`cat12_stats`)
 
-The installation follows the official ENIGMA-CAT12 standalone guide:
-https://neuro-jena.github.io/enigma-cat12/#standalone
+Use `cat12_stats` to run longitudinal statistical analysis (e.g., VBM, Surface Thickness) on the preprocessed data.
+
+```bash
+# Basic VBM Analysis (Longitudinal)
+./cat12_stats \
+    --cat12-dir /path/to/output_dir/cat12 \
+    --participants /path/to/participants.tsv \
+    --modality vbm \
+    --smoothing 6
+
+# Surface Thickness Analysis with Covariates
+./cat12_stats \
+    --cat12-dir /path/to/output_dir/cat12 \
+    --participants /path/to/participants.tsv \
+    --modality thickness \
+    --smoothing 15 \
+    --covariates "age,sex,tiv"
+
+# Run in Background (Long-running jobs)
+./cat12_stats \
+    --cat12-dir /path/to/output_dir/cat12 \
+    --participants /path/to/participants.tsv \
+    --nohup
+```
+
+**Key Flags:**
+- `--cat12-dir`: Path to the CAT12 output directory (from the preprocessing step).
+- `--participants`: Path to your BIDS `participants.tsv` file.
+- `--modality`: Analysis type (`vbm`, `thickness`, `gyrification`, `depth`, `fractal`).
+- `--smoothing`: Smoothing kernel FWHM in mm.
+- `--covariates`: Comma-separated list of columns from `participants.tsv` to use as covariates.
+- `--output`: Custom output directory (optional).
+- `--nohup`: Run in background (detached). Logs output to `cat12_stats_<timestamp>.log`.
 
 ## Directory Structure
 
 ```
 cat-12/
-├── install_cat12_standalone.sh    # Installation script
+├── cat12_prepro                   # Preprocessing entry point
+├── cat12_stats                    # Statistics entry point
 ├── activate_cat12.sh              # Environment activation script
-├── bids_cat12_processor.py        # Main BIDS processor
-├── scripts/
-│   ├── longitudinal_template.m    # MATLAB template for longitudinal processing
-│   └── subject_processor.py       # Individual subject processing
-├── utils/
-│   ├── bids_utils.py              # BIDS dataset utilities
-│   └── cat12_utils.py             # CAT12-specific utilities
-├── config/
-│   └── processing_config.yaml     # Processing configuration
-├── pyproject.toml                 # Project configuration and dependencies
-├── requirements.txt               # Python dependencies (legacy)
+├── config/                        # Configuration files
+│   ├── config.ini                 # Stats configuration
+│   └── processing_config.yaml     # Preprocessing configuration
+├── scripts/                       # Source code
+│   ├── preprocessing/             # Preprocessing scripts (Python)
+│   ├── stats/                     # Stats scripts (Bash/MATLAB)
+│   └── install_cat12_standalone.sh
+├── stats/                         # Data & Results workspace
+│   ├── participants.tsv           # Example participants file
+│   ├── results/                   # Analysis results
+│   └── logs/                      # Logs
+├── templates/                     # MATLAB templates
+├── utils/                         # Shared Python utilities
 ├── external/                      # CAT12 and MATLAB Runtime (created by installer)
-├── .venv/                         # Python virtual environment (created by installer)
-├── .env                           # Environment variables (created by installer)
+├── .venv/                         # Python virtual environment
 └── README.md                      # This file
 ```
 
-## Usage Examples
+## Advanced Usage
 
-### Basic Preprocessing
+### Customizing Preprocessing
+You can modify `config/processing_config.yaml` to adjust default preprocessing parameters.
 
-```bash
-# First activate the environment
-source activate_cat12.sh
+### Customizing Statistics
+You can modify `config/config.ini` to set default paths for MATLAB/SPM (if not using standalone) and other analysis defaults.
 
-# Preprocessing only (auto-detects longitudinal data)
-python bids_cat12_processor.py \
-    /data/bids_dataset \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc
-```
-
-### Preprocessing Without Surface
+### Reproducing Results
+The stats pipeline generates a `design.json` file in the output directory. You can use this to reproduce an exact analysis:
 
 ```bash
-# Volume data only (no surface extraction)
-python bids_cat12_processor.py \
-    /data/bids_dataset \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc \
-    --no-surface
+./cat12_stats --design /path/to/results/design.json
 ```
-
-### Full Pipeline
-
-```bash
-# Complete processing: preproc + smoothing + QA + TIV
-python bids_cat12_processor.py \
-    /data/bids_dataset \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc \
-    --smooth-volume \
-    --smooth-surface \
-    --qa \
-    --tiv
-```
-
-### Advanced Configuration
-
-```bash
-# Custom smoothing kernels and specific participants
-python bids_cat12_processor.py \
-    /data/bids_dataset \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc \
-    --smooth-volume \
-    --volume-fwhm "8 8 8" \
-    --smooth-prefix "s8" \
-    --participant-label 01 02 03 \
-    --n-jobs 4
-```
-
-### Processing Stages
-
-The pipeline supports modular processing stages (opt-in):
-
-- `--preproc`: Run preprocessing/segmentation (automatically detects longitudinal)
-- `--smooth-volume`: Smooth volume data (default FWHM: 6mm)
-- `--smooth-surface`: Resample and smooth surface data (default FWHM: 12mm)
-- `--qa`: Run quality assessment
-- `--tiv`: Estimate total intracranial volume
-- `--roi`: Extract ROI values
-
-Options (opt-out):
-
-- `--no-surface`: Skip surface extraction during preprocessing
-- `--no-validate`: Skip BIDS validation
-
-## BIDS Compatibility
-
-This pipeline **automatically**:
-- Detects **longitudinal** sessions (>1 session) vs **cross-sectional** (1 session)
-- Validates BIDS structure (optional, can skip with `--no-validate`)
-- Generates appropriate processing scripts based on data structure
-- Organizes outputs in BIDS derivatives format
-- Creates processing logs and quality reports
-
-**No manual flags needed** - if your subject has multiple sessions (ses-01, ses-02, etc.), longitudinal processing is automatically used!
-
-## Contributing
-
-Please read our contributing guidelines and submit pull requests for any improvements.
-
-## Command-Line Interface
-
-```
-bids_cat12_processor.py <bids_dir> <output_dir> <analysis_level> [options]
-
-Required:
-  bids_dir          Path to BIDS dataset
-  output_dir        Path to output derivatives
-  analysis_level    participant or group
-
-Processing Stages (opt-in, at least one required):
-  --preproc         Run preprocessing/segmentation
-  --smooth-volume   Smooth volume data (default FWHM: 6mm)
-  --smooth-surface  Resample and smooth surfaces (default FWHM: 12mm)
-  --qa              Run quality assessment
-  --tiv             Estimate total intracranial volume
-  --roi             Extract ROI values
-
-Options (opt-out):
-  --no-surface      Skip surface extraction (volume-only)
-  --no-validate     Skip BIDS validation
-
-Subject/Session Selection:
-  --participant-label LABEL [LABEL ...]   Process specific participants
-  --session-label LABEL [LABEL ...]       Process specific sessions
-
-Smoothing Parameters:
-  --volume-fwhm "X Y Z"    Volume smoothing kernel (default: "6 6 6")
-  --surface-fwhm "N"       Surface smoothing kernel (default: "12")
-  --smooth-prefix PREFIX   Prefix for smoothed files (default: "s")
-
-Advanced:
-  --config PATH       Configuration file
-  --n-jobs N          Number of parallel jobs (default: 1)
-  --verbose           Verbose output
-
-For detailed documentation, see docs/BIDS_APP_USAGE.md
-```
-
-## Contributing
-
-Please read our contributing guidelines and submit pull requests for any improvements.
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Documentation
-
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
-- **[BIDS App Usage](docs/BIDS_APP_USAGE.md)** - Complete usage guide with examples
-- **[CAT12 Commands Reference](docs/CAT12_COMMANDS.md)** - All CAT12 standalone commands explained
-
-## Citation
-
-If you use this pipeline, please cite:
-- CAT12: [Gaser et al., 2022]
-- BIDS: [Gorgolewski et al., 2016]

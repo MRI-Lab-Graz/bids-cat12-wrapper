@@ -1,0 +1,22 @@
+#!/bin/bash
+# Run CAT12 with proper environment setup
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source environment variables
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+fi
+
+# Activate virtual environment if not already active
+if [ -z "$VIRTUAL_ENV" ]; then
+    if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+        source "$SCRIPT_DIR/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment not found. Please run installation script."
+        exit 1
+    fi
+fi
+
+# Run the command
+python "$SCRIPT_DIR/scripts/preprocessing/bids_cat12_processor.py" "$@"
