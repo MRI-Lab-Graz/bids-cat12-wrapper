@@ -11,18 +11,23 @@ import datetime
 import json
 import yaml  # type: ignore
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, cast
 
 
 def get_system_info() -> Dict[str, Any]:
+    try:
+        ram_gb = round(
+            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024.0**3), 2
+        )
+    except (ValueError, AttributeError):
+        ram_gb = 0.0
+
     return {
         "os": platform.platform(),
         "python": sys.version.split()[0],
         "hostname": socket.gethostname(),
         "cpu": platform.processor(),
-        "ram_gb": round(
-            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024.0**3), 2
-        ),
+        "ram_gb": ram_gb,
     }
 
 
@@ -42,10 +47,10 @@ def load_config(config_path: str) -> Dict[str, Any]:
         return {}
     if config_path.endswith(".json"):
         with open(config_path) as f:
-            return json.load(f)
+            return cast(Dict[str, Any], json.load(f))
     elif config_path.endswith(".yaml") or config_path.endswith(".yml"):
         with open(config_path) as f:
-            return yaml.safe_load(f)
+            return cast(Dict[str, Any], yaml.safe_load(f))
     return {}
 
 
@@ -160,7 +165,7 @@ def main() -> None:
     parser.add_argument("--spm-script", required=True)
     args = parser.parse_args()
 
-    info = {}
+    info: Dict[str, Any] = {}
     info["date"] = datetime.datetime.now().isoformat()
     info["system"] = get_system_info()
     spm_version, cat_version = get_spm_cat_version(args.spm_script)
@@ -231,6 +236,10 @@ def main() -> None:
     with open(os.path.join(args.output_dir, "boilerplate.html"), "w") as f:
         f.write(render_html_with_log(info))
     print(f"Boilerplate written to {args.output_dir}/boilerplate.md and .html")
+
+
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":

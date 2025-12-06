@@ -22,7 +22,7 @@ import logging
 from pathlib import Path
 import json
 import yaml
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any, Union, cast, Tuple
 import subprocess
 from datetime import datetime
 import gzip
@@ -34,6 +34,7 @@ from colorama import init as colorama_init, Fore, Style
 from bids import BIDSLayout
 from tqdm import tqdm
 import click
+import defusedxml.ElementTree as ET
 
 # Import custom utilities
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
@@ -103,7 +104,7 @@ def setup_logging(
     return log_file_path
 
 
-def deep_update(base: Dict, updates: Dict) -> Dict:
+def deep_update(base: Dict[Any, Any], updates: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge dictionary ``updates`` into ``base``."""
 
     for key, value in updates.items():
@@ -136,16 +137,19 @@ class BIDSLongitudinalProcessor:
         self.config = self._load_config()
 
         # Initialize BIDS layout
-        self.layout = None
+        self.layout: Optional[BIDSLayout] = None
         self._init_bids_layout()
+        
+        if self.layout is None:
+            raise RuntimeError("BIDS layout initialization failed")
 
         # Initialize processors
-        self.validator = BIDSValidator(self.bids_dir)
-        self.session_manager = BIDSSessionManager(self.layout)
-        self.cat12_processor = CAT12Processor(self.config)
-        self.script_generator = CAT12ScriptGenerator(self.config)
+        self.validator: BIDSValidator = BIDSValidator(self.bids_dir)
+        self.session_manager: BIDSSessionManager = BIDSSessionManager(self.layout)
+        self.cat12_processor: CAT12Processor = CAT12Processor(self.config)
+        self.script_generator: CAT12ScriptGenerator = CAT12ScriptGenerator(self.config)
 
-    def _load_config(self) -> Dict:
+    def _load_config(self) -> Dict[str, Any]:
         """Load processing configuration."""
         default_config = {
             "cat12": {
@@ -187,7 +191,7 @@ class BIDSLongitudinalProcessor:
 
         return config
 
-    def _init_bids_layout(self):
+    def _init_bids_layout(self) -> None:
         """Initialize BIDS layout with validation."""
         try:
             logger.info(
@@ -224,7 +228,7 @@ class BIDSLongitudinalProcessor:
             logger.error(f"{Fore.RED}{traceback.format_exc()}{Style.RESET_ALL}")
             sys.exit(1)
 
-    def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7):
+    def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7) -> None:
         """Clean up old BIDS database files to save space."""
         try:
             import time
@@ -268,6 +272,9 @@ class BIDSLongitudinalProcessor:
         Returns:
             Dictionary mapping subject ID to list of session IDs
         """
+        if self.layout is None:
+            raise RuntimeError("BIDS layout not initialized")
+            
         subjects = self.layout.get_subjects()
         if participant_labels:
             subjects = [s for s in subjects if f"sub-{s}" in participant_labels]
@@ -355,6 +362,9 @@ class BIDSLongitudinalProcessor:
         Returns:
             True if processing successful
         """
+        if self.layout is None:
+            raise RuntimeError("BIDS layout not initialized")
+
         logger.info(
             f"Processing subject {subject} with sessions: {', '.join(sessions)}"
         )
@@ -402,10 +412,15 @@ class BIDSLongitudinalProcessor:
             )
 
             # Choose template based on number of timepoints
+            spm_root = os.environ.get("SPMROOT", "")
+            if not spm_root:
+                logger.warning("SPMROOT environment variable not set, using default")
+                spm_root = "/data/local/software/cat-12/external/cat12"
+
             if len(t1w_files_uncompressed) >= 2:
                 # Longitudinal processing (2+ timepoints)
                 template_path = (
-                    Path(os.environ.get("SPMROOT"))
+                    Path(spm_root)
                     / "standalone"
                     / "cat_standalone_segment_long.m"
                 )
@@ -415,7 +430,7 @@ class BIDSLongitudinalProcessor:
             else:
                 # Cross-sectional processing (1 timepoint)
                 template_path = (
-                    Path(os.environ.get("SPMROOT"))
+                    Path(spm_root)
                     / "standalone"
                     / "cat_standalone_segment.m"
                 )
@@ -489,7 +504,7 @@ class BIDSLongitudinalProcessor:
             logger.error(f"Error processing subject {subject}: {e}")
             return False
 
-    def _generate_quality_report(self, subject: str, output_dir: Path):
+    def _generate_quality_report(self, subject: str, output_dir: Path) -> None:
         """Generate quality assessment report for processed subject."""
         try:
             # Look for CAT12 quality metrics
@@ -613,7 +628,7 @@ class BIDSLongitudinalProcessor:
 
         return results
 
-    def _create_derivatives_structure(self):
+    def _create_derivatives_structure(self) -> None:
         """Create BIDS derivatives directory structure."""
         derivatives_dir = self.output_dir
         derivatives_dir.mkdir(parents=True, exist_ok=True)
@@ -635,7 +650,7 @@ class BIDSLongitudinalProcessor:
         with open(derivatives_dir / "dataset_description.json", "w") as f:
             json.dump(dataset_description, f, indent=2)
 
-    def _normalize_output_structure(self):
+    def _normalize_output_structure(self) -> None:
         """
         Normalize output structure by moving any subject folders found under
         nested category folders (e.g. 'cross_sectional' or 'longitudinal') up
@@ -671,8 +686,8 @@ class BIDSLongitudinalProcessor:
                             # attempt to remove the now-empty subject dir
                             try:
                                 sub.rmdir()
-                            except Exception:
-                                pass
+                            except OSError:
+                                logger.debug(f"Could not remove subject dir {sub} (likely not empty)")
                         else:
                             logger.info(f"Moving {sub} -> {dest}")
                             shutil.move(str(sub), str(dest))
@@ -686,7 +701,7 @@ class BIDSLongitudinalProcessor:
         except Exception as e:
             logger.warning(f"Failed to normalize output structure: {e}")
 
-    def _generate_summary_report(self, results: Dict[str, bool]):
+    def _generate_summary_report(self, results: Dict[str, bool]) -> None:
         """Generate summary report of processing results."""
         successful = sum(results.values())
         total = len(results)
@@ -710,7 +725,7 @@ class BIDSLongitudinalProcessor:
         self,
         participant_labels: Optional[List[str]] = None,
         fwhm_list: Optional[List[float]] = None,
-    ):
+    ) -> Dict[Tuple[str, float], bool]:
         """
         Smooth volume data for all subjects with multiple FWHM kernels.
 
@@ -783,7 +798,7 @@ class BIDSLongitudinalProcessor:
         self,
         participant_labels: Optional[List[str]] = None,
         fwhm_list: Optional[List[float]] = None,
-    ):
+    ) -> Dict[Tuple[str, float], bool]:
         """
         Resample and smooth surface data for all subjects with multiple FWHM kernels.
 
@@ -855,7 +870,7 @@ class BIDSLongitudinalProcessor:
 
         return smoothing_results
 
-    def run_quality_assessment(self, participant_labels: Optional[List[str]] = None):
+    def run_quality_assessment(self, participant_labels: Optional[List[str]] = None) -> None:
         """
         Run quality assessment for all subjects.
 
@@ -886,7 +901,7 @@ class BIDSLongitudinalProcessor:
             json.dump(qa_results, f, indent=2)
         logger.info(f"Saved QA results to {qa_file}")
 
-    def estimate_tiv(self, participant_labels: Optional[List[str]] = None):
+    def estimate_tiv(self, participant_labels: Optional[List[str]] = None) -> None:
         """
         Estimate total intracranial volume (TIV) for all subjects.
 
@@ -936,7 +951,7 @@ class BIDSLongitudinalProcessor:
         except Exception as e:
             logger.error(f"Error estimating TIV: {e}")
 
-    def extract_roi_values(self, participant_labels: Optional[List[str]] = None):
+    def extract_roi_values(self, participant_labels: Optional[List[str]] = None) -> None:
         """
         Extract ROI values for all subjects.
 
@@ -1133,28 +1148,28 @@ class BIDSLongitudinalProcessor:
     help="Run in background with nohup (detaches from terminal, writes to nohup.out)",
 )
 def main(
-    bids_dir,
-    output_dir,
-    analysis_level,
-    participant_label,
-    session_label,
-    preproc,
-    smooth_volume,
-    smooth_surface,
-    qa,
-    tiv,
-    roi,
-    no_surface,
-    no_validate,
-    config,
-    n_jobs,
-    work_dir,
-    verbose,
-    log_dir,
-    pilot,
-    cross,
-    nohup,
-):
+    bids_dir: Path,
+    output_dir: Path,
+    analysis_level: str,
+    participant_label: List[str],
+    session_label: List[str],
+    preproc: bool,
+    smooth_volume: Optional[str],
+    smooth_surface: Optional[str],
+    qa: bool,
+    tiv: bool,
+    roi: bool,
+    no_surface: bool,
+    no_validate: bool,
+    config: Optional[Path],
+    n_jobs: str,
+    work_dir: Optional[Path],
+    verbose: bool,
+    log_dir: Optional[Path],
+    pilot: bool,
+    cross: bool,
+    nohup: bool,
+) -> None:
     """
     CAT12 BIDS App for structural MRI preprocessing and analysis.
 
@@ -1236,8 +1251,8 @@ def main(
                 with open(env_file) as f:
                     for line in f:
                         line = line.strip()
-                        if line and not line.startswith('#') and '=' in line:
-                            key, value = line.split('=', 1)
+                        if line and not line.startswith("#") and "=" in line:
+                            key, value = line.split("=", 1)
                             env[key.strip()] = value.strip()
             except Exception as e:
                 logger.warning(f"Failed to load .env file: {e}")
@@ -1255,7 +1270,7 @@ def main(
                     env=env,
                     stdout=out,
                     stderr=subprocess.STDOUT,
-                    start_new_session=True
+                    start_new_session=True,
                 )
             print("✅ Background process started!")
             sys.exit(0)
@@ -1293,7 +1308,7 @@ def main(
         sys.exit(1)
 
     # Parse smoothing kernel values
-    volume_fwhm_list = None
+    volume_fwhm_list: Optional[List[float]] = None
     if smooth_volume:
         try:
             volume_fwhm_list = [float(x) for x in smooth_volume.split()]
@@ -1303,7 +1318,7 @@ def main(
             )
             sys.exit(1)
 
-    surface_fwhm_list = None
+    surface_fwhm_list: Optional[List[float]] = None
     if smooth_surface:
         try:
             surface_fwhm_list = [float(x) for x in smooth_surface.split()]
@@ -1320,9 +1335,11 @@ def main(
             f"Preprocessing{'(no surface)' if no_surface else '(with surface)'}"
         )
     if smooth_volume:
+        assert volume_fwhm_list is not None
         fwhm_str = ", ".join(f"{int(f)}mm" for f in volume_fwhm_list)
         stages.append(f"Volume smoothing ({fwhm_str})")
     if smooth_surface:
+        assert surface_fwhm_list is not None
         fwhm_str = ", ".join(f"{int(f)}mm" for f in surface_fwhm_list)
         stages.append(f"Surface smoothing ({fwhm_str})")
     if qa:
@@ -1340,8 +1357,10 @@ def main(
     processor = BIDSLongitudinalProcessor(
         bids_dir=bids_dir, output_dir=output_dir, config_file=config
     )
+    assert processor.layout is not None
 
     # Auto n_jobs calculation if requested
+    final_n_jobs: int = 1
     if isinstance(n_jobs, str) and n_jobs == "auto":
         import psutil
 
@@ -1352,9 +1371,12 @@ def main(
         print(
             f"[AUTO] Detected {total_gb:.1f} GB RAM, reserving {reserved_gb} GB for system, running {max_jobs} parallel CAT12 jobs."
         )
-        n_jobs = max_jobs
+        final_n_jobs = max_jobs
+    else:
+        final_n_jobs = int(n_jobs)
+
     processor.config.setdefault("cat12", {})["surface_processing"] = not no_surface
-    processor.config["cat12"]["parallel_jobs"] = n_jobs
+    processor.config["cat12"]["parallel_jobs"] = final_n_jobs
     if work_dir:
         processor.config["system"]["work_dir"] = str(work_dir)
     processor.config.setdefault("logging", {})["log_file"] = str(log_file_path)
@@ -1368,9 +1390,10 @@ def main(
             sys.exit(1)
 
     # Convert participant labels (remove 'sub-' prefix if present)
-    participant_labels = []
+    participant_labels: Optional[List[str]] = []
     # Add any --participant-label options
     if participant_label:
+        assert participant_labels is not None
         participant_labels.extend(
             [f"sub-{p.replace('sub-', '')}" for p in participant_label]
         )
@@ -1465,7 +1488,7 @@ def main(
 
     if pilot:
         if longitudinal_subjects:
-            pilot_subject = random.choice(list(longitudinal_subjects.keys()))
+            pilot_subject = random.choice(list(longitudinal_subjects.keys()))  # nosec
             participant_labels = [f"sub-{pilot_subject}"]
             # Filter longitudinal_subjects to only include the pilot subject
             longitudinal_subjects = {
