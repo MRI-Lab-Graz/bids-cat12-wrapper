@@ -22,7 +22,7 @@ import logging
 from pathlib import Path
 import json
 import yaml
-from typing import Dict, List, Optional, Any, Union, cast, Tuple
+from typing import Dict, List, Optional, Any, Tuple
 import subprocess
 from datetime import datetime
 import gzip
@@ -34,7 +34,6 @@ from colorama import init as colorama_init, Fore, Style
 from bids import BIDSLayout
 from tqdm import tqdm
 import click
-import defusedxml.ElementTree as ET
 
 # Import custom utilities
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
@@ -139,7 +138,7 @@ class BIDSLongitudinalProcessor:
         # Initialize BIDS layout
         self.layout: Optional[BIDSLayout] = None
         self._init_bids_layout()
-        
+
         if self.layout is None:
             raise RuntimeError("BIDS layout initialization failed")
 
@@ -274,7 +273,7 @@ class BIDSLongitudinalProcessor:
         """
         if self.layout is None:
             raise RuntimeError("BIDS layout not initialized")
-            
+
         subjects = self.layout.get_subjects()
         if participant_labels:
             subjects = [s for s in subjects if f"sub-{s}" in participant_labels]
@@ -420,9 +419,7 @@ class BIDSLongitudinalProcessor:
             if len(t1w_files_uncompressed) >= 2:
                 # Longitudinal processing (2+ timepoints)
                 template_path = (
-                    Path(spm_root)
-                    / "standalone"
-                    / "cat_standalone_segment_long.m"
+                    Path(spm_root) / "standalone" / "cat_standalone_segment_long.m"
                 )
                 logger.info(
                     f"{Fore.CYAN}📊 Using longitudinal template (multiple timepoints){Style.RESET_ALL}"
@@ -430,9 +427,7 @@ class BIDSLongitudinalProcessor:
             else:
                 # Cross-sectional processing (1 timepoint)
                 template_path = (
-                    Path(spm_root)
-                    / "standalone"
-                    / "cat_standalone_segment.m"
+                    Path(spm_root) / "standalone" / "cat_standalone_segment.m"
                 )
                 logger.info(
                     f"{Fore.CYAN}📊 Using cross-sectional template (single timepoint){Style.RESET_ALL}"
@@ -687,7 +682,9 @@ class BIDSLongitudinalProcessor:
                             try:
                                 sub.rmdir()
                             except OSError:
-                                logger.debug(f"Could not remove subject dir {sub} (likely not empty)")
+                                logger.debug(
+                                    f"Could not remove subject dir {sub} (likely not empty)"
+                                )
                         else:
                             logger.info(f"Moving {sub} -> {dest}")
                             shutil.move(str(sub), str(dest))
@@ -870,7 +867,9 @@ class BIDSLongitudinalProcessor:
 
         return smoothing_results
 
-    def run_quality_assessment(self, participant_labels: Optional[List[str]] = None) -> None:
+    def run_quality_assessment(
+        self, participant_labels: Optional[List[str]] = None
+    ) -> None:
         """
         Run quality assessment for all subjects.
 
@@ -951,7 +950,9 @@ class BIDSLongitudinalProcessor:
         except Exception as e:
             logger.error(f"Error estimating TIV: {e}")
 
-    def extract_roi_values(self, participant_labels: Optional[List[str]] = None) -> None:
+    def extract_roi_values(
+        self, participant_labels: Optional[List[str]] = None
+    ) -> None:
         """
         Extract ROI values for all subjects.
 

@@ -11,7 +11,7 @@ import logging
 import subprocess
 import defusedxml.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -234,7 +234,7 @@ class CAT12Processor:
             raise ValueError("CAT12_ROOT environment variable not set")
         if not mcr_root_env:
             raise ValueError("MCR_ROOT environment variable not set")
-            
+
         self.cat12_root: str = cat12_root_env
         self.mcr_root: str = mcr_root_env
 

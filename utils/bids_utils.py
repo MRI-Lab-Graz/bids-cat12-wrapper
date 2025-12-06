@@ -69,6 +69,7 @@ class BIDSValidator:
     def _has_bids_validator(self) -> bool:
         """Check if bids-validator (Deno version) is available."""
         import shutil
+
         deno_path = shutil.which("deno")
         if not deno_path:
             return False
@@ -82,11 +83,12 @@ class BIDSValidator:
     def _run_bids_validator(self) -> bool:
         """Run official BIDS validator using Deno."""
         import shutil
+
         deno_path = shutil.which("deno")
         if not deno_path:
             logger.error("Deno not found")
             return False
-            
+
         try:
             logger.info("Running BIDS validation with Deno validator...")
             result = subprocess.run(
@@ -145,7 +147,7 @@ class BIDSSessionManager:
         """
         if self.layout is None:
             return {}
-            
+
         longitudinal_subjects = {}
 
         for subject in self.layout.get_subjects():
@@ -223,7 +225,7 @@ class BIDSSessionManager:
         """Get summary statistics for the dataset."""
         if self.layout is None:
             return {}
-            
+
         subjects = self.layout.get_subjects()
         total_subjects = len(subjects)
 
