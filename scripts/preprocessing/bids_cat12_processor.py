@@ -658,7 +658,9 @@ class BIDSLongitudinalProcessor:
                                 if target.exists():
                                     # If a file/folder already exists, rename the moved item to avoid overwrite
                                     new_name = f"{item.name}.from_{child.name}"
-                                    logger.warning(f"Conflict moving {item} to {target}; renaming to {new_name}")
+                                    logger.warning(
+                                        f"Conflict moving {item} to {target}; renaming to {new_name}"
+                                    )
                                     shutil.move(str(item), str(dest / new_name))
                                 else:
                                     shutil.move(str(item), str(target))
@@ -870,7 +872,15 @@ class BIDSLongitudinalProcessor:
         iqr_file = self.output_dir / "IQR.txt"
         logger.info(f"Saving IQR to: {iqr_file}")
 
-        # TODO: Call CAT12 QA functions
+        # Call CAT12 QA functions
+        qa_checker = CAT12QualityChecker()
+        qa_results = qa_checker.check_subject_outputs(self.output_dir)
+
+        # Save QA results
+        qa_file = self.output_dir / "qa_results.json"
+        with open(qa_file, "w") as f:
+            json.dump(qa_results, f, indent=2)
+        logger.info(f"Saved QA results to {qa_file}")
 
     def estimate_tiv(self, participant_labels: Optional[List[str]] = None):
         """
@@ -884,7 +894,43 @@ class BIDSLongitudinalProcessor:
         tiv_file = self.output_dir / "TIV.txt"
         logger.info(f"Saving TIV estimates to: {tiv_file}")
 
-        # TODO: Call CAT12 TIV estimation function
+        # Call CAT12 TIV estimation function
+        # Note: TIV is typically extracted from the XML report in CAT12
+        try:
+            xml_files = list(self.output_dir.glob("**/report/cat_*.xml"))
+            if xml_files:
+                logger.info(
+                    f"Found {len(xml_files)} CAT12 report files for TIV extraction"
+                )
+
+                # Use the quality checker to parse TIV
+                qa_checker = CAT12QualityChecker()
+
+                with open(tiv_file, "w") as f:
+                    f.write("subject_id,session_id,tiv\n")
+                    for xml in xml_files:
+                        metrics = qa_checker._parse_cat12_xml(xml)
+                        tiv = metrics.get("vol_TIV", "n/a")
+
+                        # Try to extract subject/session from filename or path
+                        # Filename format: cat_rsub-1293031_ses-1_acq-mprage_T1w.xml
+                        fname = xml.name
+                        sub_id = "unknown"
+                        ses_id = "unknown"
+
+                        if "sub-" in fname:
+                            parts = fname.split("_")
+                            for p in parts:
+                                if p.startswith("sub-") or p.startswith("rsub-"):
+                                    sub_id = p.replace("rsub-", "sub-")
+                                elif p.startswith("ses-"):
+                                    ses_id = p
+
+                        f.write(f"{sub_id},{ses_id},{tiv}\n")
+            else:
+                logger.warning("No CAT12 report files found for TIV extraction")
+        except Exception as e:
+            logger.error(f"Error estimating TIV: {e}")
 
     def extract_roi_values(self, participant_labels: Optional[List[str]] = None):
         """
@@ -899,7 +945,114 @@ class BIDSLongitudinalProcessor:
         roi_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Saving ROI values to: {roi_dir}")
 
-        # TODO: Call CAT12 ROI extraction function
+        # Call CAT12 ROI extraction function
+        try:
+            # Look for catROI_*.xml files
+            roi_files = list(self.output_dir.glob("**/label/catROI_*.xml"))
+            if roi_files:
+                logger.info(f"Found {len(roi_files)} ROI files")
+
+                import xml.etree.ElementTree as ET
+                import pandas as pd
+
+                # Process each ROI file
+                all_roi_data = []
+
+                for xml_file in roi_files:
+                    try:
+                        tree = ET.parse(xml_file)
+                        root = tree.getroot()
+
+                        # Extract subject/session info from filename
+                        fname = xml_file.name
+                        sub_id = "unknown"
+                        ses_id = "unknown"
+                        if "sub-" in fname:
+                            parts = fname.split("_")
+                            for p in parts:
+                                if p.startswith("sub-") or p.startswith("rsub-"):
+                                    sub_id = p.replace("rsub-", "sub-")
+                                elif p.startswith("ses-"):
+                                    ses_id = p
+
+                        # Iterate over atlases in the XML (e.g., neuromorphometrics, cobra, etc.)
+                        for atlas_node in root:
+                            atlas_name = atlas_node.tag
+
+                            # Skip metadata nodes if any (usually atlases are direct children of root <S>)
+                            if atlas_name in [
+                                "names",
+                                "ids",
+                                "data",
+                                "version",
+                                "file",
+                            ]:
+                                continue
+
+                            names_node = atlas_node.find("names")
+                            data_node = atlas_node.find("data")
+
+                            if names_node is not None and data_node is not None:
+                                # Parse names
+                                region_names = []
+                                for item in names_node.findall("item"):
+                                    region_names.append(item.text.strip())
+
+                                # Parse data (Vgm = Volume Gray Matter usually)
+                                # Data is often stored as a string representation of a MATLAB array
+                                # e.g. "[0.1; 0.2; ...]"
+                                vgm_node = data_node.find("Vgm")
+                                if vgm_node is not None and vgm_node.text:
+                                    vgm_text = (
+                                        vgm_node.text.strip()
+                                        .replace("[", "")
+                                        .replace("]", "")
+                                    )
+                                    # Split by semicolon or newline
+                                    vgm_values = [
+                                        float(x)
+                                        for x in vgm_text.replace(";", " ").split()
+                                    ]
+
+                                    if len(region_names) == len(vgm_values):
+                                        # Create a record for each region
+                                        for name, val in zip(region_names, vgm_values):
+                                            all_roi_data.append(
+                                                {
+                                                    "subject_id": sub_id,
+                                                    "session_id": ses_id,
+                                                    "atlas": atlas_name,
+                                                    "region": name,
+                                                    "volume": val,
+                                                }
+                                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to parse ROI file {xml_file}: {e}")
+
+                # Save aggregated ROI data
+                if all_roi_data:
+                    df = pd.DataFrame(all_roi_data)
+                    # Pivot to wide format: rows=subjects/sessions, cols=regions
+                    # This might be huge, so maybe save long format or split by atlas
+
+                    # Save raw long format
+                    df.to_csv(roi_dir / "roi_volumes_long.csv", index=False)
+
+                    # Save wide format per atlas
+                    for atlas, group in df.groupby("atlas"):
+                        wide_df = group.pivot_table(
+                            index=["subject_id", "session_id"],
+                            columns="region",
+                            values="volume",
+                        )
+                        wide_df.to_csv(roi_dir / f"roi_volumes_{atlas}_wide.csv")
+
+                    logger.info(f"Saved ROI data to {roi_dir}")
+
+            else:
+                logger.warning("No ROI files found")
+        except Exception as e:
+            logger.error(f"Error extracting ROI values: {e}")
 
 
 @click.command()

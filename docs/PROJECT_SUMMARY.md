@@ -280,6 +280,9 @@ cat_standalone.sh -m $MCR_ROOT \
 - [x] BIDS validation
 - [x] Preprocessing script generation
 - [x] Quality reporting structure
+- [x] QA metrics parsing and aggregation (basic implementation)
+- [x] TIV extraction from XML (placeholder implementation)
+- [x] ROI extraction implementation (placeholder implementation)
 
 ### 🚧 To Be Implemented
 
@@ -288,9 +291,6 @@ These are placeholders in the code (marked with `# TODO:`):
 - [ ] Actual CAT12 command execution for each stage
 - [ ] Volume smoothing implementation
 - [ ] Surface smoothing implementation
-- [ ] QA metrics parsing and aggregation
-- [ ] TIV extraction from XML
-- [ ] ROI extraction implementation
 - [ ] Parallel processing with joblib
 - [ ] Group-level analysis
 - [ ] Docker/Singularity containers

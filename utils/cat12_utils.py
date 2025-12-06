@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List
 from datetime import datetime
@@ -615,13 +616,35 @@ class CAT12QualityChecker:
     def _parse_cat12_xml(self, xml_path: Path) -> Dict:
         """Parse CAT12 XML quality report."""
         try:
-            # This would need proper XML parsing
-            # For now, return basic info
-            return {
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+
+            metrics = {
                 "xml_path": str(xml_path),
                 "file_size": xml_path.stat().st_size,
-                "parsing_status": "not_implemented",
+                "parsing_status": "success",
             }
+
+            # Extract TIV if available
+            # Usually under <subjectmeasures><vol_TIV>
+            tiv_node = root.find(".//subjectmeasures/vol_TIV")
+            if tiv_node is not None:
+                try:
+                    metrics["vol_TIV"] = float(tiv_node.text)
+                except (ValueError, TypeError):
+                    metrics["vol_TIV"] = None
+
+            # Extract IQR (Image Quality Rating) if available
+            # Usually under <qualityratings><IQR>
+            iqr_node = root.find(".//qualityratings/IQR")
+            if iqr_node is not None:
+                try:
+                    metrics["IQR"] = float(iqr_node.text)
+                except (ValueError, TypeError):
+                    metrics["IQR"] = None
+
+            return metrics
+
         except Exception as e:
             logger.error(f"Error parsing CAT12 XML: {e}")
             return {"error": str(e)}

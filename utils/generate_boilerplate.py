@@ -51,39 +51,39 @@ def load_config(config_path):
 def render_markdown(info):
     md = f"""# CAT12 BIDS Processing Boilerplate
 
-**Date:** {info['date']}
-**Host:** {info['system']['hostname']}
-**OS:** {info['system']['os']}
-**Python:** {info['system']['python']}
-**CPU:** {info['system']['cpu']}
-**RAM:** {info['system']['ram_gb']} GB
+**Date:** {info["date"]}
+**Host:** {info["system"]["hostname"]}
+**OS:** {info["system"]["os"]}
+**Python:** {info["system"]["python"]}
+**CPU:** {info["system"]["cpu"]}
+**RAM:** {info["system"]["ram_gb"]} GB
 
 ---
 
-**SPM12 Version:** {info['spm_version']}
-**CAT12 Version:** {info['cat_version']}
+**SPM12 Version:** {info["spm_version"]}
+**CAT12 Version:** {info["cat_version"]}
 
 ---
 
 **CLI Arguments:**
 ```
-{info['cli_args']}
+{info["cli_args"]}
 ```
 
-**Config File:** `{info['config_path']}`
+**Config File:** `{info["config_path"]}`
 ```json
-{json.dumps(info['config'], indent=2)}
+{json.dumps(info["config"], indent=2)}
 ```
 
 **Environment Variables:**
 ```
-{info['env_vars']}
+{info["env_vars"]}
 ```
 
-**Input Directory:** `{info['input_dir']}`
-**Output Directory:** `{info['output_dir']}`
-**Subjects:** {info['subjects']}
-**Sessions:** {info['sessions']}
+**Input Directory:** `{info["input_dir"]}`
+**Output Directory:** `{info["output_dir"]}`
+**Subjects:** {info["subjects"]}
+**Sessions:** {info["sessions"]}
 
 ---
 
@@ -97,26 +97,26 @@ def render_html(info):
 <html><head><title>CAT12 BIDS Processing Boilerplate</title></head><body>
 <h1>CAT12 BIDS Processing Boilerplate</h1>
 <ul>
-<li><b>Date:</b> {info['date']}</li>
-<li><b>Host:</b> {info['system']['hostname']}</li>
-<li><b>OS:</b> {info['system']['os']}</li>
-<li><b>Python:</b> {info['system']['python']}</li>
-<li><b>CPU:</b> {info['system']['cpu']}</li>
-<li><b>RAM:</b> {info['system']['ram_gb']} GB</li>
+<li><b>Date:</b> {info["date"]}</li>
+<li><b>Host:</b> {info["system"]["hostname"]}</li>
+<li><b>OS:</b> {info["system"]["os"]}</li>
+<li><b>Python:</b> {info["system"]["python"]}</li>
+<li><b>CPU:</b> {info["system"]["cpu"]}</li>
+<li><b>RAM:</b> {info["system"]["ram_gb"]} GB</li>
 </ul>
 <hr>
 <ul>
-<li><b>SPM12 Version:</b> {info['spm_version']}</li>
-<li><b>CAT12 Version:</b> {info['cat_version']}</li>
+<li><b>SPM12 Version:</b> {info["spm_version"]}</li>
+<li><b>CAT12 Version:</b> {info["cat_version"]}</li>
 </ul>
 <hr>
-<b>CLI Arguments:</b><pre>{info['cli_args']}</pre>
-<b>Config File:</b> {info['config_path']}<pre>{json.dumps(info['config'], indent=2)}</pre>
-<b>Environment Variables:</b><pre>{info['env_vars']}</pre>
-<b>Input Directory:</b> {info['input_dir']}<br>
-<b>Output Directory:</b> {info['output_dir']}<br>
-<b>Subjects:</b> {info['subjects']}<br>
-<b>Sessions:</b> {info['sessions']}<br>
+<b>CLI Arguments:</b><pre>{info["cli_args"]}</pre>
+<b>Config File:</b> {info["config_path"]}<pre>{json.dumps(info["config"], indent=2)}</pre>
+<b>Environment Variables:</b><pre>{info["env_vars"]}</pre>
+<b>Input Directory:</b> {info["input_dir"]}<br>
+<b>Output Directory:</b> {info["output_dir"]}<br>
+<b>Subjects:</b> {info["subjects"]}<br>
+<b>Sessions:</b> {info["sessions"]}<br>
 <hr>
 <i>This boilerplate was auto-generated for reproducibility.</i>
 </body></html>
