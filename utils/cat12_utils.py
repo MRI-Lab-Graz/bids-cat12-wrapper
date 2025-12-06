@@ -9,9 +9,9 @@ import os
 import json
 import logging
 import subprocess
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -234,7 +234,7 @@ class CAT12Processor:
         if not self.mcr_root:
             raise ValueError("MCR_ROOT environment variable not set")
 
-    def execute_script(self, script_path: Path, input_files: List[str] = None) -> bool:
+    def execute_script(self, script_path: Path, input_files: Optional[List[str]] = None) -> bool:
         """
         Execute a CAT12 batch script.
 

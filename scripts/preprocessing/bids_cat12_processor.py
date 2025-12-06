@@ -38,7 +38,11 @@ import click
 # Import custom utilities
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
 from bids_utils import BIDSValidator, BIDSSessionManager  # noqa: E402
-from cat12_utils import CAT12Processor, CAT12ScriptGenerator  # noqa: E402
+from cat12_utils import (
+    CAT12Processor,
+    CAT12ScriptGenerator,
+    CAT12QualityChecker,
+)  # noqa: E402
 
 # Initialize colorama
 colorama_init(autoreset=True)
@@ -952,7 +956,7 @@ class BIDSLongitudinalProcessor:
             if roi_files:
                 logger.info(f"Found {len(roi_files)} ROI files")
 
-                import xml.etree.ElementTree as ET
+                import defusedxml.ElementTree as ET
                 import pandas as pd
 
                 # Process each ROI file
@@ -1213,8 +1217,6 @@ def main(
     """
     # Handle --nohup flag: restart in background with nohup
     if nohup:
-        import shlex
-
         script_dir = Path(__file__).parent.absolute()
         env_file = script_dir / ".env"
 
@@ -1223,20 +1225,43 @@ def main(
         # Remove --nohup from arguments
         cmd_args = [arg for arg in cmd_args if arg != "--nohup"]
 
-        # Properly quote arguments to preserve spaces within quoted strings
-        quoted_args = " ".join(shlex.quote(arg) for arg in cmd_args)
-
-        # Build the full command with environment sourcing
-        nohup_cmd = f"cd {script_dir} && source {env_file} && source .venv/bin/activate && nohup python {__file__} {quoted_args} > nohup.out 2>&1 &"
-
         print("🚀 Starting CAT12 processing in background...")
         print(f"📝 Output will be written to: {script_dir}/nohup.out")
         print(f"💡 Monitor progress with: tail -f {script_dir}/nohup.out")
 
-        # Execute the command
-        subprocess.run(nohup_cmd, shell=True, executable="/bin/bash")
-        print("✅ Background process started!")
-        sys.exit(0)
+        # Prepare environment
+        env = os.environ.copy()
+        if env_file.exists():
+            try:
+                with open(env_file) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '=' in line:
+                            key, value = line.split('=', 1)
+                            env[key.strip()] = value.strip()
+            except Exception as e:
+                logger.warning(f"Failed to load .env file: {e}")
+
+        # Determine python executable
+        venv_python = script_dir / ".venv" / "bin" / "python"
+        python_exe = str(venv_python) if venv_python.exists() else sys.executable
+
+        # Execute the command in background
+        try:
+            with open(script_dir / "nohup.out", "w") as out:
+                subprocess.Popen(
+                    [python_exe, __file__] + cmd_args,
+                    cwd=script_dir,
+                    env=env,
+                    stdout=out,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True
+                )
+            print("✅ Background process started!")
+            sys.exit(0)
+        except Exception as e:
+            logger.error(f"Failed to start background process: {e}")
+            sys.exit(1)
 
     # Ensure output and working directories exist
     output_dir.mkdir(parents=True, exist_ok=True)

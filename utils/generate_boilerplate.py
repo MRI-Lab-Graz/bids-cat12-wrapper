@@ -9,11 +9,12 @@ import platform
 import socket
 import datetime
 import json
-import yaml
+import yaml  # type: ignore
 from pathlib import Path
+from typing import Dict, Any, Tuple
 
 
-def get_system_info():
+def get_system_info() -> Dict[str, Any]:
     return {
         "os": platform.platform(),
         "python": sys.version.split()[0],
@@ -25,18 +26,18 @@ def get_system_info():
     }
 
 
-def get_spm_cat_version(spm_script):
+def get_spm_cat_version(spm_script: str) -> Tuple[str, str]:
     # Dummy implementation; replace with actual parsing if needed
     return "SPM12 (unknown)", "CAT12 (unknown)"
 
 
-def get_env_vars():
+def get_env_vars() -> str:
     keys = ["LD_LIBRARY_PATH", "SPM12_PATH", "CAT12_PATH", "SPMROOT"]
     env_dict = {k: os.environ.get(k, "not set") for k in keys}
     return "\n".join([f"{k}={v}" for k, v in env_dict.items()])
 
 
-def load_config(config_path):
+def load_config(config_path: str) -> Dict[str, Any]:
     if not config_path or not os.path.exists(config_path):
         return {}
     if config_path.endswith(".json"):
@@ -48,7 +49,7 @@ def load_config(config_path):
     return {}
 
 
-def render_markdown(info):
+def render_markdown(info: Dict[str, Any]) -> str:
     md = f"""# CAT12 BIDS Processing Boilerplate
 
 **Date:** {info["date"]}
@@ -92,7 +93,7 @@ def render_markdown(info):
     return md
 
 
-def render_html(info):
+def render_html(info: Dict[str, Any]) -> str:
     html = f"""
 <html><head><title>CAT12 BIDS Processing Boilerplate</title></head><body>
 <h1>CAT12 BIDS Processing Boilerplate</h1>
@@ -124,7 +125,7 @@ def render_html(info):
     return html
 
 
-def render_markdown_with_log(info):
+def render_markdown_with_log(info: Dict[str, Any]) -> str:
     md = render_markdown(info)
     if info.get("cat12_log_summary"):
         md += (
@@ -133,14 +134,14 @@ def render_markdown_with_log(info):
     return md
 
 
-def render_html_with_log(info):
+def render_html_with_log(info: Dict[str, Any]) -> str:
     html = render_html(info)
     if info.get("cat12_log_summary"):
         html += f"<hr><h2>CAT12 Log Summary</h2><pre>{info['cat12_log_summary']}</pre>"
     return html
 
 
-def main():
+def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(
