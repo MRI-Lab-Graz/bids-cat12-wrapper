@@ -1,5 +1,20 @@
 #!/bin/bash
-# Run CAT12 with proper environment setup
+#
+# CAT12 Preprocessing Wrapper
+# ===========================
+#
+# Wrapper script for BIDS CAT12 Preprocessing.
+# Automatically handles environment activation and passes arguments
+# to the Python processor.
+#
+# USAGE:
+#   ./cat12_prepro <bids_dir> <output_dir> <level> [options]
+#
+# EXAMPLES:
+#   ./cat12_prepro /data/bids /data/out participant --preproc --qa
+#   ./cat12_prepro /data/bids /data/out participant --preproc --nohup
+#
+# See './cat12_prepro --help' for full options.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

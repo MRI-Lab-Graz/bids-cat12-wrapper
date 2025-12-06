@@ -8,6 +8,7 @@ stats/
 test_output/
 # C extensions
 *.so
+spm*.ps
 
 # Distribution / packaging
 .Python

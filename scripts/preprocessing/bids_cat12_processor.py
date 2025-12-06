@@ -902,7 +902,7 @@ class BIDSLongitudinalProcessor:
         # TODO: Call CAT12 ROI extraction function
 
 
-@click.command()
+@click.command(context_settings={"help_option_names": ["-h", "--help"]}, name="cat12_prepro")
 @click.argument("bids_dir", type=click.Path(exists=True, path_type=Path))
 @click.argument("output_dir", type=click.Path(path_type=Path))
 @click.argument(
@@ -1023,47 +1023,48 @@ def main(
     \b
     Examples:
       # Preprocessing only (automatically detects longitudinal)
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc
+      cat12_prepro /data/bids /data/derivatives participant --preproc
 
       # Preprocessing without surface extraction
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --no-surface
+      cat12_prepro /data/bids /data/derivatives participant --preproc --no-surface
 
       # Process only session 2 (cross-sectional)
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --session-label 2
+      cat12_prepro /data/bids /data/derivatives participant --preproc --session-label 2
 
       # Force cross-sectional (use first available session per subject)
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross
+      cat12_prepro /data/bids /data/derivatives participant --preproc --cross
 
       # Full pipeline: preproc + smoothing (default 6mm for volume, 12mm for surface) + QA + TIV
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 --smooth-surface 12 --qa --tiv
+      cat12_prepro /data/bids /data/derivatives participant --preproc --smooth-volume 6 --smooth-surface 12 --qa --tiv
 
       # Multiple smoothing kernels (creates s6, s8, s10 prefixed files)
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10
+      cat12_prepro /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10
 
       # Surface smoothing with multiple kernels
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-surface 12 15 20
+      cat12_prepro /data/bids /data/derivatives participant --preproc --smooth-surface 12 15 20
 
       # Both volume and surface with multiple kernels
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10 --smooth-surface 12 15
+      cat12_prepro /data/bids /data/derivatives participant --preproc --smooth-volume 6 8 10 --smooth-surface 12 15
 
       # Process specific participants
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --participant-label 01 02
+      cat12_prepro /data/bids /data/derivatives participant --preproc --participant-label 01 02
 
       # Pilot mode with cross-sectional
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --cross --pilot
+      cat12_prepro /data/bids /data/derivatives participant --preproc --cross --pilot
 
       # Auto parallel jobs
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --n-jobs auto
+      cat12_prepro /data/bids /data/derivatives participant --preproc --n-jobs auto
 
       # Run in background (detached from terminal)
-      bids_cat12_processor.py /data/bids /data/derivatives participant --preproc --qa --tiv --n-jobs auto --nohup
+      cat12_prepro /data/bids /data/derivatives participant --preproc --qa --tiv --n-jobs auto --nohup
     """
     # Handle --nohup flag: restart in background with nohup
     if nohup:
         import shlex
 
-        script_dir = Path(__file__).parent.absolute()
-        env_file = script_dir / ".env"
+        script_path = Path(__file__).absolute()
+        script_dir = script_path.parent
+        nohup_out = script_dir / "nohup.out"
 
         # Build command to re-run without --nohup flag
         cmd_args = sys.argv[1:]  # Get all arguments except script name
@@ -1073,12 +1074,13 @@ def main(
         # Properly quote arguments to preserve spaces within quoted strings
         quoted_args = " ".join(shlex.quote(arg) for arg in cmd_args)
 
-        # Build the full command with environment sourcing
-        nohup_cmd = f"cd {script_dir} && source {env_file} && source .venv/bin/activate && nohup python {__file__} {quoted_args} > nohup.out 2>&1 &"
+        # Build the full command using the current python interpreter
+        # We use sys.executable to ensure we use the same environment/interpreter
+        nohup_cmd = f"nohup {shlex.quote(sys.executable)} {shlex.quote(str(script_path))} {quoted_args} > {shlex.quote(str(nohup_out))} 2>&1 &"
 
         print("🚀 Starting CAT12 processing in background...")
-        print(f"📝 Output will be written to: {script_dir}/nohup.out")
-        print(f"💡 Monitor progress with: tail -f {script_dir}/nohup.out")
+        print(f"📝 Output will be written to: {nohup_out}")
+        print(f"💡 Monitor progress with: tail -f {nohup_out}")
 
         # Execute the command
         subprocess.run(nohup_cmd, shell=True, executable="/bin/bash")
@@ -1466,7 +1468,7 @@ if __name__ == "__main__":
         # No arguments: show help and exit
         from click import Context
 
-        ctx = Context(main)
+        ctx = Context(main, info_name="cat12_prepro")
         click.echo(main.get_help(ctx))
         sys.exit(0)
-    main()
+    main(prog_name="cat12_prepro")
