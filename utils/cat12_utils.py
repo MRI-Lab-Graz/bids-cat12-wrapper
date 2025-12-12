@@ -9,8 +9,9 @@ import os
 import json
 import logging
 import subprocess
+import defusedxml.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class CAT12ScriptGenerator:
             return {}
         with open(config_path, "r") as f:
             seg_config = json.load(f)
-        parsed = {}
+        parsed: Dict[str, Any] = {}
         for key, entry in seg_config.items():
             val = entry.get("value", None)
             if val == "n/a":
@@ -218,8 +219,6 @@ class CAT12Processor:
 
     def __init__(self, config: Dict):
         self.config = config
-        self.cat12_root = os.environ.get("CAT12_ROOT")
-        self.mcr_root = os.environ.get("MCR_ROOT")
         self.timeout_seconds = int(
             self.config.get("cat12", {}).get("timeout_seconds", 3600)
         )
@@ -228,12 +227,20 @@ class CAT12Processor:
         )
         self.use_cuda = bool(self.config.get("system", {}).get("use_cuda", True))
 
-        if not self.cat12_root:
+        cat12_root_env = os.environ.get("CAT12_ROOT")
+        mcr_root_env = os.environ.get("MCR_ROOT")
+
+        if not cat12_root_env:
             raise ValueError("CAT12_ROOT environment variable not set")
-        if not self.mcr_root:
+        if not mcr_root_env:
             raise ValueError("MCR_ROOT environment variable not set")
 
-    def execute_script(self, script_path: Path, input_files: List[str] = None) -> bool:
+        self.cat12_root: str = cat12_root_env
+        self.mcr_root: str = mcr_root_env
+
+    def execute_script(
+        self, script_path: Path, input_files: Optional[List[str]] = None
+    ) -> bool:
         """
         Execute a CAT12 batch script.
 
@@ -567,10 +574,10 @@ class CAT12Processor:
 class CAT12QualityChecker:
     """Quality assessment for CAT12 outputs."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def check_subject_outputs(self, subject_output_dir: Path) -> Dict:
+    def check_subject_outputs(self, subject_output_dir: Path) -> Dict[str, Any]:
         """
         Check quality of CAT12 outputs for a subject.
 
@@ -580,7 +587,7 @@ class CAT12QualityChecker:
         Returns:
             Dictionary with quality metrics
         """
-        qa_results = {
+        qa_results: Dict[str, Any] = {
             "subject_dir": str(subject_output_dir),
             "check_date": datetime.now().isoformat(),
             "files_found": {},
@@ -612,16 +619,38 @@ class CAT12QualityChecker:
 
         return qa_results
 
-    def _parse_cat12_xml(self, xml_path: Path) -> Dict:
+    def _parse_cat12_xml(self, xml_path: Path) -> Dict[str, Any]:
         """Parse CAT12 XML quality report."""
         try:
-            # This would need proper XML parsing
-            # For now, return basic info
-            return {
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+
+            metrics: Dict[str, Any] = {
                 "xml_path": str(xml_path),
                 "file_size": xml_path.stat().st_size,
-                "parsing_status": "not_implemented",
+                "parsing_status": "success",
             }
+
+            # Extract TIV if available
+            # Usually under <subjectmeasures><vol_TIV>
+            tiv_node = root.find(".//subjectmeasures/vol_TIV")
+            if tiv_node is not None:
+                try:
+                    metrics["vol_TIV"] = float(tiv_node.text)
+                except (ValueError, TypeError):
+                    metrics["vol_TIV"] = None
+
+            # Extract IQR (Image Quality Rating) if available
+            # Usually under <qualityratings><IQR>
+            iqr_node = root.find(".//qualityratings/IQR")
+            if iqr_node is not None:
+                try:
+                    metrics["IQR"] = float(iqr_node.text)
+                except (ValueError, TypeError):
+                    metrics["IQR"] = None
+
+            return metrics
+
         except Exception as e:
             logger.error(f"Error parsing CAT12 XML: {e}")
             return {"error": str(e)}

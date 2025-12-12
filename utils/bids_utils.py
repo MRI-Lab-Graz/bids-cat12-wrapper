@@ -7,7 +7,7 @@ validation, session management, and longitudinal data identification.
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any, cast
 import subprocess
 from bids import BIDSLayout
 
@@ -68,19 +68,31 @@ class BIDSValidator:
 
     def _has_bids_validator(self) -> bool:
         """Check if bids-validator (Deno version) is available."""
+        import shutil
+
+        deno_path = shutil.which("deno")
+        if not deno_path:
+            return False
         try:
             # Check for Deno
-            subprocess.run(["deno", "--version"], capture_output=True, check=True)
+            subprocess.run([deno_path, "--version"], capture_output=True, check=True)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
     def _run_bids_validator(self) -> bool:
         """Run official BIDS validator using Deno."""
+        import shutil
+
+        deno_path = shutil.which("deno")
+        if not deno_path:
+            logger.error("Deno not found")
+            return False
+
         try:
             logger.info("Running BIDS validation with Deno validator...")
             result = subprocess.run(
-                ["deno", "run", "-ERWN", "jsr:@bids/validator", str(self.bids_dir)],
+                [deno_path, "run", "-ERWN", "jsr:@bids/validator", str(self.bids_dir)],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -133,6 +145,9 @@ class BIDSSessionManager:
         Returns:
             Dictionary mapping subject IDs to list of session IDs
         """
+        if self.layout is None:
+            return {}
+
         longitudinal_subjects = {}
 
         for subject in self.layout.get_subjects():
@@ -144,7 +159,9 @@ class BIDSSessionManager:
 
     def get_subject_sessions(self, subject: str) -> List[str]:
         """Get all sessions for a specific subject."""
-        return self.layout.get_sessions(subject=subject)
+        if self.layout is None:
+            return []
+        return cast(List[str], self.layout.get_sessions(subject=subject))
 
     def get_session_files(
         self, subject: str, session: str, datatype: str = "anat", suffix: str = "T1w"
@@ -161,7 +178,7 @@ class BIDSSessionManager:
         Returns:
             List of file paths
         """
-        files = self.layout.get(
+        files: List[Any] = self.layout.get(
             subject=subject,
             session=session,
             datatype=datatype,
@@ -169,7 +186,7 @@ class BIDSSessionManager:
             extension=".nii.gz",
         )
 
-        return [f.path for f in files]
+        return [str(f.path) for f in files]  # type: ignore[no-any-return]
 
     def validate_longitudinal_data(self, subject: str) -> Tuple[bool, str]:
         """
@@ -204,8 +221,11 @@ class BIDSSessionManager:
             f"Subject {subject} has {len(sessions)} sessions with {t1w_count} T1w images",
         )
 
-    def get_dataset_summary(self) -> Dict:
+    def get_dataset_summary(self) -> Dict[str, Any]:
         """Get summary statistics for the dataset."""
+        if self.layout is None:
+            return {}
+
         subjects = self.layout.get_subjects()
         total_subjects = len(subjects)
 

@@ -248,3 +248,5 @@ sample_data/
 processing_*.json
 processing_*.mat
 cat12_*.log
+node_modules
+.DS_Store

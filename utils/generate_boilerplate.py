@@ -9,81 +9,87 @@ import platform
 import socket
 import datetime
 import json
-import yaml
+import yaml  # type: ignore
 from pathlib import Path
+from typing import Dict, Any, Tuple, cast
 
 
-def get_system_info():
+def get_system_info() -> Dict[str, Any]:
+    try:
+        ram_gb = round(
+            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024.0**3), 2
+        )
+    except (ValueError, AttributeError):
+        ram_gb = 0.0
+
     return {
         "os": platform.platform(),
         "python": sys.version.split()[0],
         "hostname": socket.gethostname(),
         "cpu": platform.processor(),
-        "ram_gb": round(
-            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024.0**3), 2
-        ),
+        "ram_gb": ram_gb,
     }
 
 
-def get_spm_cat_version(spm_script):
+def get_spm_cat_version(spm_script: str) -> Tuple[str, str]:
     # Dummy implementation; replace with actual parsing if needed
     return "SPM12 (unknown)", "CAT12 (unknown)"
 
 
-def get_env_vars():
+def get_env_vars() -> str:
     keys = ["LD_LIBRARY_PATH", "SPM12_PATH", "CAT12_PATH", "SPMROOT"]
     env_dict = {k: os.environ.get(k, "not set") for k in keys}
     return "\n".join([f"{k}={v}" for k, v in env_dict.items()])
 
 
-def load_config(config_path):
+def load_config(config_path: str) -> Dict[str, Any]:
     if not config_path or not os.path.exists(config_path):
         return {}
     if config_path.endswith(".json"):
         with open(config_path) as f:
-            return json.load(f)
+            return cast(Dict[str, Any], json.load(f))
     elif config_path.endswith(".yaml") or config_path.endswith(".yml"):
         with open(config_path) as f:
-            return yaml.safe_load(f)
+            return cast(Dict[str, Any], yaml.safe_load(f))
     return {}
 
 
-def render_markdown(info):
+def render_markdown(info: Dict[str, Any]) -> str:
     md = f"""# CAT12 BIDS Processing Boilerplate
 
-**Date:** {info['date']}
-**Host:** {info['system']['hostname']}
-**OS:** {info['system']['os']}
-**Python:** {info['system']['python']}
-**CPU:** {info['system']['cpu']}
-**RAM:** {info['system']['ram_gb']} GB
+**Date:** {info["date"]}
+**Host:** {info["system"]["hostname"]}
+**OS:** {info["system"]["os"]}
+**Python:** {info["system"]["python"]}
+**CPU:** {info["system"]["cpu"]}
+**RAM:** {info["system"]["ram_gb"]} GB
 
 ---
 
-**SPM12 Version:** {info['spm_version']}
-**CAT12 Version:** {info['cat_version']}
+**SPM12 Version:** {info["spm_version"]}
+**CAT12 Version:** {info["cat_version"]}
 
 ---
 
 **CLI Arguments:**
 ```
-{info['cli_args']}
+{info["cli_args"]}
 ```
 
-**Config File:** `{info['config_path']}`
+**Config File:** `{info["config_path"]}`
 ```json
-{json.dumps(info['config'], indent=2)}
+{json.dumps(info["config"], indent=2)}
 ```
 
 **Environment Variables:**
 ```
-{info['env_vars']}
+{info["env_vars"]}
 ```
 
-**Input Directory:** `{info['input_dir']}`
-**Output Directory:** `{info['output_dir']}`
-**Subjects:** {info['subjects']}
-**Sessions:** {info['sessions']}
+**Input Directory:** `{info["input_dir"]}`
+**Output Directory:** `{info["output_dir"]}`
+**Subjects:** {info["subjects"]}
+**Sessions:** {info["sessions"]}
 
 ---
 
@@ -92,31 +98,31 @@ def render_markdown(info):
     return md
 
 
-def render_html(info):
+def render_html(info: Dict[str, Any]) -> str:
     html = f"""
 <html><head><title>CAT12 BIDS Processing Boilerplate</title></head><body>
 <h1>CAT12 BIDS Processing Boilerplate</h1>
 <ul>
-<li><b>Date:</b> {info['date']}</li>
-<li><b>Host:</b> {info['system']['hostname']}</li>
-<li><b>OS:</b> {info['system']['os']}</li>
-<li><b>Python:</b> {info['system']['python']}</li>
-<li><b>CPU:</b> {info['system']['cpu']}</li>
-<li><b>RAM:</b> {info['system']['ram_gb']} GB</li>
+<li><b>Date:</b> {info["date"]}</li>
+<li><b>Host:</b> {info["system"]["hostname"]}</li>
+<li><b>OS:</b> {info["system"]["os"]}</li>
+<li><b>Python:</b> {info["system"]["python"]}</li>
+<li><b>CPU:</b> {info["system"]["cpu"]}</li>
+<li><b>RAM:</b> {info["system"]["ram_gb"]} GB</li>
 </ul>
 <hr>
 <ul>
-<li><b>SPM12 Version:</b> {info['spm_version']}</li>
-<li><b>CAT12 Version:</b> {info['cat_version']}</li>
+<li><b>SPM12 Version:</b> {info["spm_version"]}</li>
+<li><b>CAT12 Version:</b> {info["cat_version"]}</li>
 </ul>
 <hr>
-<b>CLI Arguments:</b><pre>{info['cli_args']}</pre>
-<b>Config File:</b> {info['config_path']}<pre>{json.dumps(info['config'], indent=2)}</pre>
-<b>Environment Variables:</b><pre>{info['env_vars']}</pre>
-<b>Input Directory:</b> {info['input_dir']}<br>
-<b>Output Directory:</b> {info['output_dir']}<br>
-<b>Subjects:</b> {info['subjects']}<br>
-<b>Sessions:</b> {info['sessions']}<br>
+<b>CLI Arguments:</b><pre>{info["cli_args"]}</pre>
+<b>Config File:</b> {info["config_path"]}<pre>{json.dumps(info["config"], indent=2)}</pre>
+<b>Environment Variables:</b><pre>{info["env_vars"]}</pre>
+<b>Input Directory:</b> {info["input_dir"]}<br>
+<b>Output Directory:</b> {info["output_dir"]}<br>
+<b>Subjects:</b> {info["subjects"]}<br>
+<b>Sessions:</b> {info["sessions"]}<br>
 <hr>
 <i>This boilerplate was auto-generated for reproducibility.</i>
 </body></html>
@@ -124,7 +130,7 @@ def render_html(info):
     return html
 
 
-def render_markdown_with_log(info):
+def render_markdown_with_log(info: Dict[str, Any]) -> str:
     md = render_markdown(info)
     if info.get("cat12_log_summary"):
         md += (
@@ -133,14 +139,14 @@ def render_markdown_with_log(info):
     return md
 
 
-def render_html_with_log(info):
+def render_html_with_log(info: Dict[str, Any]) -> str:
     html = render_html(info)
     if info.get("cat12_log_summary"):
         html += f"<hr><h2>CAT12 Log Summary</h2><pre>{info['cat12_log_summary']}</pre>"
     return html
 
 
-def main():
+def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -159,7 +165,7 @@ def main():
     parser.add_argument("--spm-script", required=True)
     args = parser.parse_args()
 
-    info = {}
+    info: Dict[str, Any] = {}
     info["date"] = datetime.datetime.now().isoformat()
     info["system"] = get_system_info()
     spm_version, cat_version = get_spm_cat_version(args.spm_script)
@@ -230,6 +236,10 @@ def main():
     with open(os.path.join(args.output_dir, "boilerplate.html"), "w") as f:
         f.write(render_html_with_log(info))
     print(f"Boilerplate written to {args.output_dir}/boilerplate.md and .html")
+
+
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":

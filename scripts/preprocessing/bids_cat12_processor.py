@@ -22,7 +22,7 @@ import logging
 from pathlib import Path
 import json
 import yaml
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any, Tuple
 import subprocess
 from datetime import datetime
 import gzip
@@ -38,7 +38,11 @@ import click
 # Import custom utilities
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
 from bids_utils import BIDSValidator, BIDSSessionManager  # noqa: E402
-from cat12_utils import CAT12Processor, CAT12ScriptGenerator  # noqa: E402
+from cat12_utils import (
+    CAT12Processor,
+    CAT12ScriptGenerator,
+    CAT12QualityChecker,
+)  # noqa: E402
 
 # Initialize colorama
 colorama_init(autoreset=True)
@@ -99,7 +103,7 @@ def setup_logging(
     return log_file_path
 
 
-def deep_update(base: Dict, updates: Dict) -> Dict:
+def deep_update(base: Dict[Any, Any], updates: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge dictionary ``updates`` into ``base``."""
 
     for key, value in updates.items():
@@ -132,16 +136,19 @@ class BIDSLongitudinalProcessor:
         self.config = self._load_config()
 
         # Initialize BIDS layout
-        self.layout = None
+        self.layout: Optional[BIDSLayout] = None
         self._init_bids_layout()
 
-        # Initialize processors
-        self.validator = BIDSValidator(self.bids_dir)
-        self.session_manager = BIDSSessionManager(self.layout)
-        self.cat12_processor = CAT12Processor(self.config)
-        self.script_generator = CAT12ScriptGenerator(self.config)
+        if self.layout is None:
+            raise RuntimeError("BIDS layout initialization failed")
 
-    def _load_config(self) -> Dict:
+        # Initialize processors
+        self.validator: BIDSValidator = BIDSValidator(self.bids_dir)
+        self.session_manager: BIDSSessionManager = BIDSSessionManager(self.layout)
+        self.cat12_processor: CAT12Processor = CAT12Processor(self.config)
+        self.script_generator: CAT12ScriptGenerator = CAT12ScriptGenerator(self.config)
+
+    def _load_config(self) -> Dict[str, Any]:
         """Load processing configuration."""
         default_config = {
             "cat12": {
@@ -183,7 +190,7 @@ class BIDSLongitudinalProcessor:
 
         return config
 
-    def _init_bids_layout(self):
+    def _init_bids_layout(self) -> None:
         """Initialize BIDS layout with validation."""
         try:
             logger.info(
@@ -220,7 +227,7 @@ class BIDSLongitudinalProcessor:
             logger.error(f"{Fore.RED}{traceback.format_exc()}{Style.RESET_ALL}")
             sys.exit(1)
 
-    def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7):
+    def _cleanup_old_bids_databases(self, db_dir: Path, days: int = 7) -> None:
         """Clean up old BIDS database files to save space."""
         try:
             import time
@@ -264,6 +271,9 @@ class BIDSLongitudinalProcessor:
         Returns:
             Dictionary mapping subject ID to list of session IDs
         """
+        if self.layout is None:
+            raise RuntimeError("BIDS layout not initialized")
+
         subjects = self.layout.get_subjects()
         if participant_labels:
             subjects = [s for s in subjects if f"sub-{s}" in participant_labels]
@@ -351,6 +361,9 @@ class BIDSLongitudinalProcessor:
         Returns:
             True if processing successful
         """
+        if self.layout is None:
+            raise RuntimeError("BIDS layout not initialized")
+
         logger.info(
             f"Processing subject {subject} with sessions: {', '.join(sessions)}"
         )
@@ -398,12 +411,15 @@ class BIDSLongitudinalProcessor:
             )
 
             # Choose template based on number of timepoints
+            spm_root = os.environ.get("SPMROOT", "")
+            if not spm_root:
+                logger.warning("SPMROOT environment variable not set, using default")
+                spm_root = "/data/local/software/cat-12/external/cat12"
+
             if len(t1w_files_uncompressed) >= 2:
                 # Longitudinal processing (2+ timepoints)
                 template_path = (
-                    Path(os.environ.get("SPMROOT"))
-                    / "standalone"
-                    / "cat_standalone_segment_long.m"
+                    Path(spm_root) / "standalone" / "cat_standalone_segment_long.m"
                 )
                 logger.info(
                     f"{Fore.CYAN}📊 Using longitudinal template (multiple timepoints){Style.RESET_ALL}"
@@ -411,9 +427,7 @@ class BIDSLongitudinalProcessor:
             else:
                 # Cross-sectional processing (1 timepoint)
                 template_path = (
-                    Path(os.environ.get("SPMROOT"))
-                    / "standalone"
-                    / "cat_standalone_segment.m"
+                    Path(spm_root) / "standalone" / "cat_standalone_segment.m"
                 )
                 logger.info(
                     f"{Fore.CYAN}📊 Using cross-sectional template (single timepoint){Style.RESET_ALL}"
@@ -485,7 +499,7 @@ class BIDSLongitudinalProcessor:
             logger.error(f"Error processing subject {subject}: {e}")
             return False
 
-    def _generate_quality_report(self, subject: str, output_dir: Path):
+    def _generate_quality_report(self, subject: str, output_dir: Path) -> None:
         """Generate quality assessment report for processed subject."""
         try:
             # Look for CAT12 quality metrics
@@ -609,7 +623,7 @@ class BIDSLongitudinalProcessor:
 
         return results
 
-    def _create_derivatives_structure(self):
+    def _create_derivatives_structure(self) -> None:
         """Create BIDS derivatives directory structure."""
         derivatives_dir = self.output_dir
         derivatives_dir.mkdir(parents=True, exist_ok=True)
@@ -631,7 +645,7 @@ class BIDSLongitudinalProcessor:
         with open(derivatives_dir / "dataset_description.json", "w") as f:
             json.dump(dataset_description, f, indent=2)
 
-    def _normalize_output_structure(self):
+    def _normalize_output_structure(self) -> None:
         """
         Normalize output structure by moving any subject folders found under
         nested category folders (e.g. 'cross_sectional' or 'longitudinal') up
@@ -658,15 +672,19 @@ class BIDSLongitudinalProcessor:
                                 if target.exists():
                                     # If a file/folder already exists, rename the moved item to avoid overwrite
                                     new_name = f"{item.name}.from_{child.name}"
-                                    logger.warning(f"Conflict moving {item} to {target}; renaming to {new_name}")
+                                    logger.warning(
+                                        f"Conflict moving {item} to {target}; renaming to {new_name}"
+                                    )
                                     shutil.move(str(item), str(dest / new_name))
                                 else:
                                     shutil.move(str(item), str(target))
                             # attempt to remove the now-empty subject dir
                             try:
                                 sub.rmdir()
-                            except Exception:
-                                pass
+                            except OSError:
+                                logger.debug(
+                                    f"Could not remove subject dir {sub} (likely not empty)"
+                                )
                         else:
                             logger.info(f"Moving {sub} -> {dest}")
                             shutil.move(str(sub), str(dest))
@@ -680,7 +698,7 @@ class BIDSLongitudinalProcessor:
         except Exception as e:
             logger.warning(f"Failed to normalize output structure: {e}")
 
-    def _generate_summary_report(self, results: Dict[str, bool]):
+    def _generate_summary_report(self, results: Dict[str, bool]) -> None:
         """Generate summary report of processing results."""
         successful = sum(results.values())
         total = len(results)
@@ -704,7 +722,7 @@ class BIDSLongitudinalProcessor:
         self,
         participant_labels: Optional[List[str]] = None,
         fwhm_list: Optional[List[float]] = None,
-    ):
+    ) -> Dict[Tuple[str, float], bool]:
         """
         Smooth volume data for all subjects with multiple FWHM kernels.
 
@@ -777,7 +795,7 @@ class BIDSLongitudinalProcessor:
         self,
         participant_labels: Optional[List[str]] = None,
         fwhm_list: Optional[List[float]] = None,
-    ):
+    ) -> Dict[Tuple[str, float], bool]:
         """
         Resample and smooth surface data for all subjects with multiple FWHM kernels.
 
@@ -849,7 +867,9 @@ class BIDSLongitudinalProcessor:
 
         return smoothing_results
 
-    def run_quality_assessment(self, participant_labels: Optional[List[str]] = None):
+    def run_quality_assessment(
+        self, participant_labels: Optional[List[str]] = None
+    ) -> None:
         """
         Run quality assessment for all subjects.
 
@@ -870,9 +890,17 @@ class BIDSLongitudinalProcessor:
         iqr_file = self.output_dir / "IQR.txt"
         logger.info(f"Saving IQR to: {iqr_file}")
 
-        # TODO: Call CAT12 QA functions
+        # Call CAT12 QA functions
+        qa_checker = CAT12QualityChecker()
+        qa_results = qa_checker.check_subject_outputs(self.output_dir)
 
-    def estimate_tiv(self, participant_labels: Optional[List[str]] = None):
+        # Save QA results
+        qa_file = self.output_dir / "qa_results.json"
+        with open(qa_file, "w") as f:
+            json.dump(qa_results, f, indent=2)
+        logger.info(f"Saved QA results to {qa_file}")
+
+    def estimate_tiv(self, participant_labels: Optional[List[str]] = None) -> None:
         """
         Estimate total intracranial volume (TIV) for all subjects.
 
@@ -884,9 +912,47 @@ class BIDSLongitudinalProcessor:
         tiv_file = self.output_dir / "TIV.txt"
         logger.info(f"Saving TIV estimates to: {tiv_file}")
 
-        # TODO: Call CAT12 TIV estimation function
+        # Call CAT12 TIV estimation function
+        # Note: TIV is typically extracted from the XML report in CAT12
+        try:
+            xml_files = list(self.output_dir.glob("**/report/cat_*.xml"))
+            if xml_files:
+                logger.info(
+                    f"Found {len(xml_files)} CAT12 report files for TIV extraction"
+                )
 
-    def extract_roi_values(self, participant_labels: Optional[List[str]] = None):
+                # Use the quality checker to parse TIV
+                qa_checker = CAT12QualityChecker()
+
+                with open(tiv_file, "w") as f:
+                    f.write("subject_id,session_id,tiv\n")
+                    for xml in xml_files:
+                        metrics = qa_checker._parse_cat12_xml(xml)
+                        tiv = metrics.get("vol_TIV", "n/a")
+
+                        # Try to extract subject/session from filename or path
+                        # Filename format: cat_rsub-1293031_ses-1_acq-mprage_T1w.xml
+                        fname = xml.name
+                        sub_id = "unknown"
+                        ses_id = "unknown"
+
+                        if "sub-" in fname:
+                            parts = fname.split("_")
+                            for p in parts:
+                                if p.startswith("sub-") or p.startswith("rsub-"):
+                                    sub_id = p.replace("rsub-", "sub-")
+                                elif p.startswith("ses-"):
+                                    ses_id = p
+
+                        f.write(f"{sub_id},{ses_id},{tiv}\n")
+            else:
+                logger.warning("No CAT12 report files found for TIV extraction")
+        except Exception as e:
+            logger.error(f"Error estimating TIV: {e}")
+
+    def extract_roi_values(
+        self, participant_labels: Optional[List[str]] = None
+    ) -> None:
         """
         Extract ROI values for all subjects.
 
@@ -899,7 +965,114 @@ class BIDSLongitudinalProcessor:
         roi_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Saving ROI values to: {roi_dir}")
 
-        # TODO: Call CAT12 ROI extraction function
+        # Call CAT12 ROI extraction function
+        try:
+            # Look for catROI_*.xml files
+            roi_files = list(self.output_dir.glob("**/label/catROI_*.xml"))
+            if roi_files:
+                logger.info(f"Found {len(roi_files)} ROI files")
+
+                import defusedxml.ElementTree as ET
+                import pandas as pd
+
+                # Process each ROI file
+                all_roi_data = []
+
+                for xml_file in roi_files:
+                    try:
+                        tree = ET.parse(xml_file)
+                        root = tree.getroot()
+
+                        # Extract subject/session info from filename
+                        fname = xml_file.name
+                        sub_id = "unknown"
+                        ses_id = "unknown"
+                        if "sub-" in fname:
+                            parts = fname.split("_")
+                            for p in parts:
+                                if p.startswith("sub-") or p.startswith("rsub-"):
+                                    sub_id = p.replace("rsub-", "sub-")
+                                elif p.startswith("ses-"):
+                                    ses_id = p
+
+                        # Iterate over atlases in the XML (e.g., neuromorphometrics, cobra, etc.)
+                        for atlas_node in root:
+                            atlas_name = atlas_node.tag
+
+                            # Skip metadata nodes if any (usually atlases are direct children of root <S>)
+                            if atlas_name in [
+                                "names",
+                                "ids",
+                                "data",
+                                "version",
+                                "file",
+                            ]:
+                                continue
+
+                            names_node = atlas_node.find("names")
+                            data_node = atlas_node.find("data")
+
+                            if names_node is not None and data_node is not None:
+                                # Parse names
+                                region_names = []
+                                for item in names_node.findall("item"):
+                                    region_names.append(item.text.strip())
+
+                                # Parse data (Vgm = Volume Gray Matter usually)
+                                # Data is often stored as a string representation of a MATLAB array
+                                # e.g. "[0.1; 0.2; ...]"
+                                vgm_node = data_node.find("Vgm")
+                                if vgm_node is not None and vgm_node.text:
+                                    vgm_text = (
+                                        vgm_node.text.strip()
+                                        .replace("[", "")
+                                        .replace("]", "")
+                                    )
+                                    # Split by semicolon or newline
+                                    vgm_values = [
+                                        float(x)
+                                        for x in vgm_text.replace(";", " ").split()
+                                    ]
+
+                                    if len(region_names) == len(vgm_values):
+                                        # Create a record for each region
+                                        for name, val in zip(region_names, vgm_values):
+                                            all_roi_data.append(
+                                                {
+                                                    "subject_id": sub_id,
+                                                    "session_id": ses_id,
+                                                    "atlas": atlas_name,
+                                                    "region": name,
+                                                    "volume": val,
+                                                }
+                                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to parse ROI file {xml_file}: {e}")
+
+                # Save aggregated ROI data
+                if all_roi_data:
+                    df = pd.DataFrame(all_roi_data)
+                    # Pivot to wide format: rows=subjects/sessions, cols=regions
+                    # This might be huge, so maybe save long format or split by atlas
+
+                    # Save raw long format
+                    df.to_csv(roi_dir / "roi_volumes_long.csv", index=False)
+
+                    # Save wide format per atlas
+                    for atlas, group in df.groupby("atlas"):
+                        wide_df = group.pivot_table(
+                            index=["subject_id", "session_id"],
+                            columns="region",
+                            values="volume",
+                        )
+                        wide_df.to_csv(roi_dir / f"roi_volumes_{atlas}_wide.csv")
+
+                    logger.info(f"Saved ROI data to {roi_dir}")
+
+            else:
+                logger.warning("No ROI files found")
+        except Exception as e:
+            logger.error(f"Error extracting ROI values: {e}")
 
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]}, name="cat12_prepro")
@@ -976,28 +1149,28 @@ class BIDSLongitudinalProcessor:
     help="Run in background with nohup (detaches from terminal, writes to nohup.out)",
 )
 def main(
-    bids_dir,
-    output_dir,
-    analysis_level,
-    participant_label,
-    session_label,
-    preproc,
-    smooth_volume,
-    smooth_surface,
-    qa,
-    tiv,
-    roi,
-    no_surface,
-    no_validate,
-    config,
-    n_jobs,
-    work_dir,
-    verbose,
-    log_dir,
-    pilot,
-    cross,
-    nohup,
-):
+    bids_dir: Path,
+    output_dir: Path,
+    analysis_level: str,
+    participant_label: List[str],
+    session_label: List[str],
+    preproc: bool,
+    smooth_volume: Optional[str],
+    smooth_surface: Optional[str],
+    qa: bool,
+    tiv: bool,
+    roi: bool,
+    no_surface: bool,
+    no_validate: bool,
+    config: Optional[Path],
+    n_jobs: str,
+    work_dir: Optional[Path],
+    verbose: bool,
+    log_dir: Optional[Path],
+    pilot: bool,
+    cross: bool,
+    nohup: bool,
+) -> None:
     """
     CAT12 BIDS App for structural MRI preprocessing and analysis.
 
@@ -1058,13 +1231,15 @@ def main(
       # Run in background (detached from terminal)
       cat12_prepro /data/bids /data/derivatives participant --preproc --qa --tiv --n-jobs auto --nohup
     """
-    # Handle --nohup flag: restart in background with nohup
+    # Handle --nohup flag: restart in background with nohup-like behavior
     if nohup:
         import shlex
 
+        # script path and output
         script_path = Path(__file__).absolute()
         script_dir = script_path.parent
         nohup_out = script_dir / "nohup.out"
+        env_file = script_dir / ".env"
 
         # Build command to re-run without --nohup flag
         cmd_args = sys.argv[1:]  # Get all arguments except script name
@@ -1074,18 +1249,43 @@ def main(
         # Properly quote arguments to preserve spaces within quoted strings
         quoted_args = " ".join(shlex.quote(arg) for arg in cmd_args)
 
-        # Build the full command using the current python interpreter
-        # We use sys.executable to ensure we use the same environment/interpreter
-        nohup_cmd = f"nohup {shlex.quote(sys.executable)} {shlex.quote(str(script_path))} {quoted_args} > {shlex.quote(str(nohup_out))} 2>&1 &"
-
         print("🚀 Starting CAT12 processing in background...")
         print(f"📝 Output will be written to: {nohup_out}")
         print(f"💡 Monitor progress with: tail -f {nohup_out}")
 
-        # Execute the command
-        subprocess.run(nohup_cmd, shell=True, executable="/bin/bash")
-        print("✅ Background process started!")
-        sys.exit(0)
+        # Prepare environment
+        env = os.environ.copy()
+        if env_file.exists():
+            try:
+                with open(env_file) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            key, value = line.split("=", 1)
+                            env[key.strip()] = value.strip()
+            except Exception as e:
+                logger.warning(f"Failed to load .env file: {e}")
+
+        # Determine python executable (prefer project .venv)
+        venv_python = script_dir / ".venv" / "bin" / "python"
+        python_exe = str(venv_python) if venv_python.exists() else sys.executable
+
+        # Execute the command in background using subprocess (no shell)
+        try:
+            with open(nohup_out, "w") as out:
+                subprocess.Popen(
+                    [python_exe, str(script_path)] + cmd_args,
+                    cwd=script_dir,
+                    env=env,
+                    stdout=out,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+            print("✅ Background process started!")
+            sys.exit(0)
+        except Exception as e:
+            logger.error(f"Failed to start background process: {e}")
+            sys.exit(1)
 
     # Ensure output and working directories exist
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1117,7 +1317,7 @@ def main(
         sys.exit(1)
 
     # Parse smoothing kernel values
-    volume_fwhm_list = None
+    volume_fwhm_list: Optional[List[float]] = None
     if smooth_volume:
         try:
             volume_fwhm_list = [float(x) for x in smooth_volume.split()]
@@ -1127,7 +1327,7 @@ def main(
             )
             sys.exit(1)
 
-    surface_fwhm_list = None
+    surface_fwhm_list: Optional[List[float]] = None
     if smooth_surface:
         try:
             surface_fwhm_list = [float(x) for x in smooth_surface.split()]
@@ -1144,9 +1344,11 @@ def main(
             f"Preprocessing{'(no surface)' if no_surface else '(with surface)'}"
         )
     if smooth_volume:
+        assert volume_fwhm_list is not None
         fwhm_str = ", ".join(f"{int(f)}mm" for f in volume_fwhm_list)
         stages.append(f"Volume smoothing ({fwhm_str})")
     if smooth_surface:
+        assert surface_fwhm_list is not None
         fwhm_str = ", ".join(f"{int(f)}mm" for f in surface_fwhm_list)
         stages.append(f"Surface smoothing ({fwhm_str})")
     if qa:
@@ -1164,8 +1366,10 @@ def main(
     processor = BIDSLongitudinalProcessor(
         bids_dir=bids_dir, output_dir=output_dir, config_file=config
     )
+    assert processor.layout is not None
 
     # Auto n_jobs calculation if requested
+    final_n_jobs: int = 1
     if isinstance(n_jobs, str) and n_jobs == "auto":
         import psutil
 
@@ -1176,9 +1380,12 @@ def main(
         print(
             f"[AUTO] Detected {total_gb:.1f} GB RAM, reserving {reserved_gb} GB for system, running {max_jobs} parallel CAT12 jobs."
         )
-        n_jobs = max_jobs
+        final_n_jobs = max_jobs
+    else:
+        final_n_jobs = int(n_jobs)
+
     processor.config.setdefault("cat12", {})["surface_processing"] = not no_surface
-    processor.config["cat12"]["parallel_jobs"] = n_jobs
+    processor.config["cat12"]["parallel_jobs"] = final_n_jobs
     if work_dir:
         processor.config["system"]["work_dir"] = str(work_dir)
     processor.config.setdefault("logging", {})["log_file"] = str(log_file_path)
@@ -1192,9 +1399,10 @@ def main(
             sys.exit(1)
 
     # Convert participant labels (remove 'sub-' prefix if present)
-    participant_labels = []
+    participant_labels: Optional[List[str]] = []
     # Add any --participant-label options
     if participant_label:
+        assert participant_labels is not None
         participant_labels.extend(
             [f"sub-{p.replace('sub-', '')}" for p in participant_label]
         )
@@ -1289,7 +1497,7 @@ def main(
 
     if pilot:
         if longitudinal_subjects:
-            pilot_subject = random.choice(list(longitudinal_subjects.keys()))
+            pilot_subject = random.choice(list(longitudinal_subjects.keys()))  # nosec
             participant_labels = [f"sub-{pilot_subject}"]
             # Filter longitudinal_subjects to only include the pilot subject
             longitudinal_subjects = {

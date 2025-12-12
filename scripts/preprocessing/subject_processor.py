@@ -10,7 +10,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Any
 import time
 import json
 
@@ -161,7 +161,7 @@ class SubjectProcessor:
 
         return True
 
-    def _save_results(self, results: Dict, output_dir: Path):
+    def _save_results(self, results: Dict[str, Any], output_dir: Path) -> None:
         """Save processing results to JSON file."""
         results_file = output_dir / "processing_results.json"
 
@@ -181,7 +181,7 @@ class SubjectProcessor:
             logger.error(f"Failed to save results: {e}")
 
 
-def main():
+def main() -> None:
     """Command-line interface for subject processor."""
     import argparse
 
