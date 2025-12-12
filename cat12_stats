@@ -36,7 +36,13 @@ if [ "$USE_NOHUP" = true ]; then
     echo "Running in background (nohup)..."
     echo "Log file: $LOG_FILE"
     
-    nohup "$SCRIPT_DIR/scripts/stats/cat12_longitudinal_analysis.sh" "${ARGS[@]}" > "$LOG_FILE" 2>&1 &
+    # Write the exact command that will be executed into the logfile
+    CMD="$SCRIPT_DIR/scripts/stats/cat12_longitudinal_analysis.sh ${ARGS[*]}"
+    echo "# Command: $CMD" > "$LOG_FILE"
+    echo "# Started: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$LOG_FILE"
+
+    # Launch process, appending stdout/stderr to the logfile
+    nohup "$SCRIPT_DIR/scripts/stats/cat12_longitudinal_analysis.sh" "${ARGS[@]}" >> "$LOG_FILE" 2>&1 &
     PID=$!
     echo "Process ID: $PID"
     echo "You can monitor progress with: tail -f $LOG_FILE"

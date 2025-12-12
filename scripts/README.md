@@ -9,7 +9,8 @@ This directory contains the main processing scripts for the CAT12 pipeline.
   - `subject_processor.py`: Helper for individual subject processing.
 
 - **stats/**: Scripts for longitudinal statistical analysis.
-  - `cat12_longitudinal_analysis.sh`: Main entry point for stats analysis.
+  - `cat12_stats`: Wrapper (recommended) that runs the stats pipeline.
+  - `cat12_longitudinal_analysis.sh`: Pipeline implementation (invoked by wrapper).
   - `run_matlab_standalone.py`: Wrapper for running MATLAB/Standalone commands.
   - `utils/`: Helper scripts for the stats pipeline.
   - `templates/`: Templates for the stats pipeline.
