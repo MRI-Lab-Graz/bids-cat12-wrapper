@@ -50,6 +50,10 @@ colorama_init(autoreset=True)
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Repo-relative fallbacks (avoid hard-coded machine-specific paths)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SPMROOT = str(REPO_ROOT / "external" / "cat12")
+
 
 def setup_logging(
     log_level: int,
@@ -414,7 +418,7 @@ class BIDSLongitudinalProcessor:
             spm_root = os.environ.get("SPMROOT", "")
             if not spm_root:
                 logger.warning("SPMROOT environment variable not set, using default")
-                spm_root = "/data/local/software/cat-12/external/cat12"
+                spm_root = DEFAULT_SPMROOT
 
             if len(t1w_files_uncompressed) >= 2:
                 # Longitudinal processing (2+ timepoints)
@@ -474,9 +478,7 @@ class BIDSLongitudinalProcessor:
                     config_path if config_path else "",
                     "--spm-script",
                     os.path.join(
-                        os.environ.get(
-                            "SPMROOT", "/data/local/software/cat-12/external/cat12"
-                        ),
+                        os.environ.get("SPMROOT", DEFAULT_SPMROOT),
                         "standalone",
                         "cat_standalone_segment.m",
                     ),
@@ -1559,9 +1561,7 @@ def main(
                 config_path_str,
                 "--spm-script",
                 os.path.join(
-                    os.environ.get(
-                        "SPMROOT", "/data/local/software/cat-12/external/cat12"
-                    ),
+                    os.environ.get("SPMROOT", DEFAULT_SPMROOT),
                     "standalone",
                     "cat_standalone_segment.m",
                 ),

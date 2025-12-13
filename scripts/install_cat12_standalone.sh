@@ -30,6 +30,10 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+print_warning "Third-party software notice: this installer downloads CAT12/SPM12 standalone, MATLAB Runtime (MCR), and Deno from upstream sources."
+print_warning "Those components are NOT part of this repository and remain under their respective licenses/terms."
+print_warning "Proceed only if you agree to comply with upstream licenses."
+
 # Check if running on Ubuntu
 if ! grep -q "Ubuntu" /etc/os-release 2>/dev/null; then
     print_warning "This script is optimized for Ubuntu. Proceeding anyway..."
@@ -59,8 +63,11 @@ else
     print_warning "No NVIDIA GPU detected. Proceeding with CPU-only installation."
 fi
 
-# Create installation directory within the project
-PROJECT_DIR="$(dirname "$(readlink -f "$0")")"
+# Determine repo root (this script lives in ./scripts)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Create installation directory within the project (repo root)
 INSTALL_DIR="$PROJECT_DIR/external"
 print_status "Creating installation directory: $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
@@ -129,42 +136,51 @@ export MCRROOT="$MCR_ROOT"
 export LD_LIBRARY_PATH="\$MCR_ROOT/runtime/glnxa64:\$MCR_ROOT/bin/glnxa64:\$MCR_ROOT/sys/os/glnxa64:\$MCR_ROOT/sys/opengl/lib/glnxa64:\$LD_LIBRARY_PATH"
 export PATH="\$CAT12_ROOT:\$SPMROOT:\$PATH"
 
-# Deno for BIDS validation
-export DENO_INSTALL="\$HOME/.deno"
+# Deno for BIDS validation (installed into the repo, not the user home)
+export DENO_INSTALL="$INSTALL_DIR/deno"
+export DENO_DIR="$INSTALL_DIR/deno_cache"
 export PATH="\$DENO_INSTALL/bin:\$PATH"
+
+# Keep caches workspace-local (avoid writing to the user home)
+export UV_CACHE_DIR="$PROJECT_DIR/.uv-cache"
 
 # Project-specific paths
 export CAT12_PROJECT_ROOT="$PROJECT_DIR"
 EOF
 
-# Install UV (Python package manager)
-print_status "Installing UV package manager..."
-curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="$HOME/.cargo/bin:$PATH"
+# Return to project directory (repo root)
+cd "$PROJECT_DIR"
 
-# Install Deno for BIDS validation
-print_status "Installing Deno for BIDS validation..."
+# Install Deno for BIDS validation (into repo root external/deno)
+print_status "Installing Deno for BIDS validation (workspace-local)..."
 if ! command -v deno &> /dev/null; then
-    print_status "Downloading and installing Deno..."
-    curl -fsSL https://deno.land/x/install/install.sh | sh
-    
-    # Add Deno to PATH for this session
-    export DENO_INSTALL="$HOME/.deno"
+    export DENO_INSTALL="$INSTALL_DIR/deno"
+    export DENO_DIR="$INSTALL_DIR/deno_cache"
     export PATH="$DENO_INSTALL/bin:$PATH"
-    
+    mkdir -p "$DENO_DIR"
+    print_status "Downloading and installing Deno into: $DENO_INSTALL"
+    curl -fsSL https://deno.land/x/install/install.sh | sh
     print_status "Deno installed successfully"
 else
-    print_status "Deno already installed: $(deno --version | head -1)"
+    print_status "Deno already available in PATH: $(deno --version | head -1)"
 fi
 
-# Create Python virtual environment with UV
-print_status "Creating Python virtual environment with UV..."
-uv venv .venv --python python3
+# Create Python virtual environment (workspace-local) and install uv inside it
+print_status "Creating Python virtual environment (.venv)..."
+python3 -m venv .venv
 
-# Activate virtual environment and install Python dependencies with UV
 print_status "Activating Python virtual environment..."
 source .venv/bin/activate
-print_status "Installing Python dependencies with UV..."
+
+# Keep uv's cache within the repo for reproducibility / clean uninstalls
+export UV_CACHE_DIR="$PROJECT_DIR/.uv-cache"
+mkdir -p "$UV_CACHE_DIR"
+
+print_status "Installing uv into the virtual environment..."
+python -m pip install --upgrade pip
+python -m pip install "uv>=0.4"
+
+print_status "Installing Python dependencies with uv..."
 uv pip install -r requirements.txt
 
 print_status "Fixing pybids and universal-pathlib compatibility..."
@@ -230,7 +246,8 @@ else
 fi
 
 echo "CAT12 environment is now active!"
-echo "Run 'python bids_cat12_processor.py --help' to get started."
+echo "Run './cat12_prepro --help' to get started."
+echo "Run './cat12_stats --help' for longitudinal statistics."
 EOF
 
 chmod +x activate_cat12.sh

@@ -12,7 +12,9 @@ spm*.ps
 
 # Distribution / packaging
 .Python
-build/# Virtual environment
+build/
+
+# Virtual environment
 .venv/
 venv/
 env/
@@ -106,6 +108,9 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #uv.lock
+
+# Workspace-local uv cache
+.uv-cache/
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
@@ -225,6 +230,10 @@ output/
 results/
 temp/
 
+# Pipeline outputs under scripts/
+scripts/stats/results/
+scripts/stats/.tmp_*
+
 # MATLAB temporary files
 *.m~
 *.asv
@@ -248,5 +257,6 @@ sample_data/
 processing_*.json
 processing_*.mat
 cat12_*.log
+cat12_stats_*.log
 node_modules
 .DS_Store

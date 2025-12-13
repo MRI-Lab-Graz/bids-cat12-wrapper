@@ -12,7 +12,7 @@ make install
 source activate_cat12.sh
 
 # 3. Process
-python bids_cat12_processor.py /data/bids /data/output participant --preproc
+./cat12_prepro /data/bids /data/output participant --preproc
 ```
 
 ## Step-by-Step Guide
@@ -27,14 +27,14 @@ cd cat-12
 # Run installation (takes ~30 minutes)
 make install
 # OR
-./install_cat12_standalone.sh
+./scripts/install_cat12_standalone.sh
 
 # Test installation
 make test
 ```
 
 **What gets installed:**
-- CAT12 standalone (in `external/cat12_standalone/`)
+- CAT12 standalone (in `external/cat12/`)
 - MATLAB Runtime (in `external/MCR/`)
 - Python packages (in `.venv/`)
 - Environment configuration (`.env`)
@@ -88,7 +88,7 @@ Choose your processing pipeline:
 Good for: VBM analysis, fast processing
 
 ```bash
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
@@ -108,7 +108,7 @@ python bids_cat12_processor.py \
 Good for: Complete analysis, cortical thickness
 
 ```bash
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
@@ -128,13 +128,13 @@ python bids_cat12_processor.py \
 Good for: Comprehensive analysis with QA
 
 ```bash
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
     --preproc \
-    --smooth-volume \
-    --smooth-surface \
+    --smooth-volume "6" \
+    --smooth-surface "12" \
     --qa \
     --tiv
 ```
@@ -168,7 +168,7 @@ cat /data/derivatives/cat12/TIV.txt
 
 ```bash
 # Process only subjects 01 and 02
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
@@ -180,7 +180,7 @@ python bids_cat12_processor.py \
 
 ```bash
 # Process only first session
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
@@ -192,7 +192,7 @@ python bids_cat12_processor.py \
 
 ```bash
 # Use 4 CPU cores
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
@@ -204,14 +204,12 @@ python bids_cat12_processor.py \
 
 ```bash
 # Use 8mm smoothing instead of default 6mm
-python bids_cat12_processor.py \
+./cat12_prepro \
     /data/my_bids_dataset \
     /data/derivatives/cat12 \
     participant \
     --preproc \
-    --smooth-volume \
-    --volume-fwhm "8 8 8" \
-    --smooth-prefix "s8"
+    --smooth-volume "8"
 ```
 
 ## Output Structure
@@ -251,7 +249,7 @@ Error: No processing stages specified!
 
 **Solution:** Add at least one stage:
 ```bash
-python bids_cat12_processor.py ... participant --preproc
+./cat12_prepro ... participant --preproc
 ```
 
 ### Problem: "CAT12_ROOT not set"
@@ -279,9 +277,8 @@ Error: Processing failed - memory error
 ### Problem: Processing is slow
 
 **Solutions:**
-1. Use GPU: Remove `--no-cuda` (default is to use GPU)
-2. Use parallel processing: `--n-jobs 4`
-3. Skip surface for volume-only: `--no-surface`
+1. Use parallel processing: `--n-jobs 4`
+2. Skip surface for volume-only: `--no-surface`
 
 ### Problem: BIDS validation fails
 
@@ -303,7 +300,7 @@ Error: BIDS validation failed
 
 ```bash
 # Show all available options
-python bids_cat12_processor.py --help
+./cat12_prepro --help
 
 # View example usage
 python example_usage.py
@@ -322,7 +319,7 @@ make install && make test
 source activate_cat12.sh
 
 # Basic usage
-python bids_cat12_processor.py <bids> <output> participant --preproc
+./cat12_prepro <bids> <output> participant --preproc
 
 # Common flags
 --preproc              # Preprocessing
@@ -337,8 +334,8 @@ python bids_cat12_processor.py <bids> <output> participant --preproc
 --verbose              # Detailed output
 
 # Example: Quick volume analysis
-python bids_cat12_processor.py /data/bids /data/output participant \
-    --preproc --no-surface --smooth-volume --qa --tiv
+./cat12_prepro /data/bids /data/output participant \
+    --preproc --no-surface --smooth-volume "6" --qa --tiv
 ```
 
 ## Performance Tips

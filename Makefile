@@ -30,14 +30,14 @@ help:
 # Installation
 install:
 	@echo "Installing CAT12 standalone and dependencies..."
-	@chmod +x install_cat12_standalone.sh
-	@./install_cat12_standalone.sh
+	@chmod +x scripts/install_cat12_standalone.sh
+	@./scripts/install_cat12_standalone.sh
 
 # Test installation
 test:
 	@echo "Testing CAT12 installation..."
-	@chmod +x test_installation.sh
-	@./test_installation.sh
+	@chmod +x scripts/test_installation.sh
+	@./scripts/test_installation.sh
 
 # Show activation instructions
 activate:

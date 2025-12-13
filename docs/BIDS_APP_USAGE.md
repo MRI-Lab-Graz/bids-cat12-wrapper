@@ -7,7 +7,7 @@ This guide explains how to use the CAT12 BIDS App following BIDS App specificati
 This tool follows the [BIDS Apps](https://bids-apps.neuroimaging.io/) specification:
 
 ```bash
-bids_cat12_processor.py <bids_dir> <output_dir> <analysis_level> [options]
+./cat12_prepro <bids_dir> <output_dir> <analysis_level> [options]
 ```
 
 ### Required Arguments
@@ -52,7 +52,6 @@ Some options are **opt-out** (enabled by default, can be disabled):
 |------|-------------|---------|
 | `--no-surface` | Skip surface extraction | Surface ON |
 | `--no-validate` | Skip BIDS validation | Validation ON |
-| `--no-cuda` | Disable GPU acceleration | CUDA ON |
 
 ## Common Usage Patterns
 
@@ -61,7 +60,7 @@ Some options are **opt-out** (enabled by default, can be disabled):
 Process only volume data (no surface extraction):
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -80,7 +79,7 @@ bids_cat12_processor.py \
 Process with surface extraction and smoothing:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -98,13 +97,13 @@ bids_cat12_processor.py \
 Run everything (typical use case):
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
     --preproc \
-    --smooth-volume \
-    --smooth-surface \
+    --smooth-volume "6" \
+    --smooth-surface "12" \
     --qa \
     --tiv
 ```
@@ -118,7 +117,7 @@ bids_cat12_processor.py \
 ### 4. Process Specific Participants
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -136,7 +135,7 @@ bids_cat12_processor.py \
 For datasets with multiple sessions, process only specific timepoints:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -154,47 +153,39 @@ bids_cat12_processor.py \
 Adjust smoothing kernels:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
     --preproc \
-    --smooth-volume \
-    --volume-fwhm "8 8 8" \
-    --smooth-prefix "s8"
+    --smooth-volume "8"
 ```
 
 **Parameters:**
-- `--volume-fwhm`: Smoothing kernel in mm (x, y, z)
-  - Default: `"6 6 6"`
-  - Common: `"6 6 6"`, `"8 8 8"`, `"4 4 4"`
-- `--smooth-prefix`: Prefix for output files
-  - Default: `"s"`
-  - Results in files like: `s8mwp1*.nii`
+- `--smooth-volume "<kernels>"`: one or more FWHM values in mm (space-separated)
+    - Examples: `"6"`, `"6 8 10"`
 
 For surfaces:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
     --preproc \
-    --smooth-surface \
-    --surface-fwhm "15"
+    --smooth-surface "15"
 ```
 
 **Parameters:**
-- `--surface-fwhm`: Surface smoothing in mm
-  - Default: `"12"`
-  - Common: `"12"`, `"15"`, `"8"`
+- `--smooth-surface "<kernels>"`: one or more FWHM values in mm (space-separated)
+    - Examples: `"12"`, `"12 15"`
 
 ### 7. Parallel Processing
 
 Use multiple CPU cores:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -207,33 +198,12 @@ bids_cat12_processor.py \
 - Recommended: 1-2 cores per subject (CAT12 uses ~4-8GB RAM per subject)
 - Example: For 32GB RAM, use `--n-jobs 4`
 
-### 8. GPU Acceleration
-
-Enable or disable CUDA:
-
-```bash
-# Enable GPU (default)
-bids_cat12_processor.py \
-    /data/bids \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc
-
-# Disable GPU (CPU-only)
-bids_cat12_processor.py \
-    /data/bids \
-    /data/derivatives/cat12 \
-    participant \
-    --preproc \
-    --no-cuda
-```
-
-### 9. Skip BIDS Validation
+### 8. Skip BIDS Validation
 
 For datasets that don't pass strict BIDS validation:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -248,7 +218,7 @@ bids_cat12_processor.py \
 Enable detailed logging:
 
 ```bash
-bids_cat12_processor.py \
+./cat12_prepro \
     /data/bids \
     /data/derivatives/cat12 \
     participant \
@@ -264,15 +234,15 @@ For fast volume-based analysis:
 
 ```bash
 # Step 1: Preprocessing only (no surface)
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc --no-surface
 
 # Step 2: Smooth volume data
-bids_cat12_processor.py /data/bids /data/derivatives participant \
-    --smooth-volume --volume-fwhm "6 6 6"
+./cat12_prepro /data/bids /data/derivatives participant \
+    --smooth-volume "6"
 
 # Step 3: Quality control
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --qa --tiv
 ```
 
@@ -282,10 +252,10 @@ For comprehensive analysis with all features:
 
 ```bash
 # All-in-one command
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc \
-    --smooth-volume \
-    --smooth-surface \
+    --smooth-volume "6" \
+    --smooth-surface "12" \
     --qa \
     --tiv \
     --roi \
@@ -298,18 +268,18 @@ For longitudinal study (automatically detected):
 
 ```bash
 # Process all timepoints for longitudinal subjects
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc \
-    --smooth-volume \
+    --smooth-volume "6" \
     --tiv
 
 # Later: Process only baseline
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc \
     --session-label 01
 
 # Later: Process only follow-up
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc \
     --session-label 02
 ```
@@ -343,7 +313,7 @@ derivatives/cat12/
 For advanced users, use a configuration file:
 
 ```bash
-bids_cat12_processor.py /data/bids /data/derivatives participant \
+./cat12_prepro /data/bids /data/derivatives participant \
     --preproc \
     --config my_config.yaml
 ```
@@ -355,7 +325,7 @@ See `config/processing_config.yaml` for all available options.
 Get complete help:
 
 ```bash
-bids_cat12_processor.py --help
+./cat12_prepro --help
 ```
 
 ## Integration with Other Tools
@@ -367,8 +337,8 @@ bids_cat12_processor.py --help
 fmriprep /data/bids /data/derivatives participant
 
 # 2. Run CAT12 for structural data
-bids_cat12_processor.py /data/bids /data/derivatives/cat12 participant \
-    --preproc --smooth-volume
+./cat12_prepro /data/bids /data/derivatives/cat12 participant \
+    --preproc --smooth-volume "6"
 ```
 
 ### With MRIQC

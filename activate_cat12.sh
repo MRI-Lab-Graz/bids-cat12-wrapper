@@ -22,4 +22,5 @@ else
 fi
 
 echo "CAT12 environment is now active!"
-echo "Run 'python bids_cat12_processor.py --help' to get started."
+echo "Run './cat12_prepro --help' to get started."
+echo "Run './cat12_stats --help' for longitudinal statistics."
