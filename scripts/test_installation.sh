@@ -71,17 +71,8 @@ run_test "wget command" 'command -v wget'
 run_test "unzip command" 'command -v unzip'
 run_test "python3 command" 'command -v python3'
 
-# Test 6: GPU and CUDA (optional)
-echo -e "\n6. Checking GPU and CUDA support..."
-if command -v nvidia-smi &> /dev/null; then
-    run_test "NVIDIA GPU" 'nvidia-smi --query-gpu=name --format=csv,noheader'
-    run_test "CUDA toolkit" 'command -v nvcc'
-else
-    echo "   No NVIDIA GPU detected (CPU-only mode)"
-fi
-
-# Test 7: Python environment
-echo -e "\n7. Checking Python environment..."
+# Test 6: Python environment
+echo -e "\n6. Checking Python environment..."
 if [ -d ".venv" ]; then
     source .venv/bin/activate 2>/dev/null || true
     run_test "Virtual environment" '[ -n "$VIRTUAL_ENV" ]'
@@ -91,8 +82,8 @@ else
     echo "   Virtual environment not found. Run installation script first."
 fi
 
-# Test 8: CAT12 functionality test
-echo -e "\n8. Testing CAT12 basic functionality..."
+# Test 7: CAT12 functionality test
+echo -e "\n7. Testing CAT12 basic functionality..."
 if [ -n "$CAT12_ROOT" ] && [ -x "$CAT12_ROOT/cat_standalone.sh" ] && [ -n "$MCR_ROOT" ]; then
     # Test if CAT12 can start and show version info
     TEST_OUTPUT=$(timeout 15s "$CAT12_ROOT/cat_standalone.sh" 2>&1 | head -20 || true)
@@ -111,13 +102,13 @@ else
     echo "   Skipping CAT12 functionality test (executable or MCR not found)"
 fi
 
-# Test 9: File permissions and disk space
-echo -e "\n9. Checking system resources..."
+# Test 8: File permissions and disk space
+echo -e "\n8. Checking system resources..."
 run_test "Write permissions in current directory" '[ -w . ]'
 run_test "Sufficient disk space (>5GB)" 'df . | awk "NR==2{if(\$4 > 5000000) exit 0; else exit 1}"'
 
-# Test 10: Memory check
-echo -e "\n10. Checking system memory..."
+# Test 9: Memory check
+echo -e "\n9. Checking system memory..."
 TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print $2}' 2>/dev/null || echo "0")
 if [ "$TOTAL_MEM" -gt 8000000 ]; then  # 8GB in KB
     echo -e "   ${GREEN}✓ Sufficient memory ($(($TOTAL_MEM/1024/1024))GB)${NC}"

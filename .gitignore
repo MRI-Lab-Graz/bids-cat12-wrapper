@@ -112,6 +112,10 @@ ipython_config.py
 # Workspace-local uv cache
 .uv-cache/
 
+# Workspace-local caches (created by install/tests)
+.pip-cache/
+.cache/
+
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
@@ -223,6 +227,9 @@ __marimo__/
 external/
 *.zip
 .env
+
+# Installer-generated helper script
+activate_cat12.sh
 
 # Processing outputs
 derivatives/

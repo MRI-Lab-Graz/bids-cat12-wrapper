@@ -46,23 +46,6 @@ fi
 
 print_status "Updating system packages..."
 
-# Check for CUDA installation
-print_status "Checking for CUDA installation..."
-if command -v nvidia-smi &> /dev/null; then
-    print_status "NVIDIA GPU detected:"
-    nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
-    
-    if command -v nvcc &> /dev/null; then
-        print_status "CUDA toolkit detected:"
-        nvcc --version
-    else
-        print_warning "CUDA toolkit not found. Installing CUDA toolkit..."
-        print_warning "CUDA toolkit not found and cannot be installed without sudo. Please contact your system administrator if CUDA is required."
-    fi
-else
-    print_warning "No NVIDIA GPU detected. Proceeding with CPU-only installation."
-fi
-
 # Determine repo root (this script lives in ./scripts)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -153,16 +136,54 @@ cd "$PROJECT_DIR"
 
 # Install Deno for BIDS validation (into repo root external/deno)
 print_status "Installing Deno for BIDS validation (workspace-local)..."
-if ! command -v deno &> /dev/null; then
-    export DENO_INSTALL="$INSTALL_DIR/deno"
-    export DENO_DIR="$INSTALL_DIR/deno_cache"
-    export PATH="$DENO_INSTALL/bin:$PATH"
-    mkdir -p "$DENO_DIR"
-    print_status "Downloading and installing Deno into: $DENO_INSTALL"
-    curl -fsSL https://deno.land/x/install/install.sh | sh
-    print_status "Deno installed successfully"
+export DENO_INSTALL="$INSTALL_DIR/deno"
+export DENO_DIR="$INSTALL_DIR/deno_cache"
+mkdir -p "$DENO_INSTALL" "$DENO_DIR" "$DENO_INSTALL/bin"
+
+# Prefer the workspace-local Deno even if a system-wide one exists.
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+if [ -x "$DENO_INSTALL/bin/deno" ]; then
+    print_status "Workspace-local Deno already installed: $($DENO_INSTALL/bin/deno --version | head -1)"
 else
-    print_status "Deno already available in PATH: $(deno --version | head -1)"
+    print_status "Installing pinned Deno release into: $DENO_INSTALL"
+
+    # NOTE: We intentionally avoid the upstream install.sh because it can modify
+    # shell startup files under the user's home directory.
+    DENO_VERSION="2.6.0"
+    ARCH="$(uname -m)"
+    case "$ARCH" in
+        x86_64|amd64)
+            DENO_TARGET="x86_64-unknown-linux-gnu"
+            ;;
+        aarch64|arm64)
+            DENO_TARGET="aarch64-unknown-linux-gnu"
+            ;;
+        *)
+            print_error "Unsupported architecture for Deno: $ARCH"
+            exit 1
+            ;;
+    esac
+
+    DENO_URL="https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${DENO_TARGET}.zip"
+    DENO_ZIP="$INSTALL_DIR/deno_${DENO_VERSION}_${DENO_TARGET}.zip"
+
+    # Use a sanitized runtime environment so system download tools aren't affected
+    # by any active MCR/CAT12-related environment variables.
+    env -u LD_PRELOAD \
+        LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu" \
+        PATH="/usr/bin:/bin" \
+        /usr/bin/wget -O "$DENO_ZIP" "$DENO_URL"
+
+    unzip -q "$DENO_ZIP" -d "$DENO_INSTALL/bin"
+    rm -f "$DENO_ZIP"
+    chmod +x "$DENO_INSTALL/bin/deno" 2>/dev/null || true
+    if [ -x "$DENO_INSTALL/bin/deno" ]; then
+        print_status "Deno installed successfully: $($DENO_INSTALL/bin/deno --version | head -1)"
+    else
+        print_error "Deno installation did not produce $DENO_INSTALL/bin/deno"
+        exit 1
+    fi
 fi
 
 # Create Python virtual environment (workspace-local) and install uv inside it
