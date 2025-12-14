@@ -6,17 +6,17 @@ This script handles the processing of individual subjects, including
 script generation, execution monitoring, and quality assessment.
 """
 
+import json
+import logging
 import os
 import sys
-import logging
-from pathlib import Path
-from typing import Dict, List, Any
 import time
-import json
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add utils to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
-from cat12_utils import CAT12Processor, CAT12ScriptGenerator, CAT12QualityChecker
+from cat12_utils import CAT12Processor, CAT12QualityChecker, CAT12ScriptGenerator
 
 logger = logging.getLogger(__name__)
 

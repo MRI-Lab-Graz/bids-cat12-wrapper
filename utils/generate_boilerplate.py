@@ -3,15 +3,16 @@ Generate a reproducible boilerplate summary for CAT12 BIDS processing runs.
 Outputs both Markdown and HTML files with system, software, and run details.
 """
 
-import os
-import sys
-import platform
-import socket
 import datetime
 import json
-import yaml  # type: ignore
+import os
+import platform
+import socket
+import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple, cast
+from typing import Any, Dict, Tuple, cast
+
+import yaml  # type: ignore
 
 
 def get_system_info() -> Dict[str, Any]:

@@ -6,9 +6,10 @@ validation, session management, and longitudinal data identification.
 """
 
 import logging
-from pathlib import Path
-from typing import Dict, List, Tuple, Any, cast
 import subprocess
+from pathlib import Path
+from typing import Any, Dict, List, Tuple, cast
+
 from bids import BIDSLayout
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 # CAT12 BIDS Pipeline Makefile
 # Provides convenient commands for installation, testing, and usage
 
-.PHONY: help install test clean activate example dev-install lint format
+.PHONY: help install test clean activate example dev-install lint format format-check
 
 # Default target
 help:
@@ -16,6 +16,7 @@ help:
 	@echo "Development:"
 	@echo "  dev-install - Install development dependencies"
 	@echo "  lint        - Run code linting"
+	@echo "  format-check- Check formatting (advisory)"
 	@echo "  format      - Format code with black and isort"
 	@echo ""
 	@echo "Usage:"
@@ -65,6 +66,18 @@ lint:
 		. .venv/bin/activate && \
 		flake8 utils/ scripts/ bids_cat12_processor.py && \
 		mypy utils/ scripts/ bids_cat12_processor.py; \
+	else \
+		echo "Virtual environment not found. Run 'make install' first."; \
+		exit 1; \
+	fi
+
+# Advisory formatting check (does not fail)
+format-check:
+	@echo "Checking code formatting (advisory)..."
+	@if [ -f ".venv/bin/activate" ]; then \
+		. .venv/bin/activate && \
+		(black --check utils/ scripts/ bids_cat12_processor.py >/dev/null 2>&1 || echo "[warn] Black would reformat files (advisory). Run 'make format' to apply.") && \
+		(isort --check-only --skip-glob '*.backup' utils/ scripts/ bids_cat12_processor.py >/dev/null 2>&1 || echo "[warn] isort would reorder imports (advisory). Run 'make format' to apply."); \
 	else \
 		echo "Virtual environment not found. Run 'make install' first."; \
 		exit 1; \

@@ -16,33 +16,34 @@ Author: MRI Lab Graz
 License: MIT
 """
 
-import os
-import sys
-import logging
-from pathlib import Path
-import json
-import yaml
-from typing import Dict, List, Optional, Any, Tuple
-import subprocess
-from datetime import datetime
 import gzip
-import shutil
+import json
+import logging
+import os
 import random
+import shutil
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from colorama import init as colorama_init, Fore, Style
-from bids import BIDSLayout
-from tqdm import tqdm
 import click
+import yaml
+from bids import BIDSLayout
+from colorama import Fore, Style
+from colorama import init as colorama_init
+from tqdm import tqdm
 
 # Import custom utilities
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../utils"))
-from bids_utils import BIDSValidator, BIDSSessionManager  # noqa: E402
-from cat12_utils import (
+from bids_utils import BIDSSessionManager, BIDSValidator  # noqa: E402
+from cat12_utils import (  # noqa: E402
     CAT12Processor,
-    CAT12ScriptGenerator,
     CAT12QualityChecker,
-)  # noqa: E402
+    CAT12ScriptGenerator,
+)
 
 # Initialize colorama
 colorama_init(autoreset=True)
@@ -260,7 +261,7 @@ class BIDSLongitudinalProcessor:
     def validate_dataset(self) -> bool:
         """Validate BIDS dataset structure."""
         logger.info("Validating BIDS dataset...")
-        return self.validator.validate()
+        return bool(self.validator.validate())
 
     def identify_longitudinal_subjects(
         self, participant_labels: Optional[List[str]] = None
@@ -444,8 +445,10 @@ class BIDSLongitudinalProcessor:
             logger.info(f"Using CAT12 template: {template_path}")
 
             # Execute CAT12 processing with template and input files
-            success = self.cat12_processor.execute_script(
+            success = bool(
+                self.cat12_processor.execute_script(
                 template_path, t1w_files_uncompressed
+                )
             )
 
             if success:
@@ -495,7 +498,7 @@ class BIDSLongitudinalProcessor:
             else:
                 logger.error(f"Failed to process subject {subject}")
 
-            return success
+            return bool(success)
 
         except Exception as e:
             logger.error(f"Error processing subject {subject}: {e}")

@@ -113,6 +113,9 @@ ipython_config.py
 # Workspace-local uv cache
 .uv-cache/
 
+# Workspace-local tooling
+.tools/
+
 # Workspace-local caches (created by install/tests)
 .pip-cache/
 .cache/

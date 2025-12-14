@@ -3,7 +3,8 @@
 # CAT12 Installation Test Script
 # This script verifies that CAT12 standalone is properly installed and configured
 
-set -e
+# NOTE: Do not use `set -e` here; we want to run all tests and
+# report a summary at the end.
 
 echo "=========================================="
 echo "CAT12 Installation Test"
@@ -29,13 +30,13 @@ TESTS_TOTAL=0
 
 run_test() {
     local test_name="$1"
-    local test_command="$2"
+    shift
     
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
     
     echo -n "Testing $test_name... "
-    
-    if eval "$test_command" &>/dev/null; then
+
+    if "$@" &>/dev/null; then
         echo -e "${GREEN}✓ PASS${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
@@ -45,38 +46,44 @@ run_test() {
     fi
 }
 
+disk_space_ok() {
+    local available_kb
+    available_kb=$(df -P . | awk 'NR==2{print $4}')
+    [ "${available_kb:-0}" -gt 5000000 ]
+}
+
 # Test 1: Environment variables
 echo "1. Checking environment variables..."
-run_test "CAT12_ROOT" '[ -n "$CAT12_ROOT" ]'
-run_test "MCR_ROOT" '[ -n "$MCR_ROOT" ]'
-run_test "LD_LIBRARY_PATH" '[ -n "$LD_LIBRARY_PATH" ]'
+run_test "CAT12_ROOT" test -n "${CAT12_ROOT:-}"
+run_test "MCR_ROOT" test -n "${MCR_ROOT:-}"
+run_test "LD_LIBRARY_PATH" test -n "${LD_LIBRARY_PATH:-}"
 
 # Test 2: Directory existence
 echo -e "\n2. Checking directory structure..."
-run_test "CAT12 root directory" '[ -d "$CAT12_ROOT" ]'
-run_test "MATLAB Runtime directory" '[ -d "$MCR_ROOT" ]'
+run_test "CAT12 root directory" test -d "${CAT12_ROOT:-}"
+run_test "MATLAB Runtime directory" test -d "${MCR_ROOT:-}"
 
 # Test 3: Executable files
 echo -e "\n3. Checking executable files..."
-run_test "CAT12 executable" '[ -x "$CAT12_ROOT/cat_standalone.sh" ]'
+run_test "CAT12 executable" test -x "${CAT12_ROOT:-}/cat_standalone.sh"
 
 # Test 4: MATLAB Runtime libraries
 echo -e "\n4. Checking MATLAB Runtime libraries..."
-run_test "MCR runtime libraries" '[ -d "$MCR_ROOT/runtime/glnxa64" ]'
-run_test "MCR bin directory" '[ -d "$MCR_ROOT/bin/glnxa64" ]'
+run_test "MCR runtime libraries" test -d "${MCR_ROOT:-}/runtime/glnxa64"
+run_test "MCR bin directory" test -d "${MCR_ROOT:-}/bin/glnxa64"
 
 # Test 5: System dependencies
 echo -e "\n5. Checking system dependencies..."
-run_test "wget command" 'command -v wget'
-run_test "unzip command" 'command -v unzip'
-run_test "python3 command" 'command -v python3'
+run_test "wget command" command -v wget
+run_test "unzip command" command -v unzip
+run_test "python3 command" command -v python3
 
 # Test 6: Python environment
 echo -e "\n6. Checking Python environment..."
 if [ -d ".venv" ]; then
     source .venv/bin/activate 2>/dev/null || true
-    run_test "Virtual environment" '[ -n "$VIRTUAL_ENV" ]'
-    run_test "Python packages" 'python3 -c "import nibabel, pandas, numpy, yaml, click, tqdm, bids"'
+    run_test "Virtual environment" test -n "${VIRTUAL_ENV:-}"
+    run_test "Python packages" python3 -c 'import nibabel, pandas, numpy, yaml, click, tqdm, bids'
     deactivate 2>/dev/null || true
 else
     echo "   Virtual environment not found. Run installation script first."
@@ -104,8 +111,8 @@ fi
 
 # Test 8: File permissions and disk space
 echo -e "\n8. Checking system resources..."
-run_test "Write permissions in current directory" '[ -w . ]'
-run_test "Sufficient disk space (>5GB)" 'df . | awk "NR==2{if(\$4 > 5000000) exit 0; else exit 1}"'
+run_test "Write permissions in current directory" test -w .
+run_test "Sufficient disk space (>5GB)" disk_space_ok
 
 # Test 9: Memory check
 echo -e "\n9. Checking system memory..."

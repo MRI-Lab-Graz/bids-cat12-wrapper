@@ -5,14 +5,15 @@ This module provides utilities for generating CAT12 MATLAB scripts,
 executing CAT12 standalone, and managing CAT12 processing workflows.
 """
 
-import os
 import json
 import logging
+import os
 import subprocess
-import defusedxml.ElementTree as ET
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import defusedxml.ElementTree as ET
 
 logger = logging.getLogger(__name__)
 
@@ -312,13 +313,13 @@ class CAT12Processor:
                 )
 
                 # Stream output in real-time
-                import time
                 import re
+                import time
 
                 last_output_time = time.time()
                 line_count = 0
 
-                # Pattern to detect MATLAB whos output (variable dumps)
+                # Pattern to detect MATLAB whos output (variable dumps)  # codespell:ignore whos
                 # Format: varname dimensions bytes class [attributes]
                 # Examples: "  F              5-D                  13251528  single"
                 #          "  a             67x82x67               2944784  single    complex"
@@ -341,11 +342,11 @@ class CAT12Processor:
                             # Filter out MATLAB workspace variable dumps
                             stripped = line.strip()
 
-                            # Skip whos output patterns
+                            # Skip whos output patterns  # codespell:ignore whos
                             if whos_pattern.match(line):
                                 continue
 
-                            # Skip whos header lines and empty lines between dumps
+                            # Skip whos header lines and empty lines between dumps  # codespell:ignore whos
                             if not stripped or (
                                 stripped.startswith("Name")
                                 and "Size" in stripped
