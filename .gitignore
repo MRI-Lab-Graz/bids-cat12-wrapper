@@ -231,6 +231,9 @@ __marimo__/
 external/
 *.zip
 .env
+*.dmg
+*.pkg
+*.iso
 
 # Installer-generated helper script
 activate_cat12.sh
