@@ -53,6 +53,13 @@ function cat12_stats_entry(cmd, varargin)
             end
             add_contrasts_longitudinal(args{1});
 
+        case 'threshold_maps'
+            % cat12_threshold_maps(stats_dir, varargin)
+            if isempty(args)
+                error('threshold_maps requires stats_dir argument');
+            end
+            cat12_threshold_maps(args{1}, args{2:end});
+
         case 'screen_contrasts'
             % screen_contrasts(stats_dir, varargin)
             if isempty(args)

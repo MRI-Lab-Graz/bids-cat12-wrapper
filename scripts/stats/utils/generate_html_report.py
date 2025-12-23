@@ -44,6 +44,9 @@ def generate_methods_text(
     n_perm=5000,
     cluster_size=50,
     uncorrected_p=0.001,
+    double_threshold=False,
+    p_unc=0.001,
+    p_fwe=0.05,
 ):
     """Generate boilerplate methods text for publication."""
     groups = sorted(design.get("groups", {}).keys())
@@ -57,6 +60,15 @@ def generate_methods_text(
     as implemented in the TFCE toolbox for SPM. Permutation testing ({n_perm} permutations) was used to control the
     Family-Wise Error (FWE) rate at p < 0.05. This approach provides increased sensitivity for spatially extended
     signals without defining an arbitrary cluster-forming threshold.</p>
+    """
+
+    if double_threshold:
+        inference_text += f"""
+        <p>Additionally, CAT12 double thresholding was applied to generate log-scaled p-maps,
+        using an uncorrected threshold of p < {p_unc} and an FWE-corrected threshold of p < {p_fwe}.</p>
+        """
+
+    inference_text += f"""
     <p>For initial screening of contrasts, an uncorrected threshold of p < {uncorrected_p} with a minimum cluster size
     of {cluster_size} voxels was used.</p>
     """
@@ -221,6 +233,22 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     modality = design.get("modality", "vbm")
     smoothing = design.get("smoothing", "auto")
     groups = design.get("groups", {})
+
+    # Generate methods text
+    methods_text = generate_methods_text(
+        design,
+        n_subjects=len(design.get("subjects", [])),
+        n_groups=len(groups),
+        n_sessions=len(design.get("sessions", [])),
+        smoothing=smoothing,
+        modality=modality,
+        n_perm=kwargs.get("n_perm", 5000),
+        cluster_size=kwargs.get("cluster_size", 50),
+        uncorrected_p=kwargs.get("uncorrected_p", 0.001),
+        double_threshold=kwargs.get("double_threshold", False),
+        p_unc=kwargs.get("p_unc", 0.001),
+        p_fwe=kwargs.get("p_fwe", 0.05),
+    )
 
     # Normalize groups structure if it's the simple format (name -> index)
     if groups and isinstance(next(iter(groups.values())), int):
@@ -804,6 +832,15 @@ if __name__ == "__main__":
         "--uncorrected-p", type=float, default=0.001, help="Uncorrected p threshold"
     )
     parser.add_argument(
+        "--double-threshold", default="false", help="Whether double thresholding was used"
+    )
+    parser.add_argument(
+        "--p-unc", type=float, default=0.001, help="Double threshold uncorrected p"
+    )
+    parser.add_argument(
+        "--p-fwe", type=float, default=0.05, help="Double threshold FWE p"
+    )
+    parser.add_argument(
         "--start-time", type=float, default=None, help="Unix timestamp of pipeline start"
     )
 
@@ -819,5 +856,8 @@ if __name__ == "__main__":
         n_perm=args.n_perm,
         cluster_size=args.cluster_size,
         uncorrected_p=args.uncorrected_p,
+        double_threshold=args.double_threshold.lower() == "true",
+        p_unc=args.p_unc,
+        p_fwe=args.p_fwe,
         start_time=args.start_time,
     )
