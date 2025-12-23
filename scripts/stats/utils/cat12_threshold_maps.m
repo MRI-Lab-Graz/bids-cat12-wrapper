@@ -22,6 +22,7 @@ function cat12_threshold_maps(stats_dir, varargin)
     addParameter(p, 'p_fwe', 0.05, @isnumeric);
     addParameter(p, 'both', true, @islogical);
     addParameter(p, 'log', true, @islogical);
+    addParameter(p, 'contrast_list', [], @isnumeric);
     parse(p, stats_dir, varargin{:});
 
     stats_dir = p.Results.stats_dir;
@@ -29,6 +30,7 @@ function cat12_threshold_maps(stats_dir, varargin)
     p_fwe = p.Results.p_fwe;
     both = p.Results.both;
     log_scaled = p.Results.log;
+    contrast_list = p.Results.contrast_list;
 
     fprintf('\n%s\n', repmat('═', 1, 80));
     fprintf('CAT12 DOUBLE THRESHOLDING\n');
@@ -48,11 +50,39 @@ function cat12_threshold_maps(stats_dir, varargin)
 
     % Load SPM.mat to get T-maps
     load(spm_file);
+
+    % If no explicit contrast list was provided, prefer the screening output
+    if isempty(contrast_list)
+        screening_file = fullfile(stats_dir, 'screening_results.mat');
+        if exist(screening_file, 'file')
+            try
+                load(screening_file, 'significant_contrasts');
+                if exist('significant_contrasts', 'var') && ~isempty(significant_contrasts)
+                    contrast_list = significant_contrasts;
+                    fprintf('Using %d significant contrasts from screening_results.mat\n', numel(contrast_list));
+                end
+            catch
+                fprintf('Warning: Failed to read screening_results.mat. Falling back to all T-contrasts.\n');
+            end
+        end
+    end
+
+    % If still empty, fall back to all contrasts
+    if isempty(contrast_list)
+        contrast_list = 1:length(SPM.xCon);
+        fprintf('No contrast subset provided; using all %d contrasts.\n', length(contrast_list));
+    end
     t_maps = {};
-    for i = 1:length(SPM.xCon)
+    for i = contrast_list(:)'
+        if i < 1 || i > length(SPM.xCon)
+            fprintf('Warning: Contrast index %d out of range, skipping.\n', i);
+            continue;
+        end
         % Check if it's a T-contrast
         if strcmp(SPM.xCon(i).STAT, 'T')
             t_maps{end+1} = fullfile(stats_dir, [SPM.xCon(i).Vspm.fname ',1']);
+        else
+            fprintf('Warning: Contrast %d is not a T-contrast; skipping for double thresholding.\n', i);
         end
     end
     
