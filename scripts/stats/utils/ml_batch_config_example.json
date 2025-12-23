@@ -1,0 +1,59 @@
+{
+  "global": {
+    "python_executable": ".venv_ml/bin/python",
+    "script": "utils/vbm_ml_interaction.py",
+    "mask": "templates/brainmask_GMtight.nii",
+    "participants_tsv": "participants.tsv",
+    "data_root": "/Volumes/Thunder/129_PK01/cat12/data/cat12",
+    "group_col": "group_ml",
+    "class_weight": "balanced"
+  },
+  "jobs": [
+    {
+      "name": "D21_logistic_k2000",
+      "delta_type": "d21",
+      "session_a": 1,
+      "session_b": 2,
+      "classifier": "logistic",
+      "k_best": 2000,
+      "n_permutations": 50,
+      "n_jobs": 4,
+      "use_unsmoothed": true
+    },
+    {
+      "name": "D31_logistic_k2000",
+      "delta_type": "d31",
+      "session_a": 1,
+      "session_b": 3,
+      "classifier": "logistic",
+      "k_best": 2000,
+      "n_permutations": 50,
+      "n_jobs": 4,
+      "use_unsmoothed": true
+    },
+    {
+      "name": "D21_svc_k3000",
+      "delta_type": "d21",
+      "session_a": 1,
+      "session_b": 2,
+      "classifier": "linear_svc",
+      "k_best": 3000,
+      "n_permutations": 50,
+      "n_jobs": 4,
+      "use_unsmoothed": true
+    }
+  ]
+  ,
+  "sweeps": [
+    {
+      "name_prefix": "sweep",
+      "name_format": "{delta_type}_{classifier}_k{k_best}",
+      "params": {
+        "delta_type": ["d21", "d31", "dsec"],
+        "classifier": ["logistic", "linear_svc"],
+        "k_best": [1000, 2000, 4000],
+        "use_unsmoothed": [true, false]
+      }
+    }
+  ]
+}

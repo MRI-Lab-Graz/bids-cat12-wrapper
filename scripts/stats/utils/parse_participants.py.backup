@@ -1,0 +1,419 @@
+#!/usr/bin/env python3
+"""
+Parse BIDS participants.tsv and build file lists for CAT12 analysis.
+
+This script reads a BIDS participants.tsv file, matches subjects/sessions
+with CAT12 preprocessed files, and generates the design structure for SPM.
+"""
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+
+def extract_smoothing_from_filename(filepath):
+    """
+    Extract smoothing kernel size from CAT12 filename.
+    
+    Parameters:
+    -----------
+    filepath : str
+        Path to CAT12 file
+    
+    Returns:
+    --------
+    int or None
+        Smoothing kernel size in mm, or None if not found
+    """
+    filename = Path(filepath).name
+    
+    # VBM: s<N>mwp1*.nii (e.g., s6mwp1, s8mwp1)
+    vbm_match = re.search(r's(\d+)mwp1', filename)
+    if vbm_match:
+        return int(vbm_match.group(1))
+    
+    # Surface: s<N>.mesh.* (e.g., s15.mesh.thickness)
+    surf_match = re.search(r's(\d+)\.mesh\.', filename)
+    if surf_match:
+        return int(surf_match.group(1))
+    
+    # Default CAT12 (no number means default smoothing)
+    # smwp1* without number = 8mm for VBM
+    if 'smwp1' in filename and not vbm_match:
+        return 8  # CAT12 default for VBM
+    
+    return None
+
+
+def detect_available_smoothing(cat12_dir, modality):
+    """
+    Detect available smoothing kernels in CAT12 directory.
+    
+    Parameters:
+    -----------
+    cat12_dir : str
+        Path to CAT12 directory
+    modality : str
+        Analysis modality
+    
+    Returns:
+    --------
+    list
+        List of available smoothing kernel sizes
+    """
+    cat12_path = Path(cat12_dir)
+    smoothing_kernels = set()
+    
+    if modality == 'vbm':
+        # Check mri directory for smoothed files
+        mri_dirs = [
+            cat12_path / 'data' / 'cat12' / '*' / 'mri',
+            cat12_path / 'mri',
+        ]
+        
+        for pattern in mri_dirs:
+            for mri_dir in cat12_path.glob(str(pattern).replace(str(cat12_path) + '/', '')):
+                if mri_dir.is_dir():
+                    for nii_file in mri_dir.glob('s*mwp1*.nii'):
+                        smooth = extract_smoothing_from_filename(nii_file.name)
+                        if smooth:
+                            smoothing_kernels.add(smooth)
+    else:
+        # Check surf directory for smoothed surface files
+        surf_dirs = [
+            cat12_path / 'data' / 'cat12' / '*' / 'surf',
+            cat12_path / 'surf',
+        ]
+        
+        for pattern in surf_dirs:
+            for surf_dir in cat12_path.glob(str(pattern).replace(str(cat12_path) + '/', '')):
+                if surf_dir.is_dir():
+                    for gii_file in surf_dir.glob('s*.mesh.*.gii'):
+                        smooth = extract_smoothing_from_filename(gii_file.name)
+                        if smooth:
+                            smoothing_kernels.add(smooth)
+    
+    return sorted(list(smoothing_kernels))
+
+
+def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
+    """
+    Find CAT12 preprocessed files for a given subject and session.
+    
+    Parameters:
+    -----------
+    cat12_dir : str
+        Path to CAT12 directory
+    subject : str
+        Subject ID (with or without 'sub-' prefix)
+    session : str
+        Session ID (with or without 'ses-' prefix)
+    modality : str
+        Analysis modality (vbm, thickness, depth, gyrification, fractal)
+    smoothing : int or str
+        Smoothing kernel size in mm, or 'auto' to auto-detect
+    
+    Returns:
+    --------
+    str or None
+        Path to the file, or None if not found
+    """
+    # Ensure proper BIDS formatting
+    if not subject.startswith('sub-'):
+        subject = f'sub-{subject}'
+    
+    # Handle session as string or int
+    session = str(session)
+    if not session.startswith('ses-'):
+        session = f'ses-{session}'
+    
+    cat12_path = Path(cat12_dir)
+    
+    if modality == 'vbm':
+        # VBM: smoothed normalized gray matter in 'mri' directory
+        # Patterns to try:
+        # 1. CAT12 default: mri/smwp1*.nii (no smoothing number)
+        # 2. With smoothing: mri/s<N>mwp1*.nii (e.g., s6mwp1, s8mwp1)
+        # 3. In subdirectory: mri/s<N>/smwp1*.nii
+        
+        if smoothing == 'auto' or smoothing is None:
+            # Auto-detect: try common patterns
+            patterns = [
+                cat12_path / 'data' / 'cat12' / subject / 'mri' / f's*mwp1r{subject}_{session}_*.nii',
+                cat12_path / 'mri' / f's*mwp1r{subject}_{session}_*.nii',
+                cat12_path / 'data' / 'cat12' / subject / 'mri' / f'smwp1r{subject}_{session}_*.nii',
+                cat12_path / 'mri' / f'smwp1r{subject}_{session}_*.nii',
+            ]
+        else:
+            # Specific smoothing kernel
+            s_prefix = f's{smoothing}' if smoothing else 's'
+            patterns = [
+                cat12_path / 'data' / 'cat12' / subject / 'mri' / f'{s_prefix}mwp1r{subject}_{session}_*.nii',
+                cat12_path / 'mri' / f'{s_prefix}mwp1r{subject}_{session}_*.nii',
+                cat12_path / 'data' / 'cat12' / subject / 'mri' / s_prefix / f'mwp1r{subject}_{session}_*.nii',
+                cat12_path / 'mri' / s_prefix / f'mwp1r{subject}_{session}_*.nii',
+            ]
+        
+        for pattern in patterns:
+            if pattern.parent.exists():
+                matches = list(pattern.parent.glob(pattern.name))
+                if matches:
+                    return str(matches[0])
+                
+    else:
+        # Surface-based measures in 'surf' directory
+        # Pattern: surf/s<N>.mesh.<measure>.resampled_32k.r<subject>_<session>_*.gii
+        measure_map = {
+            'thickness': 'thickness',
+            'depth': 'depthWM',
+            'gyrification': 'gyrification',
+            'fractal': 'fractaldimension'
+        }
+        
+        measure = measure_map.get(modality)
+        if not measure:
+            return None
+        
+        if smoothing == 'auto' or smoothing is None:
+            # Auto-detect smoothing
+            patterns = [
+                cat12_path / 'data' / 'cat12' / subject / 'surf' / f's*.mesh.{measure}.resampled_32k.r{subject}_{session}_*.gii',
+                cat12_path / 'surf' / f's*.mesh.{measure}.resampled_32k.r{subject}_{session}_*.gii',
+            ]
+        else:
+            # Specific smoothing
+            s_prefix = f's{smoothing}'
+            patterns = [
+                cat12_path / 'data' / 'cat12' / subject / 'surf' / f'{s_prefix}.mesh.{measure}.resampled_32k.r{subject}_{session}_*.gii',
+                cat12_path / 'surf' / f'{s_prefix}.mesh.{measure}.resampled_32k.r{subject}_{session}_*.gii',
+            ]
+        
+        for pattern in patterns:
+            if pattern.parent.exists():
+                matches = list(pattern.parent.glob(pattern.name))
+                if matches:
+                    return str(matches[0])
+    
+    return None
+
+
+def parse_participants(args):
+    """Main parsing function."""
+    
+    print("Reading participants file...")
+    df = pd.read_csv(args.participants, sep='\t')
+    
+    print(f"Found {len(df)} rows in participants file")
+    print(f"Columns: {', '.join(df.columns)}")
+    
+    # Auto-detect group column if not specified
+    if not args.group_col:
+        group_candidates = [col for col in df.columns 
+                           if 'group' in col.lower() or 'condition' in col.lower()]
+        if group_candidates:
+            args.group_col = group_candidates[0]
+            print(f"Auto-detected group column: {args.group_col}")
+        else:
+            print("Error: Could not auto-detect group column. Please specify --group-col")
+            sys.exit(1)
+    
+    # Check required columns exist
+    required_cols = ['participant_id', args.session_col, args.group_col]
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        print(f"Error: Missing required columns: {', '.join(missing)}")
+        print(f"Available columns: {', '.join(df.columns)}")
+        sys.exit(1)
+    
+    # Auto-detect smoothing if not specified
+    if args.smoothing == 'auto':
+        print(f"\nAuto-detecting smoothing kernels for {args.modality}...")
+        available_smoothing = detect_available_smoothing(args.cat12_dir, args.modality)
+        
+        if not available_smoothing:
+            print(f"Error: Could not find any smoothed {args.modality} files in {args.cat12_dir}")
+            sys.exit(1)
+        
+        print(f"Found smoothing kernels: {', '.join(map(str, available_smoothing))}mm")
+        
+        # Use the most common smoothing for the modality
+        if args.modality == 'vbm':
+            # Prefer 8mm for VBM
+            args.smoothing = 8 if 8 in available_smoothing else available_smoothing[0]
+        else:
+            # Prefer 15mm for surface
+            args.smoothing = 15 if 15 in available_smoothing else available_smoothing[-1]
+        
+        print(f"Selected smoothing: {args.smoothing}mm")
+    else:
+        args.smoothing = int(args.smoothing)
+    
+    # Parse covariate columns
+    covariate_cols = []
+    if args.covariates:
+        covariate_cols = [c.strip() for c in args.covariates.split(',')]
+        missing_cov = [col for col in covariate_cols if col not in df.columns]
+        if missing_cov:
+            print(f"Error: Missing covariate columns: {', '.join(missing_cov)}")
+            sys.exit(1)
+    
+    # Build file list and design structure
+    print(f"\nSearching for CAT12 files ({args.modality}, {args.smoothing}mm)...")
+    
+    design = {
+        'modality': args.modality,
+        'smoothing': args.smoothing,
+        'groups': {},
+        'sessions': [],
+        'covariates': {},
+        'files': []
+    }
+    
+    # Get unique groups and sessions
+    groups = df[args.group_col].dropna().unique()
+    sessions = sorted(df[args.session_col].dropna().unique())
+    
+    print(f"Groups: {', '.join(map(str, groups))}")
+    print(f"Sessions: {', '.join(map(str, sessions))}")
+    
+    design['sessions'] = [str(s) for s in sessions]
+    
+    # Initialize group structure
+    for group in groups:
+        design['groups'][str(group)] = {
+            'sessions': {str(s): [] for s in sessions}
+        }
+    
+    # Initialize covariate storage
+    for cov in covariate_cols:
+        design['covariates'][cov] = []
+    
+    # Track detected smoothing values
+    detected_smoothing = set()
+    
+    # Process each participant
+    files_found = 0
+    files_missing = 0
+    
+    for _, row in df.iterrows():
+        subject = row['participant_id']
+        session = row[args.session_col]
+        group = row[args.group_col]
+        
+        # Skip if any required field is missing
+        if pd.isna(subject) or pd.isna(session) or pd.isna(group):
+            continue
+        
+        # Find CAT12 file
+        filepath = find_cat12_files(
+            args.cat12_dir, 
+            subject, 
+            session, 
+            args.modality, 
+            args.smoothing
+        )
+        
+        if filepath:
+            # Verify smoothing matches
+            file_smooth = extract_smoothing_from_filename(filepath)
+            if file_smooth:
+                detected_smoothing.add(file_smooth)
+                if file_smooth != args.smoothing:
+                    print(f"  ⚠ Warning: {subject} {session} has {file_smooth}mm smoothing, expected {args.smoothing}mm")
+            
+            # Add to design structure
+            design['groups'][str(group)]['sessions'][str(session)].append(filepath)
+            design['files'].append({
+                'subject': subject,
+                'session': str(session),
+                'group': str(group),
+                'path': filepath
+            })
+            
+            # Add covariate values
+            for cov in covariate_cols:
+                design['covariates'][cov].append(float(row[cov]))
+            
+            files_found += 1
+        else:
+            print(f"  ⚠ Missing: {subject} {session}")
+            files_missing += 1
+    
+    print(f"\n✓ Found {files_found} files")
+    if files_missing > 0:
+        print(f"⚠ Missing {files_missing} files")
+    
+    if detected_smoothing:
+        print(f"Detected smoothing kernels in files: {', '.join(map(str, sorted(detected_smoothing)))}mm")
+    
+    # Validate design
+    print("\nValidating design structure...")
+    
+    total_scans = 0
+    for group, group_data in design['groups'].items():
+        for session, files in group_data['sessions'].items():
+            n = len(files)
+            total_scans += n
+            print(f"  {group} × {session}: {n} scans")
+    
+    print(f"\nTotal scans: {total_scans}")
+    
+    if total_scans == 0:
+        print("Error: No files found!")
+        sys.exit(1)
+    
+    # Validate covariates match
+    for cov, values in design['covariates'].items():
+        if len(values) != total_scans:
+            print(f"Error: Covariate '{cov}' has {len(values)} values but {total_scans} scans")
+            sys.exit(1)
+    
+    # Save design structure
+    output_file = Path(args.output) / 'design.json'
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    with open(output_file, 'w') as f:
+        json.dump(design, f, indent=2)
+    
+    print(f"\n✓ Design structure saved to: {output_file}")
+    
+    # Save file list
+    files_file = Path(args.output) / 'file_list.txt'
+    with open(files_file, 'w') as f:
+        for file_info in design['files']:
+            f.write(f"{file_info['path']}\n")
+    
+    print(f"✓ File list saved to: {files_file}")
+    
+    return 0
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Parse BIDS participants.tsv for CAT12 analysis'
+    )
+    
+    parser.add_argument('--cat12-dir', required=True,
+                       help='Path to CAT12 preprocessing directory')
+    parser.add_argument('--participants', required=True,
+                       help='Path to BIDS participants.tsv file')
+    parser.add_argument('--modality', default='vbm',
+                       choices=['vbm', 'thickness', 'depth', 'gyrification', 'fractal'],
+                       help='Analysis modality (vbm uses mri/, others use surf/)')
+    parser.add_argument('--smoothing', default='auto',
+                       help='Smoothing kernel size in mm, or "auto" to auto-detect (default: auto)')
+    parser.add_argument('--group-col', default='',
+                       help='Column name for group variable (auto-detect if not specified)')
+    parser.add_argument('--session-col', default='session',
+                       help='Column name for session variable')
+    parser.add_argument('--covariates', default='',
+                       help='Comma-separated covariate column names')
+    parser.add_argument('--output', required=True,
+                       help='Output directory for design files')
+    
+    args = parser.parse_args()
+    sys.exit(parse_participants(args))
