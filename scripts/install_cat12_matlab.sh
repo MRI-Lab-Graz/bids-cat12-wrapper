@@ -89,6 +89,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INSTALL_DIR="$PROJECT_DIR/external/matlab_tools"
 
+# Ensure downloads and external tools are gitignored
+if [ -f "$PROJECT_DIR/.gitignore" ]; then
+    if ! grep -q "^external/" "$PROJECT_DIR/.gitignore"; then
+        print_status "Adding external/ to .gitignore..."
+        echo "external/" >> "$PROJECT_DIR/.gitignore"
+    fi
+    if ! grep -q "^\*.zip" "$PROJECT_DIR/.gitignore"; then
+        print_status "Adding *.zip to .gitignore..."
+        echo "*.zip" >> "$PROJECT_DIR/.gitignore"
+    fi
+fi
+
 print_status "Creating installation directory: $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
@@ -135,10 +147,11 @@ if [ -n "$MATLAB_PATH_ARG" ]; then
 elif command -v matlab >/dev/null 2>&1; then
     MATLAB_EXE=$(command -v matlab)
 else
-    # Common macOS paths
-    for version in R2024b R2024a R2023b R2023a R2022b; do
-        if [ -f "/Applications/MATLAB_$version.app/bin/matlab" ]; then
-            MATLAB_EXE="/Applications/MATLAB_$version.app/bin/matlab"
+    # Common macOS paths - search for any R202* version
+    # We sort in reverse to prefer the newest version found
+    for matlab_app in $(find /Applications -maxdepth 1 -name "MATLAB_R202*.app" 2>/dev/null | sort -r); do
+        if [ -f "$matlab_app/bin/matlab" ]; then
+            MATLAB_EXE="$matlab_app/bin/matlab"
             break
         fi
     done
@@ -148,7 +161,18 @@ if [ -n "$MATLAB_EXE" ]; then
     print_status "✓ Found MATLAB at: $MATLAB_EXE"
 else
     print_warning "MATLAB executable not found in PATH or standard locations."
-    print_warning "You will need to set the MATLAB_EXE environment variable manually."
+    read -p "Please enter the path to your MATLAB executable (e.g., /Applications/MATLAB_R2023b.app/bin/matlab): " MATLAB_EXE
+    
+    if [ -z "$MATLAB_EXE" ]; then
+        print_error "No MATLAB path provided. Installation cannot continue."
+        exit 1
+    fi
+    
+    if [ ! -f "$MATLAB_EXE" ] && [ ! -x "$MATLAB_EXE" ]; then
+        print_error "Provided MATLAB path does not exist or is not executable: $MATLAB_EXE"
+        exit 1
+    fi
+    print_status "✓ Using MATLAB at: $MATLAB_EXE"
 fi
 
 # Create/Update .env file

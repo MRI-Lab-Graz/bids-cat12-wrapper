@@ -141,6 +141,18 @@ print_status "Updating system packages..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Ensure downloads and external tools are gitignored
+if [ -f "$PROJECT_DIR/.gitignore" ]; then
+    if ! grep -q "^external/" "$PROJECT_DIR/.gitignore"; then
+        print_status "Adding external/ to .gitignore..."
+        echo "external/" >> "$PROJECT_DIR/.gitignore"
+    fi
+    if ! grep -q "^\*.zip" "$PROJECT_DIR/.gitignore"; then
+        print_status "Adding *.zip to .gitignore..."
+        echo "*.zip" >> "$PROJECT_DIR/.gitignore"
+    fi
+fi
+
 # Create installation directory within the project (repo root)
 INSTALL_DIR="$PROJECT_DIR/external"
 print_status "Creating installation directory: $INSTALL_DIR"
