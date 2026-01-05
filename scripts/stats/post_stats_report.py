@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 import glob
 import nibabel as nib
 import numpy as np
@@ -152,11 +153,29 @@ def generate_report(results_dir, output_html, filter_mode="all"):
     is_surface = len(glob.glob(os.path.join(results_dir, "*.gii"))) > 0
     print(f"Mode: {'Surface' if is_surface else 'Volume'}")
 
-    # Check for TFCE files
-    tfce_files = glob.glob(os.path.join(results_dir, "TFCE*"))
+    # Check for TFCE files (case-insensitive)
+    tfce_files = glob.glob(os.path.join(results_dir, "[Tt][Ff][Cc][Ee]*"))
+    
+    # Fallback: check parent directory if no TFCE files found in results_dir
+    if not tfce_files:
+        parent_dir = os.path.dirname(results_dir.rstrip(os.sep))
+        if parent_dir and os.path.isdir(parent_dir):
+            parent_tfce = glob.glob(os.path.join(parent_dir, "[Tt][Ff][Cc][Ee]*"))
+            if parent_tfce:
+                print(f"Note: No TFCE files in {results_dir}, but found {len(parent_tfce)} in parent directory. Using those.")
+                tfce_files = parent_tfce
+                # We'll need to search in parent_dir for these files later too
+                search_dirs = [results_dir, parent_dir]
+            else:
+                search_dirs = [results_dir]
+        else:
+            search_dirs = [results_dir]
+    else:
+        search_dirs = [results_dir]
+
     has_tfce = len(tfce_files) > 0
     if not has_tfce:
-        print("Warning: No TFCE files found in this directory.")
+        print("Warning: No TFCE files found in this directory or its parent.")
 
     # Load SPM.mat
     spm_mat_path = os.path.join(results_dir, 'SPM.mat')
@@ -231,69 +250,76 @@ def generate_report(results_dir, output_html, filter_mode="all"):
     ]
     
     # Correction types
-    ext = '.gii' if is_surface else '.nii'
+    ext_pattern = '.gii*' if is_surface else '.nii*'
     correction_patterns = {
-        'FWE': [f'TFCE_log_pFWE_*{ext}', f'logP_*FWE*{ext}', f'*_log_pFWE_*{ext}'],
-        'FDR': [f'TFCE_log_pFDR_*{ext}', f'logP_*FDR*{ext}', f'*_log_pFDR_*{ext}'],
-        'Uncorrected': [f'TFCE_log_p_*{ext}', f'logP_*{ext}', f'*_log_p_*{ext}']
+        'FWE': [f'TFCE*FWE*{ext_pattern}'],
+        'FDR': [f'TFCE*FDR*{ext_pattern}'],
+        'Uncorrected': [f'spmT_*{ext_pattern}', f'spmF_*{ext_pattern}'],
+        'Double Threshold': [f'*pk*{ext_pattern}']
     }
 
     report_data = []
 
     # Find all relevant files
     for corr_name, patterns in correction_patterns.items():
-        if filter_mode == "double_threshold" and corr_name != "FWE":
+        if filter_mode == "double_threshold" and corr_name != "Double Threshold":
+            continue
+        if filter_mode == "tfce" and corr_name not in ["FWE", "FDR"]:
+            continue
+        if filter_mode == "spmt" and corr_name != "Uncorrected":
             continue
 
         files = []
-        for p in patterns:
-            files.extend(glob.glob(os.path.join(results_dir, p)))
+        for s_dir in search_dirs:
+            for p in patterns:
+                files.extend(glob.glob(os.path.join(s_dir, p)))
         
         # Remove duplicates and sort
         files = sorted(list(set(files)))
         
         for f in files:
-            base = os.path.basename(f)
-            if filter_mode == "tfce" and "TFCE" not in base:
-                continue
-            if filter_mode == "spmt" and "TFCE" in base:
-                continue
+            basename = os.path.basename(f)
+            base_upper = basename.upper()
             
+            # Determine extension of current file
+            curr_ext = ""
+            for e in ['.nii.gz', '.nii', '.gii']:
+                if basename.lower().endswith(e):
+                    curr_ext = e
+                    break
+
             # Double-threshold specific parsing
             cluster_size = None
             is_bidirectional = False
             actual_p_fwe = None
-            if "pkFWE" in base:
-                k_match = re.search(r'_k(\d+)_', base)
+            if "PK" in base_upper:
+                k_match = re.search(r'_k(\d+)', basename)
                 if k_match:
                     cluster_size = int(k_match.group(1))
                 
-                p_fwe_match = re.search(r'pkFWE(\d+)', base)
+                p_fwe_match = re.search(r'pkFWE(\d+)', basename)
                 if p_fwe_match:
                     actual_p_fwe = int(p_fwe_match.group(1)) / 100.0
 
-                if "_bi" in base:
+                if "_bi" in basename.lower():
                     is_bidirectional = True
                 
-                if filter_mode == "double_threshold":
-                    display_corr = "Double Threshold"
-                else:
-                    display_corr = corr_name
+                display_corr = "Double Threshold"
             else:
-                if filter_mode == "double_threshold":
-                    continue
-                # Prevent pkFWE files from appearing in Uncorrected/FDR lists
-                if "pkFWE" in base:
+                # Prevent pkFWE files from appearing in other lists if they were caught by a broad pattern
+                if "PK" in base_upper:
                     continue
                 display_corr = corr_name
 
-            basename = os.path.basename(f)
             con_num = None
             
-            # Try to parse con_num from TFCE_log_p..._0001.nii
-            if 'TFCE_log_p' in basename or '_log_p' in basename:
+            # Try to parse con_num from TFCE_log_p..._0001.nii or spmT_0001.nii
+            if any(x in base_upper for x in ['TFCE', 'SPMT', 'SPMF']):
                 try:
-                    parts = basename.replace(ext, '').split('_')
+                    clean_name = basename
+                    if curr_ext:
+                        clean_name = basename[:-len(curr_ext)]
+                    parts = clean_name.split('_')
                     con_num = int(parts[-1])
                 except (ValueError, IndexError):
                     pass
@@ -324,11 +350,19 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             
             # Try to find the raw statistic file
             stat_file = None
+            current_file_dir = os.path.dirname(f)
             for prefix in [f'spm{stat_type}_', f'{stat_type}_']:
-                p = os.path.join(results_dir, f"{prefix}{con_num:04d}{ext}")
-                if os.path.exists(p):
-                    stat_file = p
-                    break
+                # Try with current extension first, then others
+                for e in [curr_ext, '.nii', '.nii.gz', '.gii']:
+                    if not e: continue
+                    # Check in the same directory as the TFCE file, then in results_dir
+                    for d in [current_file_dir, results_dir]:
+                        p = os.path.join(d, f"{prefix}{con_num:04d}{e}")
+                        if os.path.exists(p):
+                            stat_file = p
+                            break
+                    if stat_file: break
+                if stat_file: break
             
             stat_img = nib.load(stat_file) if stat_file else None
             if is_surface:
@@ -686,13 +720,28 @@ def generate_report(results_dir, output_html, filter_mode="all"):
     print(f"Report saved to: {output_html}")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python post_stats_report.py <results_dir> <output_html> [filter_mode]")
-        print("  filter_mode: all | tfce | spmt | double_threshold")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Generate an interactive HTML report for CAT12 statistical results.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python post_stats_report.py ./stats_results ./report.html
+  python post_stats_report.py ./stats_results ./report.html --filter tfce
+  python post_stats_report.py ./stats_results ./report.html --filter spmt
+
+Filter Modes:
+  all              - Include all available results (TFCE, SPM{T}, etc.)
+  tfce             - Only include Threshold-Free Cluster Enhancement results
+  spmt             - Only include standard SPM T-maps
+  double_threshold - Only include results meeting both voxel and cluster thresholds
+        """
+    )
     
-    res_dir = sys.argv[1]
-    out_html = sys.argv[2]
-    filt = sys.argv[3] if len(sys.argv) > 3 else "all"
+    parser.add_argument("results_dir", help="Directory containing CAT12/SPM statistical results (e.g., SPM.mat, TFCE maps)")
+    parser.add_argument("output_html", help="Path where the generated HTML report will be saved")
+    parser.add_argument("--filter", "-f", choices=["all", "tfce", "spmt", "double_threshold"], default="all",
+                        help="Filter the types of results included in the report (default: all)")
     
-    generate_report(res_dir, out_html, filt)
+    args = parser.parse_args()
+    
+    generate_report(args.results_dir, args.output_html, args.filter)

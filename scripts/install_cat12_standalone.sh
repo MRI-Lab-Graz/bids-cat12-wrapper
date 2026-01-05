@@ -7,6 +7,32 @@
 
 set -e  # Exit on any error
 
+# Function to print help
+show_help() {
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help     Show this help message and exit"
+    echo "  -y, --yes      Skip confirmation prompts (assume yes)"
+    echo "  --target DIR   Specify target installation directory (default: external/)"
+    echo ""
+    echo "Description:"
+    echo "  This script installs CAT12.9 (R2017b) with integrated SPM12 standalone,"
+    echo "  the required MATLAB Runtime (MCR), and the Deno runtime."
+    echo "  It handles both Ubuntu and macOS (Intel/Apple Silicon via Rosetta 2)."
+}
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help) show_help; exit 0 ;;
+        -y|--yes) ASSUME_YES=true ;;
+        --target) TARGET_DIR="$2"; shift ;;
+        *) echo "Unknown parameter: $1"; show_help; exit 1 ;;
+    esac
+    shift
+done
+
 echo "=========================================="
 echo "CAT12 Standalone Installation Script"
 echo "=========================================="

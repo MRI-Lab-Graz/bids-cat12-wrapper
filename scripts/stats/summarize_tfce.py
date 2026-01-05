@@ -1,16 +1,23 @@
 import os
 import sys
+import argparse
 import glob
 import nibabel as nib
 import numpy as np
 from scipy.io import loadmat
 
 def summarize_tfce(results_dir):
-    print(f"Summarizing TFCE results in: {results_dir}")
+    """
+    Summarize TFCE results by reading -log10(p) FWE maps.
     
-    if not os.path.exists(results_dir):
-        print(f"Error: Directory {results_dir} does not exist.")
+    Args:
+        results_dir: Directory containing TFCE output files and SPM.mat
+    """
+    if not os.path.isdir(results_dir):
+        print(f"Error: {results_dir} is not a valid directory.")
         return
+
+    print(f"Summarizing TFCE results in: {results_dir}")
 
     # Try to load SPM.mat for contrast names
     spm_mat_path = os.path.join(results_dir, 'SPM.mat')
@@ -77,7 +84,18 @@ def summarize_tfce(results_dir):
         print("\nSignificant results found!")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python summarize_tfce.py <results_directory>")
-    else:
-        summarize_tfce(sys.argv[1])
+    parser = argparse.ArgumentParser(
+        description="Summarize CAT12 TFCE statistical results from a results directory.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Example:
+  python summarize_tfce.py ./stats_results
+
+This script looks for TFCE_log_p_FWE_*.nii files and matches them with 
+contrast names from SPM.mat to provide a quick overview of significant findings.
+        """
+    )
+    parser.add_argument("results_dir", help="Directory containing TFCE results and SPM.mat")
+    
+    args = parser.parse_args()
+    summarize_tfce(args.results_dir)
