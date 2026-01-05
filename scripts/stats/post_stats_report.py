@@ -246,7 +246,8 @@ def generate_report(results_dir, output_html, filter_mode="all"):
     thresholds = [
         (0.01, 2.0, "Significant (p < 0.01)"),
         (0.05, 1.30103, "Significant (p < 0.05)"),
-        (0.1, 1.0, "Trend (p < 0.1)")
+        (0.1, 1.0, "Trend (p < 0.1)"),
+        (1.0, 0.0, "All Results")
     ]
     
     # Correction types
@@ -262,20 +263,27 @@ def generate_report(results_dir, output_html, filter_mode="all"):
 
     # Find all relevant files
     for corr_name, patterns in correction_patterns.items():
+        # If filter_mode is "double_threshold", ONLY process that category
         if filter_mode == "double_threshold" and corr_name != "Double Threshold":
             continue
+        # If filter_mode is "tfce", only FWE/FDR
         if filter_mode == "tfce" and corr_name not in ["FWE", "FDR"]:
             continue
+        # If filter_mode is "spmt", only Uncorrected
         if filter_mode == "spmt" and corr_name != "Uncorrected":
             continue
 
         files = []
         for s_dir in search_dirs:
             for p in patterns:
-                files.extend(glob.glob(os.path.join(s_dir, p)))
+                found = glob.glob(os.path.join(s_dir, p))
+                if found:
+                    files.extend(found)
         
         # Remove duplicates and sort
         files = sorted(list(set(files)))
+        if files:
+            print(f"Found {len(files)} files for category: {corr_name}")
         
         for f in files:
             basename = os.path.basename(f)
@@ -320,29 +328,45 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                     if curr_ext:
                         clean_name = basename[:-len(curr_ext)]
                     parts = clean_name.split('_')
-                    con_num = int(parts[-1])
+                    # Handle cases like TFCE_log_pFWE_0001
+                    for part in reversed(parts):
+                        try:
+                            con_num = int(part)
+                            break
+                        except ValueError:
+                            continue
                 except (ValueError, IndexError):
                     pass
             
             # If not found, try to match contrast name from logP_ContrastName_...
             if con_num is None:
                 # CAT12 thresholding tool replaces spaces with underscores but keeps other chars
+                # It also replaces colons and other special chars with underscores sometimes
                 for num, name in contrast_names.items():
+                    # Try exact match with underscores
                     cat12_style_name = name.replace(' ', '_')
                     if cat12_style_name in basename:
+                        con_num = num
+                        break
+                    
+                    # Try matching without colons
+                    no_colon_name = name.replace(':', '_').replace(' ', '_')
+                    if no_colon_name in basename:
                         con_num = num
                         break
             
             # Fallback: try even more aggressive matching if still not found
             if con_num is None:
                 for num, name in contrast_names.items():
-                    clean_name = re.sub(r'[^a-zA-Z0-9]', '_', name)
-                    clean_basename = re.sub(r'[^a-zA-Z0-9]', '_', basename)
-                    if clean_name in clean_basename:
+                    # Remove all non-alphanumeric chars and match
+                    clean_name = re.sub(r'[^a-zA-Z0-9]', '', name).lower()
+                    clean_basename = re.sub(r'[^a-zA-Z0-9]', '', basename).lower()
+                    if clean_name in clean_basename or clean_basename in clean_name:
                         con_num = num
                         break
             
             if con_num is None:
+                print(f"Warning: Could not determine contrast number for {basename}. Skipping.")
                 continue
             
             con_name = contrast_names.get(con_num, f"Contrast {con_num}")
@@ -381,65 +405,89 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             # For each threshold
             for p_val, log_p_thresh, p_label in thresholds:
                 # If double threshold, we only want to show the result at the actual FWE level used
+                current_p_label = p_label
+                current_log_p_thresh = log_p_thresh
+                
                 if actual_p_fwe is not None:
                     if abs(p_val - actual_p_fwe) > 0.001:
                         continue
-                    p_label = f"FWE (p < {actual_p_fwe})"
+                    current_p_label = f"FWE (p < {actual_p_fwe})"
                     # Use a minimal threshold for already-thresholded files
-                    log_p_thresh = 0.0001 
+                    current_log_p_thresh = 0.0001 
 
-                mask = (~np.isnan(data)) & (data >= log_p_thresh)
+                # Use absolute values for thresholding to catch both positive and negative effects
+                abs_data = np.abs(data)
+                mask = (~np.isnan(abs_data)) & (abs_data >= current_log_p_thresh)
                 sig_elements = np.sum(mask)
                 
-                if sig_elements > 0:
-                    max_logp = np.nanmax(data[mask])
-                    peak_idx = np.nanargmax(np.where(mask, data, -np.inf))
-                    
+                # Include all double-threshold results, even if empty, to show they were processed
+                if sig_elements > 0 or display_corr == "Double Threshold":
                     region_mappings = {}
-                    
-                    if not is_surface:
-                        peak_idx_3d = np.unravel_index(peak_idx, data.shape)
-                        peak_mni = get_mni_coords(affine, peak_idx_3d)
-                        peak_stat = stat_data[peak_idx_3d] if stat_data is not None else 0
+                    if sig_elements > 0:
+                        # Find peak based on absolute magnitude
+                        max_logp_abs = np.nanmax(abs_data[mask])
+                        peak_idx = np.nanargmax(np.where(mask, abs_data, -np.inf))
                         
-                        for atl in atlases:
-                            atlas_vox = get_vox_coords(atl['affine'], peak_mni)
-                            region_name = "Unknown"
-                            if all(0 <= atlas_vox[i] < atl['data'].shape[i] for i in range(3)):
-                                region_id = int(atl['data'][tuple(atlas_vox)])
-                                region_name = atl['labels'].get(region_id, f"Unknown (ID: {region_id})")
-                            region_mappings[atl['name']] = region_name
+                        # Get the actual signed value at the peak
+                        if is_surface:
+                            peak_val = data[peak_idx]
+                        else:
+                            peak_idx_3d = np.unravel_index(peak_idx, data.shape)
+                            peak_val = data[peak_idx_3d]
+
+                        if not is_surface:
+                            peak_idx_3d = np.unravel_index(peak_idx, data.shape)
+                            peak_mni = get_mni_coords(affine, peak_idx_3d)
+                            peak_stat = stat_data[peak_idx_3d] if stat_data is not None else 0
+                            
+                            for atl in atlases:
+                                atlas_vox = get_vox_coords(atl['affine'], peak_mni)
+                                region_name = "Unknown"
+                                if all(0 <= atlas_vox[i] < atl['data'].shape[i] for i in range(3)):
+                                    region_id = int(atl['data'][tuple(atlas_vox)])
+                                    region_name = atl['labels'].get(region_id, f"Unknown (ID: {region_id})")
+                                region_mappings[atl['name']] = region_name
+                        else:
+                            peak_stat = stat_data[peak_idx] if stat_data is not None else 0
+                            peak_mni = [0, 0, 0]
+                            n_v = len(data)
+                            
+                            for atl in atlases:
+                                region_name = "Unknown"
+                                if peak_idx < n_v // 2:
+                                    labels, names = atl['lh']
+                                    region_id = labels[peak_idx]
+                                    region_name = f"LH: {names[region_id]}"
+                                else:
+                                    labels, names = atl['rh']
+                                    region_id = labels[peak_idx - n_v // 2]
+                                    region_name = f"RH: {names[region_id]}"
+                                region_mappings[atl['name']] = region_name
                     else:
-                        peak_stat = stat_data[peak_idx] if stat_data is not None else 0
+                        max_logp_abs = 0.0
+                        peak_val = 0.0
+                        peak_stat = 0.0
                         peak_mni = [0, 0, 0]
-                        n_v = len(data)
-                        
                         for atl in atlases:
-                            region_name = "Unknown"
-                            if peak_idx < n_v // 2:
-                                labels, names = atl['lh']
-                                region_id = labels[peak_idx]
-                                region_name = f"LH: {names[region_id]}"
-                            else:
-                                labels, names = atl['rh']
-                                region_id = labels[peak_idx - n_v // 2]
-                                region_name = f"RH: {names[region_id]}"
-                            region_mappings[atl['name']] = region_name
+                            region_mappings[atl['name']] = "No significant clusters"
 
                     direction = "Positive"
-                    if any(word in con_name.lower() for word in ["negative", "decrease", " < "]):
+                    if peak_val < 0:
+                        direction = "Negative"
+                    elif any(word in con_name.lower() for word in ["negative", "decrease", " < "]):
                         direction = "Negative"
                     elif stat_type == "F":
                         direction = "Bidirectional (F)"
                     
-                    # Check if the map direction matches the contrast intent
-                    if filter_mode == "double_threshold":
-                        if not is_bidirectional:
-                            # If it's a one-sided map, ensure it matches the contrast name
-                            if direction == "Positive" and "_bi" in base:
-                                continue # Should not happen with current naming
-                        else:
-                            direction = "Two-sided"
+                    if display_corr == "Double Threshold":
+                        if is_bidirectional:
+                            # For bidirectional maps, we use the peak value to determine the primary direction shown
+                            if peak_val < -0.0001:
+                                direction = "Negative (Two-sided)"
+                            elif peak_val > 0.0001:
+                                direction = "Positive (Two-sided)"
+                            else:
+                                direction = "Two-sided (No peak)"
                     
                     report_data.append({
                         'id': f"con_{con_num}_{corr_name}_{int(p_val*100)}",
@@ -448,10 +496,10 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                         'correction': display_corr,
                         'orig_correction': corr_name,
                         'p_thresh': p_val,
-                        'log_p_thresh': log_p_thresh,
-                        'p_label': p_label,
+                        'log_p_thresh': current_log_p_thresh,
+                        'p_label': current_p_label,
                         'sig_voxels': int(sig_elements),
-                        'max_logp': float(max_logp),
+                        'max_logp': float(max_logp_abs),
                         'peak_stat': float(peak_stat),
                         'stat_type': stat_type,
                         'direction': direction,
@@ -471,10 +519,17 @@ def generate_report(results_dir, output_html, filter_mode="all"):
         if not is_surface:
             try:
                 img = nib.load(f_path)
+                # Ensure data is clean for plotting
+                data = img.get_fdata()
+                data = np.nan_to_num(data)
+                clean_img = nib.Nifti1Image(data, img.affine, img.header)
+                
                 fig = plt.figure(figsize=(12, 5))
-                plotting.plot_glass_brain(img, display_mode='lyrz', colorbar=True, 
+                # Use plot_abs=False to show negative values in blue
+                # Use a very small threshold for already-thresholded maps
+                plotting.plot_glass_brain(clean_img, display_mode='lyrz', colorbar=True, 
                                          title=f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})", 
-                                         figure=fig, threshold=log_p_thresh)
+                                         figure=fig, threshold=log_p_thresh, plot_abs=False)
                 tmpfile = BytesIO()
                 fig.savefig(tmpfile, format='png', bbox_inches='tight', dpi=120)
                 encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
@@ -563,6 +618,7 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                     <option value="0.01">p < 0.01 (Significant)</option>
                     <option value="0.05">p < 0.05 (Significant)</option>
                     <option value="0.1">p < 0.1 (Trend)</option>
+                    <option value="1.0">p <= 1.0 (All)</option>
                 </select>
             </div>
             <div class="control-group">
