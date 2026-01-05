@@ -61,9 +61,8 @@ if longitudinal_mode && length(files) > 1
     fprintf('Setting up longitudinal processing...\n');
     
     % Main longitudinal job
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects = struct();
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects.mov = files;
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects.timepoints = 1:length(files);
+    matlabbatch{1}.spm.tools.cat.long.datalong.subjects{1}.mov = files;
+    matlabbatch{1}.spm.tools.cat.long.datalong.subjects{1}.timepoints = 1:length(files);
     
     % Template and registration options
     matlabbatch{1}.spm.tools.cat.long.opts.tpm = {fullfile(spm('dir'),'tpm','TPM.nii')};

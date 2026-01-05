@@ -136,9 +136,8 @@ matlabbatch = struct();
 % Longitudinal processing job
 if {LONGITUDINAL}
     % Longitudinal processing
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects = struct();
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects.mov = files;
-    matlabbatch{1}.spm.tools.cat.long.datalong.subjects.timepoints = 1:length(files);
+    matlabbatch{1}.spm.tools.cat.long.datalong.subjects{1}.mov = files;
+    matlabbatch{1}.spm.tools.cat.long.datalong.subjects{1}.timepoints = 1:length(files);
 
     % Processing options
     matlabbatch{1}.spm.tools.cat.long.opts.tpm = {fullfile(spm('dir'),'tpm','TPM.nii')};
