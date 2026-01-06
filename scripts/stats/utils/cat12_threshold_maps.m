@@ -103,17 +103,8 @@ function cat12_threshold_maps(stats_dir, varargin)
     end
 
     % Handle threshold
-    % Note: CAT12 uses specific field names for common thresholds
-    if p_unc == 0.001
-        matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.thresh001 = 0.001;
-    elseif p_unc == 0.01
-        matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.thresh01 = 0.01;
-    elseif p_unc == 0.05
-        matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.thresh05 = 0.05;
-    else
-        fprintf('Warning: p_unc = %.4f not explicitly supported by this script version. Using 0.001.\n', p_unc);
-        matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.thresh001 = 0.001;
-    end
+    % CAT12's uncorrected branch uses the tag 'thresh001' regardless of the value.
+    matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.thresh001 = p_unc;
 
     % Two-sided vs one-sided: CAT12 uses "inverse" flag to capture the opposite tail.
     if both
@@ -122,19 +113,10 @@ function cat12_threshold_maps(stats_dir, varargin)
         matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.inverse = 0;
     end
 
-    % Cluster/FWE handling. If an FWE threshold is requested, prefer the CAT12
-    % fwe2 branch (voxel-wise FWE) and set non-isotropic smoothing flag.
+    % Cluster/FWE handling.
     if ~isempty(p_fwe) && p_fwe > 0
-        if abs(p_fwe - 0.05) < 1e-6
-            matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.thresh05 = 0.05;
-        elseif abs(p_fwe - 0.01) < 1e-6
-            matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.thresh01 = 0.01;
-        elseif abs(p_fwe - 0.001) < 1e-6
-            matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.thresh001 = 0.001;
-        else
-            fprintf('Warning: p_fwe = %.4f not explicitly supported; using 0.05.\n', p_fwe);
-            matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.thresh05 = 0.05;
-        end
+        % CAT12's fwe2 branch uses 'thresh05' regardless of the value (0.05, 0.01, etc.)
+        matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.thresh05 = p_fwe;
         matlabbatch{1}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.noniso = 1;
     else
         % Uncorrected cluster extent

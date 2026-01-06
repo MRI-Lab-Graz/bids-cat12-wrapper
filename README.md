@@ -143,21 +143,35 @@ Use `cat12_stats` to run longitudinal statistical analysis (e.g., VBM, Surface T
 - `--output`: Custom output directory (optional).
 - `--nohup`: Run in background (detached). Logs output to `cat12_stats_<timestamp>.log`.
 
-#### C. Post-Stats Reporting (`post_stats_report.py`)
+#### C. Post-Stats & Reporting (`run_stats_sweep.py`)
 
-After running statistics, you can generate a comprehensive HTML report that summarizes significant results across multiple thresholds and correction methods.
+After running statistics, you can generate a comprehensive HTML report and perform a "sweep" of multiple statistical thresholds to explore your results.
 
 ```bash
-# Generate report for a results directory
-./.venv/bin/python scripts/stats/post_stats_report.py /path/to/results/vbm/
+# Run a sweep and generate report (recommended)
+./.venv/bin/python scripts/stats/run_stats_sweep.py /path/to/results/vbm/ --use-matlab
 ```
 
 **Features:**
-- **Multiple Thresholds**: Automatically reports results at $p < 0.01$, $p < 0.05$, and $p < 0.1$ (trend).
-- **Correction Variants**: Summarizes FWE-corrected, FDR-corrected, and Uncorrected results.
-- **Anatomical Mapping**: Automatically maps peak coordinates to brain regions using the **AAL3 atlas**.
-- **MNI Coordinates**: Provides exact peak locations for all significant clusters.
-- **Visual Summary**: Generates a clean, color-coded HTML table for easy interpretation.
+- **Automated Sweep**: Generates standard ($p < 0.001$ uncorr + $0.05$ FWE) and relaxed ($p < 0.005$ uncorr + $0.05$ FWE) thresholded maps.
+- **Effect Size**: Automatically calculates Cohen's $d$ maps for all contrasts.
+- **Cluster Gallery**: High-resolution visualization of top 5 clusters with MNI coordinates and **Atlas labeling** (AAL3/Neuromorphometrics).
+- **Interactive Report**: Generates `post_stats_sweep_report.html` with embedded diagnostic images (Design Matrix, Missing Voxels check).
+- **Environment Support**: Supports both local MATLAB licenses (`--use-matlab`) and standalone MCR environments.
+
+### Apple Silicon (M1/M2/M3) Compatibility
+On macOS ARM64, native MATLAB requires `.mexmaca64` binaries. The standard SPM12 (r7771) distribution only includes Intel (`.mexmaci64`) binaries. 
+
+If you encounter errors like `spm_sample_vol.c not compiled`, ensure you point the pipeline to an ARM64-compatible SPM installation (e.g., SPM12 with recent patches or a developer version like `spm25`):
+
+```bash
+# In config/config.ini
+[SPM]
+path = /Volumes/Evo/software/spm25
+
+# Or via CLI for the sweep script
+python3 scripts/stats/run_stats_sweep.py <RESULTS_DIR> --use-matlab --spm-path /Volumes/Evo/software/spm25
+```
 
 ## Directory Structure
 

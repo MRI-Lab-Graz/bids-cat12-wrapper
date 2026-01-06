@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 import glob
 import nibabel as nib
@@ -16,6 +15,7 @@ import xml.etree.ElementTree as ET
 import json
 from datetime import datetime
 import re
+from scipy import ndimage
 
 def get_mni_coords(affine, vox_coords):
     """Convert voxel coordinates to MNI coordinates."""
@@ -137,7 +137,95 @@ def plot_surface_to_base64(stat_map_path, mesh_lh, mesh_rh, bg_lh_data, bg_rh_da
         print(f"Warning: Could not plot surface {stat_map_path}: {e}")
         return None
 
-def generate_report(results_dir, output_html, filter_mode="all"):
+def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5):
+    """Identify clusters and generate ortho plots for the peaks."""
+    try:
+        data = img.get_fdata()
+        affine = img.affine
+        
+        # Threshold the data (use absolute for both directions)
+        mask = np.abs(data) >= threshold
+        labeled_array, num_features = ndimage.label(mask)
+        
+        if num_features == 0:
+            return []
+        
+        # Get cluster sizes
+        cluster_sizes = np.bincount(labeled_array.ravel())
+        cluster_sizes[0] = 0  # ignore background
+        
+        # Find top clusters
+        top_cluster_ids = np.argsort(cluster_sizes)[::-1]
+        
+        gallery = []
+        count = 0
+        for cid in top_cluster_ids:
+            if cluster_sizes[cid] < 100 or count >= n_clusters: 
+                continue
+            
+            # Find peak in cluster
+            cluster_mask = (labeled_array == cid)
+            # Use absolute values to find peak magnitude
+            cluster_data = np.where(cluster_mask, np.abs(data), 0)
+            peak_idx = np.unravel_index(np.argmax(cluster_data), data.shape)
+            
+            # Filter out peaks at the very edge of the image (often noise)
+            is_edge = False
+            for i, p_idx in enumerate(peak_idx):
+                if p_idx <= 2 or p_idx >= data.shape[i] - 3:
+                    is_edge = True
+                    break
+            if is_edge:
+                continue
+
+            peak_mni = get_mni_coords(affine, peak_idx)
+
+            # Atlas Lookups
+            region_mappings = {}
+            all_unknown = True
+            if atlases:
+                for atl in atlases:
+                    atlas_vox = get_vox_coords(atl['affine'], peak_mni)
+                    region_name = "Unknown"
+                    if all(0 <= atlas_vox[i] < atl['data'].shape[i] for i in range(3)):
+                        region_id = int(atl['data'][tuple(atlas_vox)])
+                        region_name = atl['labels'].get(region_id, f"Unknown (ID: {region_id})")
+                    if region_name and "Unknown" not in region_name:
+                        all_unknown = False
+                    region_mappings[atl['name']] = region_name
+            
+            # Skip if peak is in an unknown region (and we actually have atlases)
+            if atlases and all_unknown:
+                continue
+            
+            # Plot
+            fig = plt.figure(figsize=(12, 3))
+            # Workaround for plot_stat_map showing only positive for thresholded maps
+            # We want to show the actual data (which can be negative)
+            plotting.plot_stat_map(img, cut_coords=peak_mni, display_mode='ortho', 
+                                   colorbar=True, threshold=threshold, figure=fig,
+                                   title=f"Cluster {cid} (Size: {cluster_sizes[cid]} voxels)",
+                                   draw_cross=True, annotate=True)
+            
+            tmpfile = BytesIO()
+            fig.savefig(tmpfile, format='png', bbox_inches='tight', dpi=100)
+            encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+            plt.close(fig)
+            
+            gallery.append({
+                'id': int(cid),
+                'size': int(cluster_sizes[cid]),
+                'peak_mni': [float(round(c, 2)) for c in peak_mni],
+                'plot': encoded,
+                'regions': region_mappings
+            })
+            count += 1
+        return gallery
+    except Exception as e:
+        print(f"Warning: Cluster gallery generation failed: {e}")
+        return []
+
+def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
     print(f"Generating post-stats report for: {results_dir}")
     filter_mode = (filter_mode or "all").lower()
     if filter_mode not in {"all", "tfce", "spmt", "double_threshold"}:
@@ -194,8 +282,31 @@ def generate_report(results_dir, output_html, filter_mode="all"):
         except Exception as e:
             print(f"Warning: Could not read SPM.mat: {e}")
 
+    # Load contrasts.json if it exists
+    contrasts_json_path = os.path.join(results_dir, 'contrasts.json')
+    if os.path.exists(contrasts_json_path):
+        try:
+            with open(contrasts_json_path, 'r') as f:
+                c_data = json.load(f)
+                # Handle different possible JSON formats
+                if isinstance(c_data, dict):
+                    for k, v in c_data.items():
+                        try:
+                            contrast_names[int(k)] = v
+                        except ValueError:
+                            contrast_names[k] = v
+                elif isinstance(c_data, list):
+                    for i, item in enumerate(c_data):
+                        if isinstance(item, dict) and 'name' in item:
+                            idx = item.get('index', i + 1)
+                            contrast_names[idx] = item['name']
+                        else:
+                            contrast_names[i+1] = item
+        except Exception as e:
+            print(f"Warning: Could not read contrasts.json: {e}")
+
     # Define Atlases
-    cat12_base = "/data/local/software/cat-12/external/cat12/spm12_mcr/home/gaser/gaser/spm/spm12"
+    cat12_base = spm_path if spm_path else "/Volumes/Evo/software/cat-12/external/matlab_tools/spm12"
     atlases = []
     bg_lh_data = None
     bg_rh_data = None
@@ -211,8 +322,15 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             ("JulichBrain", "atlas/cat12_julichbrain.nii", "atlas/labels_cat12_julichbrain.xml")
         ]
         for name, rel_nii, rel_xml in atlas_configs:
+            # Check for atlas in spm_path/atlas/ or spm_path/toolbox/cat12/atlas/
             nii_path = os.path.join(cat12_base, rel_nii)
+            if not os.path.exists(nii_path):
+                nii_path = os.path.join(cat12_base, "toolbox/cat12", rel_nii)
+            
             xml_path = os.path.join(cat12_base, rel_xml)
+            if not os.path.exists(xml_path):
+                xml_path = os.path.join(cat12_base, "toolbox/cat12", rel_xml)
+                
             data, affine, labels = load_atlas(nii_path, xml_path)
             if data is not None:
                 atlases.append({'name': name, 'data': data, 'affine': affine, 'labels': labels})
@@ -253,10 +371,12 @@ def generate_report(results_dir, output_html, filter_mode="all"):
     # Correction types
     ext_pattern = '.gii*' if is_surface else '.nii*'
     correction_patterns = {
-        'FWE': [f'TFCE*FWE*{ext_pattern}'],
-        'FDR': [f'TFCE*FDR*{ext_pattern}'],
-        'Uncorrected': [f'spmT_*{ext_pattern}', f'spmF_*{ext_pattern}'],
-        'Double Threshold': [f'*pk*{ext_pattern}']
+        'FWE (Voxel)': [f'T_log_pFWE*{ext_pattern}', f'F_log_pFWE*{ext_pattern}'],
+        'FDR (Voxel)': [f'T_log_pFDR*{ext_pattern}', f'F_log_pFDR*{ext_pattern}'],
+        'FWE (TFCE)': [f'TFCE*FWE*{ext_pattern}'],
+        'FDR (TFCE)': [f'TFCE*FDR*{ext_pattern}'],
+        'Double Threshold': [f'*pk*{ext_pattern}', f'logP_*{ext_pattern}'],
+        'Effect Size': [f'Cohen_d_*{ext_pattern}', f'd_map_*{ext_pattern}']
     }
 
     report_data = []
@@ -282,6 +402,16 @@ def generate_report(results_dir, output_html, filter_mode="all"):
         
         # Remove duplicates and sort
         files = sorted(list(set(files)))
+
+        # FILTER: If we are in Double Threshold category, skip the raw logP files (uncorrected) 
+        # to reduce report bloat, as they are redundant if corrected ones exist.
+        if corr_name == "Double Threshold":
+            pk_bases = [f.replace('_pkFWE5', '').replace('_pkFWE1', '').replace('_pkFWE10', '') 
+                        for f in files if "PK" in f.upper()]
+            files = [f for f in files if "PK" in f.upper() or f not in pk_bases]
+            # More aggressive: skip any logP_ file that doesn't have PK if it's in this list
+            files = [f for f in files if "PK" in os.path.basename(f).upper() or not os.path.basename(f).upper().startswith("LOGP_")]
+        
         if files:
             print(f"Found {len(files)} files for category: {corr_name}")
         
@@ -300,6 +430,8 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             cluster_size = None
             is_bidirectional = False
             actual_p_fwe = None
+            forming_threshold = None
+            
             if "PK" in base_upper:
                 k_match = re.search(r'_k(\d+)', basename)
                 if k_match:
@@ -307,7 +439,23 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                 
                 p_fwe_match = re.search(r'pkFWE(\d+)', basename)
                 if p_fwe_match:
+                    # In CAT12 pkFWE5 means p < 0.05
                     actual_p_fwe = int(p_fwe_match.group(1)) / 100.0
+
+                # Interpretation of p0.1 in CAT12 nomenclature as p < 0.001 (0.1%)
+                forming_match = re.search(r'_p(0\.1|_001)', basename)
+                if forming_match:
+                    forming_threshold = "p < 0.001 (uncorr)"
+                else:
+                    forming_match_gen = re.search(r'_p(\d+\.?\d*)', basename)
+                    if forming_match_gen:
+                        try:
+                            # CAT12 uncorrected thresholds are often expressed as percentages in filenames
+                            # 0.1 -> 0.1% -> 0.001, 0.5 -> 0.5% -> 0.005, 1.0 -> 1.0% -> 0.01
+                            val = float(forming_match_gen.group(1))
+                            forming_threshold = f"p < {val/100:.3g} (uncorr)"
+                        except ValueError:
+                            forming_threshold = f"p < {forming_match_gen.group(1)} (uncorr)"
 
                 if "_bi" in basename.lower():
                     is_bidirectional = True
@@ -322,17 +470,22 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             con_num = None
             
             # Try to parse con_num from TFCE_log_p..._0001.nii or spmT_0001.nii
-            if any(x in base_upper for x in ['TFCE', 'SPMT', 'SPMF']):
+            if any(x in base_upper for x in ['TFCE', 'SPMT', 'SPMF', 'T_LOG', 'F_LOG', 'COHEN', 'D_MAP']):
                 try:
                     clean_name = basename
                     if curr_ext:
                         clean_name = basename[:-len(curr_ext)]
                     parts = clean_name.split('_')
-                    # Handle cases like TFCE_log_pFWE_0001
+                    # Handle cases like TFCE_log_pFWE_0001 or Cohen_d_0001
                     for part in reversed(parts):
                         try:
-                            con_num = int(part)
-                            break
+                            # Strip leading zeros to handle 0001
+                            val = part.lstrip('0')
+                            if not val and '0' in part: # Handle '0000'
+                                val = '0'
+                            if val.isdigit():
+                                con_num = int(val)
+                                break
                         except ValueError:
                             continue
                 except (ValueError, IndexError):
@@ -365,6 +518,13 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                         con_num = num
                         break
             
+            # Fallback for CAT12's "Positive effect of condition X" default names
+            if con_num is None:
+                # Matches: Positive_effect_of_condition_1, Group_2, etc.
+                num_match = re.search(r'(?:condition|Group|Contrast)_(\d+)', basename)
+                if num_match:
+                    con_num = int(num_match.group(1))
+
             if con_num is None:
                 print(f"Warning: Could not determine contrast number for {basename}. Skipping.")
                 continue
@@ -378,15 +538,18 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             for prefix in [f'spm{stat_type}_', f'{stat_type}_']:
                 # Try with current extension first, then others
                 for e in [curr_ext, '.nii', '.nii.gz', '.gii']:
-                    if not e: continue
+                    if not e:
+                        continue
                     # Check in the same directory as the TFCE file, then in results_dir
                     for d in [current_file_dir, results_dir]:
                         p = os.path.join(d, f"{prefix}{con_num:04d}{e}")
                         if os.path.exists(p):
                             stat_file = p
                             break
-                    if stat_file: break
-                if stat_file: break
+                    if stat_file:
+                        break
+                if stat_file:
+                    break
             
             stat_img = nib.load(stat_file) if stat_file else None
             if is_surface:
@@ -402,19 +565,24 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                 data = img.get_fdata()
                 affine = img.affine
             
+            # Determine appropriate thresholds for this file
+            current_thresholds_list = thresholds
+            if actual_p_fwe is not None:
+                # 2. If double threshold (pkFWE), only show the specifically used level
+                current_thresholds_list = [(actual_p_fwe, 0.0001, f"FWE (p < {actual_p_fwe})")]
+            elif corr_name == "Effect Size":
+                # For effect size, we only want one "threshold" (all results)
+                current_thresholds_list = [(1.0, 0.2, "Cohen's d")]
+
             # For each threshold
-            for p_val, log_p_thresh, p_label in thresholds:
-                # If double threshold, we only want to show the result at the actual FWE level used
+            for p_val, log_p_thresh, p_label in current_thresholds_list:
+                # 1. Skip "All Results" for p-maps to prevent showing whole brain mask
+                if p_val == 1.0 and corr_name != "Effect Size":
+                    continue
+
                 current_p_label = p_label
                 current_log_p_thresh = log_p_thresh
                 
-                if actual_p_fwe is not None:
-                    if abs(p_val - actual_p_fwe) > 0.001:
-                        continue
-                    current_p_label = f"FWE (p < {actual_p_fwe})"
-                    # Use a minimal threshold for already-thresholded files
-                    current_log_p_thresh = 0.0001 
-
                 # Use absolute values for thresholding to catch both positive and negative effects
                 abs_data = np.abs(data)
                 mask = (~np.isnan(abs_data)) & (abs_data >= current_log_p_thresh)
@@ -471,26 +639,44 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                         for atl in atlases:
                             region_mappings[atl['name']] = "No significant clusters"
 
-                    direction = "Positive"
-                    if peak_val < 0:
-                        direction = "Negative"
-                    elif any(word in con_name.lower() for word in ["negative", "decrease", " < "]):
-                        direction = "Negative"
-                    elif stat_type == "F":
-                        direction = "Bidirectional (F)"
+                    # 4. Improved Direction Detection
+                    has_pos = np.any(data[mask] > 1e-7) if sig_elements > 0 else False
+                    has_neg = np.any(data[mask] < -1e-7) if sig_elements > 0 else False
                     
-                    if display_corr == "Double Threshold":
-                        if is_bidirectional:
-                            # For bidirectional maps, we use the peak value to determine the primary direction shown
-                            if peak_val < -0.0001:
-                                direction = "Negative (Two-sided)"
-                            elif peak_val > 0.0001:
-                                direction = "Positive (Two-sided)"
-                            else:
-                                direction = "Two-sided (No peak)"
+                    if has_pos and has_neg:
+                        direction = "Bidirectional"
+                        if peak_val > 0: direction += " (+ peak)"
+                        else: direction += " (- peak)"
+                    elif has_pos:
+                        direction = "Positive"
+                    elif has_neg:
+                        direction = "Negative"
+                    else:
+                        direction = "No Effect"
+
+                    # Specific overrides for clearer labeling
+                    if corr_name == "Effect Size":
+                        direction = "Positive (d)" if peak_val > 0 else "Negative (d)"
+                    elif stat_type == "F" and not is_bidirectional:
+                        direction = "Positive (F)"
+                    
+                    # Generate Cluster Gallery (Volume only)
+                    cluster_gallery = []
+                    if not is_surface and sig_elements > 0:
+                        # Limit to top 5 clusters
+                        cluster_gallery = get_cluster_gallery(img, current_log_p_thresh, atlases=atlases, n_clusters=5)
+
+                    if display_corr == "Double Threshold" and is_bidirectional:
+                        if has_pos and has_neg:
+                            direction = "Two-sided (Mixed)"
+                        elif has_pos:
+                            direction = "Positive (Two-sided)"
+                        elif has_neg:
+                            direction = "Negative (Two-sided)"
                     
                     report_data.append({
-                        'id': f"con_{con_num}_{corr_name}_{int(p_val*100)}",
+                        # 5. ID Generation using int(p_val*1000) to avoid collisions
+                        'id': f"con_{con_num}_{corr_name.replace(' ', '_')}_{int(p_val*1000)}",
                         'con_num': con_num,
                         'con_name': con_name,
                         'correction': display_corr,
@@ -506,6 +692,8 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                         'peak_mni': [float(round(c, 2)) for c in peak_mni] if not is_surface else "N/A",
                         'regions': region_mappings,
                         'cluster_size': cluster_size,
+                        'forming_threshold': forming_threshold,
+                        'cluster_gallery': cluster_gallery,
                         'file_path': f
                     })
 
@@ -578,6 +766,7 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             .badge-fdr { background-color: #ffc107; color: #212529; }
             .badge-unc { background-color: #6c757d; color: white; }
             .badge-dou { background-color: #6f42c1; color: white; }
+            .badge-eff { background-color: #17a2b8; color: white; }
             
             .dir-pos { color: #28a745; font-weight: bold; }
             .dir-neg { color: #dc3545; font-weight: bold; }
@@ -601,7 +790,8 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                 <p><strong>Results Directory:</strong> {{ results_dir }}</p>
                 <p><strong>Generated on:</strong> {{ date }}</p>
                 <p><strong>Mode:</strong> {{ mode }}</p>
-                <p><small>Click any row in the table to update the visualization.</small></p>
+
+                <p style="margin-top: 20px;"><small>Click any row in the table to update the visualization.</small></p>
             </div>
             <div class="plot-container">
                 <div id="plot-title" style="font-weight: bold; margin-bottom: 10px; font-size: 1.2em;">Select a result to view plot</div>
@@ -610,7 +800,14 @@ def generate_report(results_dir, output_html, filter_mode="all"):
             </div>
         </div>
 
-        <div class="controls">
+        <div id="gallery-section" class="hidden">
+            <h2 style="color: #0056b3; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Cluster Gallery (Top Peaks)</h2>
+            <div id="gallery-content" style="display: flex; flex-direction: column; gap: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <!-- Clusters will be injected here -->
+            </div>
+        </div>
+
+        <div class="controls" style="margin-top: 30px;">
             <div class="control-group">
                 <label for="filter-p">Significance Level:</label>
                 <select id="filter-p" onchange="filterTable()">
@@ -625,10 +822,13 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                 <label for="filter-corr">Correction:</label>
                 <select id="filter-corr" onchange="filterTable()">
                     <option value="all">All Corrections</option>
-                    <option value="FWE">FWE</option>
-                    <option value="FDR">FDR</option>
+                    <option value="FWE (Voxel)">FWE (Voxel)</option>
+                    <option value="FDR (Voxel)">FDR (Voxel)</option>
+                    <option value="FWE (TFCE)">FWE (TFCE)</option>
+                    <option value="FDR (TFCE)">FDR (TFCE)</option>
                     <option value="Uncorrected">Uncorrected</option>
                     <option value="Double Threshold">Double Threshold</option>
+                    <option value="Effect Size">Effect Size</option>
                 </select>
             </div>
             <div class="control-group">
@@ -673,6 +873,7 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                     data-con="{{ row.con_num }}"
                     data-img-id="{{ row.con_num }}_{{ row.correction }}_{{ '%.2f'|format(row.log_p_thresh) }}"
                     data-regions='{{ row.regions | tojson | safe }}'
+                    data-gallery='{{ row.cluster_gallery | tojson | safe }}'
                     onclick="selectRow(this)">
                     <td>{{ row.con_num }}</td>
                     <td>{{ row.con_name }}</td>
@@ -680,6 +881,9 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                         <span class="badge badge-{{ row.correction.lower()[:3] }}">{{ row.correction }}</span>
                         {% if row.cluster_size %}
                         <br><small>k > {{ row.cluster_size }}</small>
+                        {% endif %}
+                        {% if row.forming_threshold %}
+                        <br><small>Forming: {{ row.forming_threshold }}</small>
                         {% endif %}
                     </td>
                     <td>{{ row.p_label }}</td>
@@ -724,6 +928,10 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                     const cell = row.querySelector('.region-cell');
                     cell.innerText = regions[atlasName] || 'N/A';
                 });
+
+                // Update gallery if a row is selected
+                const selectedRow = document.querySelector('.result-row.selected');
+                if (selectedRow) selectRow(selectedRow);
             }
 
             function selectRow(row) {
@@ -744,6 +952,30 @@ def generate_report(results_dir, output_html, filter_mode="all"):
                     plotImg.classList.add('hidden');
                     noPlot.classList.remove('hidden');
                     plotTitle.innerText = 'No visualization available';
+                }
+
+                // Update Gallery
+                const galleryData = JSON.parse(row.getAttribute('data-gallery'));
+                const gallerySection = document.getElementById('gallery-section');
+                const galleryContent = document.getElementById('gallery-content');
+                
+                if (galleryData && galleryData.length > 0) {
+                    const activeAtlas = document.getElementById('select-atlas').value;
+                    gallerySection.classList.remove('hidden');
+                    galleryContent.innerHTML = galleryData.map(c => `
+                        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">
+                                Cluster ${c.id} - ${c.regions[activeAtlas] || 'N/A'} 
+                                <span style="font-weight: normal; color: #666; font-size: 0.9em; margin-left: 10px;">
+                                    MNI: [${c.peak_mni.join(', ')}] | Size: ${c.size} voxels
+                                </span>
+                            </div>
+                            <img src="data:image/png;base64,${c.plot}" style="max-width: 100%; height: auto; border-radius: 4px;">
+                        </div>
+                    `).join('');
+                } else {
+                    gallerySection.classList.add('hidden');
+                    galleryContent.innerHTML = '';
                 }
             }
 
@@ -797,7 +1029,8 @@ Filter Modes:
     parser.add_argument("output_html", help="Path where the generated HTML report will be saved")
     parser.add_argument("--filter", "-f", choices=["all", "tfce", "spmt", "double_threshold"], default="all",
                         help="Filter the types of results included in the report (default: all)")
+    parser.add_argument("--spm-path", help="Path to SPM installation (for loading atlases)")
     
     args = parser.parse_args()
     
-    generate_report(args.results_dir, args.output_html, args.filter)
+    generate_report(args.results_dir, args.output_html, args.filter, spm_path=args.spm_path)

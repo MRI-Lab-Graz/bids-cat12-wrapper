@@ -28,6 +28,18 @@ The installer is designed to keep everything inside this repository:
 - `.venv/`: Python virtual environment
 - `.env`: environment variables consumed by wrappers
 
+## Apple Silicon (ARM64) Setup
+
+On macOS with Apple Silicon (M-series chips), native MATLAB requires ARM64 MEX files (`.mexmaca64`). The standard SPM12 distribution often lacks these. 
+
+If using a local MATLAB installation on ARM64:
+1. Ensure your SPM12 installation contains `.mexmaca64` binary files. You may need to download a patched/developer version of SPM (e.g., `spm25`) or compile them manually.
+2. Update `config/config.ini` to point to the ARM64-compatible SPM path:
+   ```ini
+   [SPM]
+   path = /path/to/arm64_spm
+   ```
+
 ## Install
 
 From the repo root:
