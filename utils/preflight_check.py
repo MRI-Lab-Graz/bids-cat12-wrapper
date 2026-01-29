@@ -161,13 +161,27 @@ def gather_expected_sessions(
     participants_file: str, session_col: str
 ) -> Dict[str, List[str]]:
     df = pd.read_csv(participants_file, sep="\t")
-    if "participant_id" not in df.columns:
-        raise ValueError("participants.tsv must contain 'participant_id' column")
+    
+    # Support both 'participant_id' and 'subject_id' column names
+    id_col = None
+    if "participant_id" in df.columns:
+        id_col = "participant_id"
+    elif "subject_id" in df.columns:
+        id_col = "subject_id"
+    else:
+        raise ValueError("participants.tsv must contain 'participant_id' or 'subject_id' column")
 
     expected: Dict[str, List[str]] = {}
+    
+    # Three modes:
+    # 1. Subject-level with nr_sessions column
+    # 2. Scan-level with session column
+    # 3. Subject-level without session info (will auto-detect from filenames)
+    
     if "nr_sessions" in df.columns:
+        # Mode 1: Subject-level with explicit session count
         for _, row in df.iterrows():
-            subject = row["participant_id"]
+            subject = row[id_col]
             if pd.isna(subject):
                 continue
             nr_sessions = row["nr_sessions"]
@@ -180,17 +194,19 @@ def gather_expected_sessions(
             expected.setdefault(subject, []).extend(
                 [str(i) for i in range(1, nr_sessions + 1)]
             )
-    else:
-        if session_col not in df.columns:
-            raise ValueError(
-                f"participants.tsv is scan-level but lacks session column '{session_col}'"
-            )
+    elif session_col in df.columns:
+        # Mode 2: Scan-level with session column
         for _, row in df.iterrows():
-            subject = row["participant_id"]
+            subject = row[id_col]
             session = row[session_col]
             if pd.isna(subject) or pd.isna(session):
                 continue
             expected.setdefault(subject, []).append(str(session))
+    else:
+        # Mode 3: Subject-level without session info
+        # Sessions will be auto-detected from CAT12 filenames
+        # Just return empty dict to skip session validation
+        return {}
 
     normalized: Dict[str, List[str]] = {}
     for subject, sessions in expected.items():

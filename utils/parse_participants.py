@@ -332,19 +332,25 @@ def parse_participants(args):
 
     # Check required columns exist
     # BIDS-compliant format: one row per subject with nr_sessions column
-    if "nr_sessions" in df.columns:
-        # BIDS format: one row per subject
-        print("Detected BIDS-compliant format (one row per subject)")
+    has_nr_sessions = "nr_sessions" in df.columns
+    has_session_col = args.session_col in df.columns
+    
+    if has_nr_sessions:
+        # BIDS format: one row per subject with nr_sessions
+        print("Detected BIDS-compliant format (one row per subject with nr_sessions)")
         required_cols = ["participant_id", "nr_sessions", args.group_col]
         is_bids_format = True
-    else:
-        # Old format: one row per scan
+    elif has_session_col:
+        # Scan-level format: one row per scan with session column
         print("Detected scan-level format (one row per scan)")
         required_cols = ["participant_id", args.group_col]
         is_bids_format = False
-        if args.session_col not in df.columns:
-            print(f"Error: session column '{args.session_col}' not found")
-            sys.exit(1)
+    else:
+        # Subject-level format: one row per subject, sessions auto-detected
+        print("Detected subject-level format (sessions will be auto-detected from filenames)")
+        required_cols = ["participant_id", args.group_col]
+        is_bids_format = True  # Treat like BIDS but without explicit session count
+        
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         print(f"Error: Missing required columns: {', '.join(missing)}")
@@ -450,15 +456,23 @@ def parse_participants(args):
     # Get unique groups and determine sessions
     groups = df[args.group_col].dropna().unique()
 
-    if is_bids_format:
+    if has_nr_sessions:
         # Determine sessions from nr_sessions column
         max_sessions = int(df["nr_sessions"].max())
         all_sessions = list(range(1, max_sessions + 1))
         print(f"BIDS format: {len(df)} subjects, up to {max_sessions} sessions each")
-    else:
+    elif has_session_col:
         # Determine sessions from session column
         all_sessions = sorted(df[args.session_col].dropna().unique())
         print(f"Scan format: {len(df)} scans")
+    else:
+        # Subject-level without explicit sessions: will detect from filenames
+        # For now, use sessions filter if provided, otherwise assume 1-3
+        if args.sessions != "all":
+            all_sessions = [int(s.strip()) for s in args.sessions.split(",")]
+        else:
+            all_sessions = [1, 2, 3]  # Default assumption
+        print(f"Subject-level format: {len(df)} subjects, sessions will be detected from filenames")
 
     # Filter sessions based on --sessions argument
     if args.sessions == "all":
@@ -501,13 +515,13 @@ def parse_participants(args):
             continue
 
         # Determine which sessions to process
-        if is_bids_format:
+        if has_nr_sessions:
             # BIDS format: enumerate sessions based on nr_sessions
             nr_sessions = int(row["nr_sessions"])
             all_subj_sessions = list(range(1, nr_sessions + 1))
             # Filter to only requested sessions
             sessions_to_process = [s for s in all_subj_sessions if s in sessions]
-        else:
+        elif has_session_col:
             # Scan format: single session from this row
             session = row[args.session_col]
             if pd.isna(session):
@@ -516,6 +530,9 @@ def parse_participants(args):
             if session not in sessions:
                 continue
             sessions_to_process = [session]
+        else:
+            # Subject-level without nr_sessions: check all requested sessions
+            sessions_to_process = sessions
 
         # Process each session for this subject
         for session in sessions_to_process:
