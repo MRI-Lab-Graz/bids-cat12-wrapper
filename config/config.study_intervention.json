@@ -1,0 +1,40 @@
+{
+  "_comment": "Study-Specific Configuration - Example: Intervention Study",
+  "_updated": "2026-02-01",
+  "_extends": "config.json",
+  
+  "study": {
+    "name": "Intervention Study - Phase 2",
+    "description": "Statistical analysis of gray matter changes post-intervention"
+  },
+
+  "matlab": {
+    "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
+    "allow_graphics": false
+  },
+
+  "spm": {
+    "path": "/Volumes/Evo/software/spm25/"
+  },
+
+  "analysis": {
+    "modality": "vbm",
+    "smoothing_kernel": 8,
+    "group_column": "intervention_group",
+    "session_column": "timepoint",
+    "sessions": ["baseline", "post"],
+    "covariates": ["age", "sex", "tiv"],
+    "standardize_continuous": true
+  },
+
+  "screening": {
+    "uncorrected_p": 0.001,
+    "cluster_size_voxels": 20,
+    "skip_screening": false
+  },
+
+  "tfce": {
+    "n_permutations": 10000,
+    "pilot_mode": false
+  }
+}

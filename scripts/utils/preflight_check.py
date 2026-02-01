@@ -61,7 +61,7 @@ def check_matlab_and_spm() -> bool:
         print(f"✓ MATLAB executable found: {matlab_path}")
     else:
         print(
-            "ERROR: MATLAB executable not found. Update [MATLAB] exe in config.ini or ensure 'matlab' is on PATH."
+            "ERROR: MATLAB executable not found. Update [matlab] executable in config/config.json or ensure 'matlab' is on PATH."
         )
         if matlab_path:
             print(f"       Checked: {matlab_path}")
@@ -114,7 +114,7 @@ def check_matlab_and_spm() -> bool:
             path, missing = missing_details
             print(f"       Checked {path} but missing files: {', '.join(missing)}")
         print(
-            "       Set [SPM] path in config.ini, export SPM_PATH, or create spm_config.txt with the correct path."
+            "       Set [spm] path in config/config.json, export SPM_PATH, or create spm_config.txt with the correct path."
         )
         overall_ok = False
 

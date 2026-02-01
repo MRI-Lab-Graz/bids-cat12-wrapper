@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
 """
 Configuration file parser for CAT12 pipeline.
-Reads config.ini and provides easy access to settings.
+Reads config.json and provides easy access to settings.
 """
 
-import configparser
+import json
 from pathlib import Path
 
 
-def load_config():
-    """Load config.ini from script directory"""
-    config = configparser.ConfigParser()
-    
-    # Try to find config.ini in common locations
-    script_dir = Path(__file__).parent.parent  # utils/../
-    config_file = script_dir / 'config.ini'
+def load_config(config_file=None):
+    """Load config.json from config directory"""
+    if config_file is None:
+        workspace_root = Path(__file__).resolve().parents[3]
+        config_file = workspace_root / "config" / "config.json"
+    else:
+        config_file = Path(config_file)
     
     if config_file.exists():
-        config.read(config_file)
+        try:
+            with open(config_file) as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading config: {e}")
+            return {}
     
-    return config
+    return {}
 
 
 def get_matlab_exe(config=None):
@@ -27,9 +32,9 @@ def get_matlab_exe(config=None):
     if config is None:
         config = load_config()
     
-    if config.has_option('MATLAB', 'exe'):
-        exe = config.get('MATLAB', 'exe').strip()
-        if exe and exe != '':
+    if 'matlab' in config and config['matlab'].get('executable'):
+        exe = config['matlab']['executable'].strip()
+        if exe:
             return exe
     
     # Auto-detect on macOS
@@ -45,7 +50,6 @@ def get_matlab_exe(config=None):
     except Exception:
         pass
     
-    # Default fallback
     return "matlab"
 
 
@@ -54,9 +58,9 @@ def get_python_exe(config=None):
     if config is None:
         config = load_config()
     
-    if config.has_option('PYTHON', 'exe'):
-        exe = config.get('PYTHON', 'exe').strip()
-        if exe and exe != '':
+    if 'python' in config and config['python'].get('executable'):
+        exe = config['python']['executable'].strip()
+        if exe:
             return exe
     
     return "python3"
@@ -67,9 +71,9 @@ def get_spm_path(config=None):
     if config is None:
         config = load_config()
     
-    if config.has_option('SPM', 'path'):
-        path = config.get('SPM', 'path').strip()
-        if path and path != '':
+    if 'spm' in config and config['spm'].get('path'):
+        path = config['spm']['path'].strip()
+        if path:
             return path
     
     return None
@@ -80,9 +84,9 @@ def get_parallel_jobs(config=None):
     if config is None:
         config = load_config()
     
-    if config.has_option('PERFORMANCE', 'parallel_jobs'):
+    if 'performance' in config:
         try:
-            return int(config.get('PERFORMANCE', 'parallel_jobs'))
+            return int(config['performance'].get('parallel_jobs', 4))
         except (ValueError, TypeError):
             pass
     

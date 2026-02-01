@@ -1,0 +1,60 @@
+{
+  "_comment": "CAT12 Statistics Pipeline Configuration - Study Specific",
+  "_updated": "2026-02-01",
+  
+  "study": {
+    "name": "Default Study",
+    "description": "CAT12 statistical analysis configuration"
+  },
+
+  "matlab": {
+    "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
+    "allow_graphics": false,
+    "_comment_exe": "macOS: /Applications/MATLAB_R*.app/bin/matlab | Linux: /usr/local/MATLAB/R*/bin/matlab | Leave empty for auto-detect"
+  },
+
+  "spm": {
+    "path": "/Volumes/Evo/software/spm25/",
+    "_comment": "Optional - auto-detected if not specified"
+  },
+
+  "python": {
+    "executable": "python3",
+    "_comment": "Usually 'python3' or full path if not in PATH"
+  },
+
+  "analysis": {
+    "modality": "vbm",
+    "_modality_options": ["vbm", "thickness", "depth", "gyrification", "fractal"],
+    "smoothing_kernel": 9,
+    "group_column": "group_beh",
+    "session_column": "session",
+    "sessions": ["1", "2"],
+    "_sessions_options": "Use ['all'] or specific list like ['1', '2', '3']",
+    "covariates": ["tiv"],
+    "_covariates_example": ["age", "sex", "tiv", "intracranial_volume"],
+    "standardize_continuous": true
+  },
+
+  "screening": {
+    "uncorrected_p": 0.001,
+    "cluster_size_voxels": 10,
+    "skip_screening": false
+  },
+
+  "tfce": {
+    "n_permutations": 5000,
+    "pilot_mode": false,
+    "_pilot_permutations": "Use 100 for quick testing"
+  },
+
+  "performance": {
+    "parallel_jobs": 4,
+    "memory_limit_gb": 16
+  },
+
+  "output": {
+    "analysis_name": "default_analysis",
+    "force_clean": false
+  }
+}

@@ -1,125 +1,242 @@
-# CAT12 Longitudinal Analysis Pipeline
+# CAT12 Statistics Analysis Pipeline
 
-Automated workflow for longitudinal VBM and surface-based morphometry analysis using CAT12 preprocessed data.
+**Clean workflow for statistical analysis of CAT12-preprocessed neuroimaging data**
+
+---
+
+## What This Pipeline Does
+
+1. **Automated Statistical Workflows** - Design matrices, SPM estimation, TFCE correction
+2. **Interactive Result Reports** - Multi-atlas visualization, filtering, cluster exploration
+3. **Threshold Sweeping** - Automated double-threshold + effect size map generation
+
+---
 
 ## Quick Start
 
+### 1. Configure
+Edit `config/config.json` with your MATLAB and SPM paths.
+
+### 2. Analyze
 ```bash
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /path/to/cat12 \
-    --participants /path/to/participants.tsv
+# Run complete workflow: sweep + interactive report
+python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis
+
+# Or with study-specific config
+python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis \
+  --config config/config.study_intervention.json
 ```
 
-## Common Usage
-
+### 3. Explore
 ```bash
-# Basic VBM analysis
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /Volumes/Thunder/129_PK01/cat12 \
-    --participants participants.tsv
-
-# Cortical thickness
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /Volumes/Thunder/129_PK01/cat12 \
-    --participants participants.tsv \
-    --modality thickness
-
-# Quick test (pilot mode)
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /Volumes/Thunder/129_PK01/cat12 \
-    --participants participants.tsv \
-    --pilot
-
-# With covariates
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /Volumes/Thunder/129_PK01/cat12 \
-    --participants participants.tsv \
-    --covariates "age,sex,tiv"
-```
-
-## Key Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--cat12-dir` | Required | CAT12 preprocessing directory |
-| `--participants` | Required | BIDS participants.tsv file |
-| `--modality` | `vbm` | vbm, thickness, depth, gyrification, fractal |
-| `--smoothing` | auto | Kernel size in mm |
-| `--group-col` | auto-detect | Group column name |
-| `--covariates` | none | Comma-separated (e.g., "age,sex,tiv") |
-| `--n-perm` | 5000 | TFCE permutations |
-| `--pilot` | off | Quick test (100 perms) |
-| `--force` | off | Clean results before starting |
-
-## Configuration
-
-Edit `config.ini` to customize defaults:
-
-**System Paths:**
-- `[MATLAB]` - MATLAB executable path (auto-detected if empty)
-- `[SPM]` - SPM installation path (optional)
-- `[PYTHON]` - Python 3 executable
-
-**Analysis Defaults:**
-- `[ANALYSIS]` - modality, smoothing, group_col, sessions, covariates
-- `[SCREENING]` - uncorrected_p, cluster_size, skip_screening
-- `[TFCE]` - n_perm, pilot_mode
-- `[PERFORMANCE]` - parallel_jobs, memory_limit_gb
-- `[OUTPUT]` - output_dir, analysis_name, force_clean
-
-**Command-line arguments override config.ini values:**
-
-```bash
-# Config says n_perm=5000, but this will override it:
-./cat12_longitudinal_analysis.sh \
-    --cat12-dir /path/to/cat12 \
-    --participants participants.tsv \
-    --n-perm 10000              # Overrides config.ini setting
-```
-
-## Pipeline Steps
-
-1. Parse participants.tsv and find CAT12 files
-2. Generate SPM factorial design
-3. Estimate GLM model
-4. Add contrasts
-5. Screen significant effects (p<0.001 uncorrected)
-6. TFCE correction (family-wise error)
-7. Generate HTML report
-
-## Results
-
-Results are saved to:
-```
-results/<modality>/<analysis_name>/
-├── report.html                    # Analysis report (open in browser)
-├── spm_batch.m                    # SPM batch file (reproducibility)
-├── SPM.mat                        # Statistical model
-├── design_matrix.png              # Design visualization
-├── spmT_*.nii                     # T-statistic maps
-├── con_*.nii                      # Contrast maps
-└── TFCE_*/logP_max.nii           # FWE-corrected results
-```
-
-**Quick Access:**
-A symbolic link `report_latest.html` in the script directory points to the most recent HTML report.
-
-```bash
-# Open latest results directly
-open report_latest.html     # macOS
-xdg-open report_latest.html # Linux
-```
-
-## Help
-
-```bash
-./cat12_longitudinal_analysis.sh --help
+# Open interactive HTML report in browser
+open results/vbm/analysis/post_stats_sweep_report.html
 ```
 
 ---
 
-**Pipeline Structure:**
-- `cat12_longitudinal_analysis.sh` - Main entry point
-- `utils/` - MATLAB and Python helper functions
-- `templates/` - Analysis templates (brainmask)
-- `archive/` - Old/unused scripts (reference only)
+## Directory Structure
+
+```
+scripts/
+├── analysis/           Main workflows
+│   ├── cat12_longitudinal_analysis.sh
+│   ├── run_stats_sweep.py          ← Interactive sweep + report
+│   └── rebuild_participants.py
+├── reporting/          Report generation
+│   └── post_stats_report.py        ← Interactive HTML reports
+└── utils/              Shared utilities (40+ files)
+
+results/
+├── vbm/                VBM analysis results
+└── data/               Participant data files
+
+config/
+├── config.ini          Main configuration
+└── spm_config.txt      SPM-specific settings
+
+logs/                   Execution logs
+tmp/                    Temporary files
+```
+
+---
+
+## Main Scripts
+
+### `run_stats_sweep.py`
+**Purpose**: Automated statistical analysis with report generation  
+**Input**: Results directory with SPM.mat  
+**Output**: Interactive HTML report + threshold maps
+
+```bash
+python scripts/analysis/run_stats_sweep.py <results_dir> [--use-matlab]
+```
+
+### `post_stats_report.py`
+**Purpose**: Generate interactive HTML report from existing maps  
+**Input**: Results directory with threshold maps  
+**Output**: HTML report with filtering, clustering, multi-atlas
+
+```bash
+python scripts/reporting/post_stats_report.py <results_dir> <output_file>
+```
+
+### `cat12_longitudinal_analysis.sh`
+**Purpose**: CAT12 statistical design and estimation  
+**Input**: CAT12 preprocessed data + participant file  
+**Output**: SPM results directory
+
+```bash
+./scripts/analysis/cat12_longitudinal_analysis.sh --cat12-dir <path> --participants <file>
+```
+
+---
+
+## Interactive Report Features
+
+✨ **Multi-level Filtering**
+- By p-value threshold
+- By correction type (FWE, FDR, TFCE, double-threshold)
+- By contrast
+- By atlas
+
+✨ **Visualizations**
+- Glass-brain (3D overlay)
+- 4-view surface mesh (frontal, parietal, etc.)
+- Cluster galleries (top 5 peaks)
+
+✨ **Multi-Atlas Support**
+- 5 volume atlases (AAL3, Harvard-Oxford, COBRA, etc.)
+- 4 surface atlases (Desikan-Killiany, Destrieux, etc.)
+
+---
+
+## Configuration
+
+All settings in `config/config.json`:
+
+```json
+{
+  "matlab": {
+    "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
+    "allow_graphics": false
+  },
+  "spm": {
+    "path": "/Volumes/Evo/software/spm25/"
+  },
+  "analysis": {
+    "modality": "vbm",
+    "smoothing_kernel": 8,
+    "group_column": "group_beh",
+    "covariates": ["tiv"]
+  }
+}
+```
+
+### Study-Specific Configs
+
+Create variants for different studies:
+
+```bash
+# Base config (all studies)
+config/config.json
+
+# Study-specific overrides
+config/config.study_intervention.json
+config/config.study_controls.json
+```
+
+Then use:
+```bash
+python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis \
+  --config config/config.study_intervention.json
+```
+
+---
+
+## Participant Data
+
+Participant TSV files stored in `results/data/`:
+- `participants.tsv` - Main participant file
+- `*_females_only.tsv` - Filtered subsets
+- `*_intervention_control.tsv` - Group assignments
+
+---
+
+## Output Files
+
+- **Interactive Reports**: `post_stats_sweep_report.html`
+- **Threshold Maps**: `double_threshold_*.nii` / `effectsize_*.nii`
+- **Log Files**: `logs/analysis_*.log`
+- **SPM Results**: `results/vbm/analysis/SPM.mat` (main results file)
+
+---
+
+## Common Workflows
+
+### Full Analysis (Design → Estimate → Report)
+```bash
+# Step 1: Statistical analysis
+./scripts/analysis/cat12_longitudinal_analysis.sh \
+  --cat12-dir /path/to/cat12 \
+  --participants results/data/participants.tsv
+
+# Step 2: Generate report with sweep
+python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis
+```
+
+### Report Only (from existing results)
+```bash
+python scripts/reporting/post_stats_report.py \
+  ./results/vbm/analysis \
+  report.html
+```
+
+### Interactive Exploration
+```bash
+open results/vbm/analysis/post_stats_sweep_report.html
+# Click rows to update plots
+# Use dropdowns to change atlas/correction
+```
+
+---
+
+## Supported Analysis Types
+
+- **Correction Methods**: FWE (voxel), FDR (voxel), TFCE (permutation), Double-threshold, Effect size
+- **Modalities**: VBM (gray matter), Surface (thickness, depth, gyrification), Custom maps
+- **Designs**: 2-group, multi-group, continuous covariates, longitudinal
+
+---
+
+## Troubleshooting
+
+**MATLAB not found?**  
+Update `config/config.json` with correct MATLAB path
+
+**Report not generating?**  
+Check `logs/analysis_*.log` for errors
+
+**Missing atlases?**  
+Script searches multiple locations automatically
+
+**Which config to use?**  
+- Use `config/config.json` for default/generic studies
+- Use `config/config.study_*.json` for specific studies
+- Overrides from command-line flags take precedence
+
+---
+
+## Need More Details?
+
+All scripts have built-in help:
+
+```bash
+python scripts/analysis/run_stats_sweep.py --help
+python scripts/reporting/post_stats_report.py --help
+./scripts/analysis/cat12_longitudinal_analysis.sh --help
+```
+
+---
+
+**Architecture**: Modular Python + MATLAB | **Updated**: Feb 1, 2026
