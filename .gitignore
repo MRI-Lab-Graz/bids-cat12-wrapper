@@ -17,3 +17,6 @@ tmp/
 # macOS
 .Spotlight-V100
 .Trashes
+check_repo/
+.env
+node_modules
