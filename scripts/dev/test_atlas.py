@@ -1,4 +1,5 @@
 from nilearn import datasets
+
 try:
     aal = datasets.fetch_atlas_aal()
     print("AAL atlas fetched successfully.")

@@ -29,7 +29,7 @@ except ImportError:
 def check_matlab_and_spm() -> bool:
     """Ensure MATLAB executable and SPM installation path are available."""
     script_dir = os.path.dirname(__file__)
-    repo_root = os.path.dirname(script_dir)
+    repo_root = os.path.dirname(os.path.dirname(script_dir))
 
     if script_dir not in sys.path:
         sys.path.insert(0, script_dir)
@@ -161,7 +161,7 @@ def gather_expected_sessions(
     participants_file: str, session_col: str
 ) -> Dict[str, List[str]]:
     df = pd.read_csv(participants_file, sep="\t")
-    
+
     # Support both 'participant_id' and 'subject_id' column names
     id_col = None
     if "participant_id" in df.columns:
@@ -169,15 +169,17 @@ def gather_expected_sessions(
     elif "subject_id" in df.columns:
         id_col = "subject_id"
     else:
-        raise ValueError("participants.tsv must contain 'participant_id' or 'subject_id' column")
+        raise ValueError(
+            "participants.tsv must contain 'participant_id' or 'subject_id' column"
+        )
 
     expected: Dict[str, List[str]] = {}
-    
+
     # Three modes:
     # 1. Subject-level with nr_sessions column
     # 2. Scan-level with session column
     # 3. Subject-level without session info (will auto-detect from filenames)
-    
+
     if "nr_sessions" in df.columns:
         # Mode 1: Subject-level with explicit session count
         for _, row in df.iterrows():
@@ -362,7 +364,7 @@ def check_tiv_presence(
         for subj, ses in missing_tiv[:20]:
             print(f"  - {subj} ses-{ses}")
         if len(missing_tiv) > 20:
-            print(f"  ... and {len(missing_tiv)-20} more")
+            print(f"  ... and {len(missing_tiv) - 20} more")
         print(
             "Please add TIV to your participants.tsv or ensure CAT12 XMLs contain 'vol_TIV' entries for these subjects."
         )
@@ -457,7 +459,7 @@ def check_covariates_presence(
                 for subj, ses in missing_entries[:10]:
                     print(f"  - {subj} ses-{ses}")
                 if len(missing_entries) > 10:
-                    print(f"  ... and {len(missing_entries)-10} more")
+                    print(f"  ... and {len(missing_entries) - 10} more")
                 overall_ok = False
             else:
                 print(
@@ -505,7 +507,7 @@ def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bo
         search_path = os.path.join(data_dir, "**", "surf", pattern)
 
     samples = glob.glob(search_path, recursive=True)
-    
+
     if not samples:
         # Fallback search without specific subfolder if strict structure not found
         fallback_path = os.path.join(data_dir, "**", pattern)
@@ -527,8 +529,8 @@ def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bo
 
         img = nb.load(sample)
         # For GIfTI (surface), header handling is different than NIfTI
-        if sample.endswith('.gii'):
-             print(f"✓ Sample GIfTI OK: {os.path.basename(sample)} (surface data)")
+        if sample.endswith(".gii"):
+            print(f"✓ Sample GIfTI OK: {os.path.basename(sample)} (surface data)")
         else:
             hdr = img.header
             data_shape = hdr.get_data_shape()
@@ -575,7 +577,7 @@ def find_and_copy_cat12_brainmask(cat12_dir: str) -> str | None:
         found = found.split(",")[0]
 
     repo_utils = os.path.dirname(__file__)
-    repo_root = os.path.dirname(repo_utils)
+    repo_root = os.path.dirname(os.path.dirname(repo_utils))
     templates_dir = os.path.join(repo_root, "templates")
     os.makedirs(templates_dir, exist_ok=True)
     dest = os.path.join(templates_dir, "brainmask_GMtight.nii")
@@ -694,7 +696,7 @@ def main() -> None:
             print("✓ Custom mask installed")
 
     repo_utils = os.path.dirname(__file__)
-    repo_root = os.path.dirname(repo_utils)
+    repo_root = os.path.dirname(os.path.dirname(repo_utils))
     templates_dir = os.path.join(repo_root, "templates")
     dest = os.path.join(templates_dir, "brainmask_GMtight.nii")
     if not os.path.exists(dest):

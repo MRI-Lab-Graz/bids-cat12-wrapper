@@ -34,7 +34,7 @@
   },
 
   "tfce": {
-    "n_permutations": 10000,
+    "n_permutations": 5000,
     "pilot_mode": false
   }
 }

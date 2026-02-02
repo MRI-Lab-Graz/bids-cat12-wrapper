@@ -11,9 +11,11 @@ Features:
 - Base64-embedded images (fully portable)
 
 Usage:
-    python post_stats_report.py ./results/vbm/analysis report.html
-    python post_stats_report.py ./results/vbm/analysis report.html --filter tfce
-    python post_stats_report.py ./results/vbm/analysis report.html --spm-path /path/to/spm12
+    python post_stats_report.py ./results/vbm/analysis
+    python post_stats_report.py ./results/vbm/analysis ./report.html
+    python post_stats_report.py ./results/vbm/analysis ./report.html --filter tfce
+    python post_stats_report.py ./results/vbm/analysis ./report.html --quality low
+    python post_stats_report.py ./results/vbm/analysis ./report.html --spm-path /path/to/spm12
 """
 
 import os
@@ -34,6 +36,150 @@ import json
 from datetime import datetime
 import re
 from scipy import ndimage
+from pathlib import Path
+
+
+def load_pipeline_config():
+    """Load config/config.json if available."""
+    candidates = [
+        os.path.join(Path(__file__).resolve().parents[2], "config", "config.json"),
+        os.path.join(os.getcwd(), "config", "config.json"),
+    ]
+    for cfg_path in candidates:
+        if os.path.exists(cfg_path):
+            try:
+                with open(cfg_path, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Warning: Could not read config.json at {cfg_path}: {e}")
+                return {}
+    return {}
+
+
+def get_quality_settings(quality):
+    """Return plot scaling and dpi settings based on quality preset."""
+    presets = {
+        "low": {
+            "scale": 0.8,
+            "dpi_surface": 80,
+            "dpi_cluster": 70,
+            "dpi_glass": 80,
+        },
+        "standard": {
+            "scale": 1.0,
+            "dpi_surface": 150,
+            "dpi_cluster": 100,
+            "dpi_glass": 120,
+        },
+        "publication": {
+            "scale": 1.2,
+            "dpi_surface": 220,
+            "dpi_cluster": 160,
+            "dpi_glass": 180,
+        },
+    }
+    return presets.get(quality, presets["standard"])
+
+
+def plot_design_matrix_to_base64(design_matrix, dpi=120, scale=1.0):
+    """Render the design matrix as a grayscale image."""
+    try:
+        if design_matrix is None:
+            return None
+        fig = plt.figure(figsize=(6 * scale, 4 * scale))
+        ax = fig.add_subplot(1, 1, 1)
+        ax.imshow(design_matrix, aspect="auto", cmap="gray", interpolation="nearest")
+        ax.set_title("Design Matrix", fontsize=10)
+        ax.set_xlabel("Regressors", fontsize=8)
+        ax.set_ylabel("Scans", fontsize=8)
+        ax.tick_params(axis="both", which="both", length=0, labelsize=6)
+        tmpfile = BytesIO()
+        fig.savefig(tmpfile, format="png", bbox_inches="tight", dpi=dpi)
+        encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
+        plt.close(fig)
+        return encoded
+    except Exception as e:
+        print(f"Warning: Could not render design matrix: {e}")
+        return None
+
+
+def plot_contrast_to_base64(weights, title, regressor_names=None, dpi=120, scale=1.0):
+    """Render a contrast vector as a row heatmap with -1/+1 logic (SPM-style)."""
+    try:
+        import seaborn as sns
+        if weights is None:
+            return None
+        w = np.array(weights, dtype=float)
+        
+        # Handle edge cases
+        if w.size == 0:
+            return None
+        
+        # For T-contrasts (1D vectors), reshape to single row
+        # For F-contrasts (2D matrices), take only first row for visualization
+        if w.ndim == 1:
+            w = w.reshape(1, -1)
+        elif w.ndim > 1:
+            # If multi-row F-contrast, only show first row
+            w = w[0:1, :]
+        
+        n_cols = w.shape[1]
+        if regressor_names is None or len(regressor_names) != n_cols:
+            regressor_names = [f"R{i+1}" for i in range(n_cols)]
+        
+        # Create a single-row dataframe
+        contrast_df = pd.DataFrame(w, columns=regressor_names[:n_cols], index=[title])
+        
+        # Determine vmax based on actual data - should show -1 to +1 range clearly
+        vmax = np.abs(contrast_df.values).max()
+        if vmax == 0 or not np.isfinite(vmax):
+            vmax = 1.0
+        # Round up to nice value to show contrast structure clearly
+        if vmax < 1.0:
+            vmax = 1.0  # Always show at least -1 to +1
+        else:
+            vmax = min(vmax, 1e6)  # Prevent overflow for extreme values
+        
+        fig = plt.figure(figsize=(14 * scale, 1.5 * scale))
+        ax = fig.add_subplot(1, 1, 1)
+        
+        # Use diverging colormap: blue for negative (-1), red for positive (+1), white for 0
+        cmap = sns.diverging_palette(240, 10, as_cmap=True)  # Blue to Red
+        
+        im = sns.heatmap(
+            contrast_df,
+            vmin=-vmax,
+            vmax=vmax,
+            cmap=cmap,
+            center=0,
+            square=False,
+            linewidths=1,
+            linecolor='black',
+            cbar_kws={"shrink": 0.8, "label": "Contrast Weight"},
+            ax=ax,
+            annot=True,
+            fmt=".2f",
+            annot_kws={"fontsize": 10, "weight": "bold"},
+        )
+        
+        # Style the axes
+        ax.xaxis.tick_top()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=90, fontsize=9, fontweight="bold")
+        ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=10, fontweight="bold")
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+        
+        # Add title
+        fig.suptitle(title, fontsize=11, fontweight="bold", y=0.98)
+        
+        tmpfile = BytesIO()
+        fig.savefig(tmpfile, format="png", bbox_inches="tight", dpi=dpi)
+        encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
+        plt.close(fig)
+        return encoded
+    except Exception as e:
+        print(f"Warning: Could not render contrast plot: {e}")
+        return None
 
 
 def get_mni_coords(affine, vox_coords):
@@ -56,22 +202,22 @@ def load_atlas(atlas_path, labels_path):
     try:
         if not os.path.exists(atlas_path):
             return None, None, None
-        
+
         atlas_img = nib.load(atlas_path)
         atlas_data = atlas_img.get_fdata()
         atlas_affine = atlas_img.affine
-        
+
         # Load labels
         labels = {}
         if not os.path.exists(labels_path):
             return atlas_data, atlas_affine, {}
-        
-        if labels_path.endswith('.csv'):
-            df = pd.read_csv(labels_path, sep=';')
+
+        if labels_path.endswith(".csv"):
+            df = pd.read_csv(labels_path, sep=";")
             for _, row in df.iterrows():
-                labels[int(row['ROIid'])] = row['ROIname']
-        elif labels_path.endswith('.txt'):
-            with open(labels_path, 'r') as f:
+                labels[int(row["ROIid"])] = row["ROIname"]
+        elif labels_path.endswith(".txt"):
+            with open(labels_path, "r") as f:
                 for line in f:
                     parts = line.strip().split()
                     if len(parts) >= 2:
@@ -79,21 +225,23 @@ def load_atlas(atlas_path, labels_path):
                             labels[int(parts[0])] = " ".join(parts[1:])
                         except ValueError:
                             continue
-        elif labels_path.endswith('.xml'):
-            with open(labels_path, 'r', encoding='ISO-8859-1') as f:
+        elif labels_path.endswith(".xml"):
+            with open(labels_path, "r", encoding="ISO-8859-1") as f:
                 xml_content = f.read()
             # Fix unescaped ampersands in CAT12 XMLs
-            xml_content = re.sub(r'&(?!(amp|lt|gt|apos|quot);)', '&amp;', xml_content)
+            xml_content = re.sub(r"&(?!(amp|lt|gt|apos|quot);)", "&amp;", xml_content)
             root = ET.fromstring(xml_content)
-            for label in root.findall('.//label'):
-                idx_elem = label.find('index')
-                name_elem = label.find('name')
+            for label in root.findall(".//label"):
+                idx_elem = label.find("index")
+                name_elem = label.find("name")
                 if idx_elem is not None and name_elem is not None:
                     labels[int(idx_elem.text)] = name_elem.text
-        
+
         return atlas_data, atlas_affine, labels
     except Exception as e:
-        print(f"Warning: Could not load atlas {atlas_path} or labels {labels_path}: {e}")
+        print(
+            f"Warning: Could not load atlas {atlas_path} or labels {labels_path}: {e}"
+        )
         return None, None, None
 
 
@@ -104,57 +252,112 @@ def load_surface_atlas(lh_annot, rh_annot):
             return None, None
         lh_labels, _, lh_names = fsio.read_annot(lh_annot)
         rh_labels, _, rh_names = fsio.read_annot(rh_annot)
-        lh_names = [n.decode('utf-8') for n in lh_names]
-        rh_names = [n.decode('utf-8') for n in rh_names]
+        lh_names = [n.decode("utf-8") for n in lh_names]
+        rh_names = [n.decode("utf-8") for n in rh_names]
         return (lh_labels, lh_names), (rh_labels, rh_names)
     except Exception as e:
         print(f"Warning: Could not load surface atlas: {e}")
         return None, None
 
 
-def plot_surface_to_base64(stat_map_path, mesh_lh, mesh_rh, bg_lh_data, bg_rh_data, title, threshold=1.301):
+def plot_surface_to_base64(
+    stat_map_path,
+    mesh_lh,
+    mesh_rh,
+    bg_lh_data,
+    bg_rh_data,
+    title,
+    threshold=1.301,
+    dpi=150,
+    scale=1.0,
+):
     """Generate a 4-view surface plot and return as base64 string."""
     try:
         gii = nib.load(stat_map_path)
         data = gii.darrays[0].data
         n_vertices = len(data)
-        
-        data_lh = data[:n_vertices//2]
-        data_rh = data[n_vertices//2:]
-        
-        fig = plt.figure(figsize=(16, 10))
-        
+
+        data_lh = data[: n_vertices // 2]
+        data_rh = data[n_vertices // 2 :]
+
+        fig = plt.figure(figsize=(16 * scale, 10 * scale))
+
         # LH Lateral
-        ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        plotting.plot_surf_stat_map(mesh_lh, data_lh, hemi='left', view='lateral', bg_map=bg_lh_data, axes=ax1, colorbar=False, threshold=threshold, darkness=0.5)
+        ax1 = fig.add_subplot(2, 2, 1, projection="3d")
+        plotting.plot_surf_stat_map(
+            mesh_lh,
+            data_lh,
+            hemi="left",
+            view="lateral",
+            bg_map=bg_lh_data,
+            axes=ax1,
+            colorbar=False,
+            threshold=threshold,
+            darkness=0.5,
+        )
         ax1.set_title("LH Lateral", fontsize=14)
-        
+
         # LH Medial
-        ax2 = fig.add_subplot(2, 2, 2, projection='3d')
-        plotting.plot_surf_stat_map(mesh_lh, data_lh, hemi='left', view='medial', bg_map=bg_lh_data, axes=ax2, colorbar=False, threshold=threshold, darkness=0.5)
+        ax2 = fig.add_subplot(2, 2, 2, projection="3d")
+        plotting.plot_surf_stat_map(
+            mesh_lh,
+            data_lh,
+            hemi="left",
+            view="medial",
+            bg_map=bg_lh_data,
+            axes=ax2,
+            colorbar=False,
+            threshold=threshold,
+            darkness=0.5,
+        )
         ax2.set_title("LH Medial", fontsize=14)
-        
+
         # RH Lateral
-        ax3 = fig.add_subplot(2, 2, 3, projection='3d')
-        plotting.plot_surf_stat_map(mesh_rh, data_rh, hemi='right', view='lateral', bg_map=bg_rh_data, axes=ax3, colorbar=False, threshold=threshold, darkness=0.5)
+        ax3 = fig.add_subplot(2, 2, 3, projection="3d")
+        plotting.plot_surf_stat_map(
+            mesh_rh,
+            data_rh,
+            hemi="right",
+            view="lateral",
+            bg_map=bg_rh_data,
+            axes=ax3,
+            colorbar=False,
+            threshold=threshold,
+            darkness=0.5,
+        )
         ax3.set_title("RH Lateral", fontsize=14)
-        
+
         # RH Medial
-        ax4 = fig.add_subplot(2, 2, 4, projection='3d')
-        plotting.plot_surf_stat_map(mesh_rh, data_rh, hemi='right', view='medial', bg_map=bg_rh_data, axes=ax4, colorbar=False, threshold=threshold, darkness=0.5)
+        ax4 = fig.add_subplot(2, 2, 4, projection="3d")
+        plotting.plot_surf_stat_map(
+            mesh_rh,
+            data_rh,
+            hemi="right",
+            view="medial",
+            bg_map=bg_rh_data,
+            axes=ax4,
+            colorbar=False,
+            threshold=threshold,
+            darkness=0.5,
+        )
         ax4.set_title("RH Medial", fontsize=14)
-        
-        fig.suptitle(title, fontsize=20, fontweight='bold')
-        
+
+        fig.suptitle(title, fontsize=20, fontweight="bold")
+
         # Add a single colorbar
         max_val = np.nanmax(data) if np.any(~np.isnan(data)) else threshold + 1
-        sm = plt.cm.ScalarMappable(cmap='cold_hot', norm=plt.Normalize(vmin=threshold, vmax=max_val if max_val > threshold else threshold + 1))
+        sm = plt.cm.ScalarMappable(
+            cmap="cold_hot",
+            norm=plt.Normalize(
+                vmin=threshold, vmax=max_val if max_val > threshold else threshold + 1
+            ),
+        )
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-        fig.colorbar(sm, cax=cbar_ax, label='-log10(p)')
-        
+        fig.colorbar(sm, cax=cbar_ax, label="-log10(p)")
+
         tmpfile = BytesIO()
-        fig.savefig(tmpfile, format='png', bbox_inches='tight', dpi=150)
-        encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+        fig.savefig(tmpfile, format="png", bbox_inches="tight", dpi=dpi)
+        encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
         plt.close(fig)
         return encoded
     except Exception as e:
@@ -162,89 +365,99 @@ def plot_surface_to_base64(stat_map_path, mesh_lh, mesh_rh, bg_lh_data, bg_rh_da
         return None
 
 
-def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5):
+def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, scale=1.0):
     """Identify clusters and generate ortho plots for the peaks."""
     try:
         data = img.get_fdata()
         affine = img.affine
-        
+
         # Threshold the data (use absolute for both directions)
         mask = np.abs(data) >= threshold
         labeled_array, num_features = ndimage.label(mask)
-        
+
         if num_features == 0:
             return []
-        
+
         # Get cluster sizes
         cluster_sizes = np.bincount(labeled_array.ravel())
         cluster_sizes[0] = 0  # ignore background
-        
+
         # Find top clusters
         top_cluster_ids = np.argsort(cluster_sizes)[::-1]
-        
+
         gallery = []
         count = 0
         for cid in top_cluster_ids:
-            if cluster_sizes[cid] < 100 or count >= n_clusters: 
+            if cluster_sizes[cid] < 100 or count >= n_clusters:
                 continue
-            
+
             # Find peak in cluster
-            cluster_mask = (labeled_array == cid)
+            cluster_mask = labeled_array == cid
             # Use absolute values to find peak magnitude
             cluster_data = np.where(cluster_mask, np.abs(data), 0)
             peak_idx = np.unravel_index(np.argmax(cluster_data), data.shape)
-            
+
             # Filter out peaks at the very edge of the image (often noise)
             is_edge = False
             for i, p_idx in enumerate(peak_idx):
                 if p_idx <= 2 or p_idx >= data.shape[i] - 3:
                     is_edge = True
                     break
-            
+
             if is_edge:
                 continue
-            
+
             peak_mni = get_mni_coords(affine, peak_idx)
-            
+
             # Atlas Lookups
             region_mappings = {}
             all_unknown = True
             if atlases:
                 for atl in atlases:
-                    atlas_vox = get_vox_coords(atl['affine'], peak_mni)
+                    atlas_vox = get_vox_coords(atl["affine"], peak_mni)
                     region_name = "Unknown"
-                    if all(0 <= atlas_vox[i] < atl['data'].shape[i] for i in range(3)):
-                        region_id = int(atl['data'][tuple(atlas_vox)])
-                        region_name = atl['labels'].get(region_id, f"Unknown (ID: {region_id})")
-                    
+                    if all(0 <= atlas_vox[i] < atl["data"].shape[i] for i in range(3)):
+                        region_id = int(atl["data"][tuple(atlas_vox)])
+                        region_name = atl["labels"].get(
+                            region_id, f"Unknown (ID: {region_id})"
+                        )
+
                     if region_name and "Unknown" not in region_name:
                         all_unknown = False
-                    region_mappings[atl['name']] = region_name
-            
+                    region_mappings[atl["name"]] = region_name
+
             # Skip if peak is in an unknown region (and we actually have atlases)
             if atlases and all_unknown:
                 continue
-            
+
             # Plot
-            fig = plt.figure(figsize=(12, 3))
-            plotting.plot_stat_map(img, cut_coords=peak_mni, display_mode='ortho', 
-                                    colorbar=True, threshold=threshold,
-                                    figure=fig,
-                                    title=f"Cluster {cid} (Size: {cluster_sizes[cid]} voxels)",
-                                    draw_cross=True, annotate=True)
-            
+            fig = plt.figure(figsize=(12 * scale, 3 * scale))
+            plotting.plot_stat_map(
+                img,
+                cut_coords=peak_mni,
+                display_mode="ortho",
+                colorbar=True,
+                threshold=threshold,
+                figure=fig,
+                title=None,
+                draw_cross=True,
+                annotate=True,
+            )
+
             tmpfile = BytesIO()
-            fig.savefig(tmpfile, format='png', bbox_inches='tight', dpi=100)
-            encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+            fig.savefig(tmpfile, format="png", bbox_inches="tight", dpi=dpi)
+            encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
             plt.close(fig)
-            
-            gallery.append({
-                'id': int(cid),
-                'size': int(cluster_sizes[cid]),
-                'peak_mni': [float(round(c, 2)) for c in peak_mni],
-                'plot': encoded,
-                'regions': region_mappings
-            })
+
+            gallery.append(
+                {
+                    "id": int(cid),
+                    "size": int(cluster_sizes[cid]),
+                    "peak_mni": [float(round(c, 2)) for c in peak_mni],
+                    "plot": encoded,
+                    "regions": region_mappings,
+                }
+            )
             count += 1
         return gallery
     except Exception as e:
@@ -257,33 +470,37 @@ def find_atlas_files(cat12_base, name, rel_nii, rel_xml):
     nii_path = os.path.join(cat12_base, rel_nii)
     if not os.path.exists(nii_path):
         nii_path = os.path.join(cat12_base, "toolbox/cat12", rel_nii)
-    
+
     xml_path = os.path.join(cat12_base, rel_xml)
     if not os.path.exists(xml_path):
         xml_path = os.path.join(cat12_base, "toolbox/cat12", rel_xml)
-    
+
     return nii_path, xml_path
 
 
-def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
+def generate_report(
+    results_dir, output_html, filter_mode="all", spm_path=None, quality="standard", max_plots=None, config_file=None
+):
     print(f"Generating post-stats report for: {results_dir}")
     filter_mode = (filter_mode or "all").lower()
     if filter_mode not in {"all", "tfce", "spmt", "double_threshold"}:
         print(f"Warning: Unknown filter_mode '{filter_mode}', defaulting to 'all'.")
         filter_mode = "all"
     print(f"Filter mode: {filter_mode}")
-    
+    quality_settings = get_quality_settings(quality)
+    print(f"Quality: {quality}")
+
     if not os.path.isdir(results_dir):
         print(f"Error: {results_dir} is not a directory.")
         return
-    
+
     # Detect if surface data
     is_surface = len(glob.glob(os.path.join(results_dir, "*.gii"))) > 0
     print(f"Mode: {'Surface' if is_surface else 'Volume'}")
-    
+
     # Check for TFCE files (case-insensitive)
     tfce_files = glob.glob(os.path.join(results_dir, "[Tt][Ff][Cc][Ee]*"))
-    
+
     # Fallback: check parent directory if no TFCE files found in results_dir
     search_dirs = [results_dir]
     if not tfce_files:
@@ -291,36 +508,51 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
         if parent_dir and os.path.isdir(parent_dir):
             parent_tfce = glob.glob(os.path.join(parent_dir, "[Tt][Ff][Cc][Ee]*"))
             if parent_tfce:
-                print(f"Note: No TFCE files in {results_dir}, but found {len(parent_tfce)} in parent directory. Using those.")
+                print(
+                    f"Note: No TFCE files in {results_dir}, but found {len(parent_tfce)} in parent directory. Using those."
+                )
                 tfce_files = parent_tfce
                 search_dirs = [results_dir, parent_dir]
-    
+
     has_tfce = len(tfce_files) > 0
     if not has_tfce:
         print("Warning: No TFCE files found in this directory or its parent.")
-    
+
     # Load SPM.mat
-    spm_mat_path = os.path.join(results_dir, 'SPM.mat')
+    spm_mat_path = os.path.join(results_dir, "SPM.mat")
     contrast_names = {}
     contrast_types = {}  # T or F
+    design_matrix = None
+    contrast_weights = {}
     if os.path.exists(spm_mat_path):
         try:
             spm = loadmat(spm_mat_path, struct_as_record=False, squeeze_me=True)
-            if hasattr(spm['SPM'], 'xCon'):
-                xCon = spm['SPM'].xCon
+            if hasattr(spm["SPM"], "xCon"):
+                xCon = spm["SPM"].xCon
                 if not isinstance(xCon, (np.ndarray, list)):
                     xCon = [xCon]
                 for i, con in enumerate(xCon):
-                    contrast_names[i+1] = con.name
-                    contrast_types[i+1] = con.STAT
+                    contrast_names[i + 1] = con.name
+                    contrast_types[i + 1] = con.STAT
+                    weights = None
+                    if hasattr(con, "c"):
+                        weights = con.c
+                    elif hasattr(con, "weights"):
+                        weights = con.weights
+                    elif hasattr(con, "F"):
+                        weights = con.F
+                    if weights is not None:
+                        contrast_weights[i + 1] = weights
+            if hasattr(spm["SPM"], "xX") and hasattr(spm["SPM"].xX, "X"):
+                design_matrix = spm["SPM"].xX.X
         except Exception as e:
             print(f"Warning: Could not read SPM.mat: {e}")
-    
+
     # Load contrasts.json if it exists
-    contrasts_json_path = os.path.join(results_dir, 'contrasts.json')
+    contrasts_json_path = os.path.join(results_dir, "contrasts.json")
     if os.path.exists(contrasts_json_path):
         try:
-            with open(contrasts_json_path, 'r') as f:
+            with open(contrasts_json_path, "r") as f:
                 c_data = json.load(f)
                 if isinstance(c_data, dict):
                     for k, v in c_data.items():
@@ -330,84 +562,210 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                             contrast_names[k] = v
                 elif isinstance(c_data, list):
                     for i, item in enumerate(c_data):
-                        if isinstance(item, dict) and 'name' in item:
-                            idx = item.get('index', i + 1)
-                            contrast_names[idx] = item['name']
+                        if isinstance(item, dict) and "name" in item:
+                            idx = item.get("index", i + 1)
+                            contrast_names[idx] = item["name"]
                         else:
-                            contrast_names[i+1] = item
+                            contrast_names[i + 1] = item
         except Exception as e:
             print(f"Warning: Could not read contrasts.json: {e}")
-    
+
     # Define Atlases
-    cat12_base = spm_path if spm_path else "/Volumes/Evo/software/cat-12/external/matlab_tools/spm12"
+    config = load_pipeline_config()
+    config_spm_path = None
+    if isinstance(config, dict):
+        config_spm_path = config.get("spm", {}).get("path")
+
+    cat12_base = spm_path or config_spm_path or "/Volumes/Evo/software/cat-12/external/matlab_tools/spm12"
+    if not os.path.exists(cat12_base):
+        print(
+            "Warning: SPM/CAT12 path not found. Atlas labels may be unavailable. "
+            "Set --spm-path or update config/config.json -> spm.path."
+        )
     atlases = []
     bg_lh_data = None
     bg_rh_data = None
     mesh_lh = None
     mesh_rh = None
-    
+
     if not is_surface:
         atlas_configs = [
             ("AAL3", "atlas/cat12_aal3.nii", "atlas/labels_cat12_aal3.xml"),
-            ("Neuromorphometrics", "atlas/cat12_neuromorphometrics.nii", "atlas/labels_cat12_neuromorphometrics.xml"),
+            (
+                "Neuromorphometrics",
+                "atlas/cat12_neuromorphometrics.nii",
+                "atlas/labels_cat12_neuromorphometrics.xml",
+            ),
             ("Hammers", "atlas/cat12_hammers.nii", "atlas/labels_cat12_hammers.xml"),
-            ("Schaefer 100", "atlas/cat12_Schaefer2018_100Parcels_17Networks_order.nii", "atlas/labels_cat12_Schaefer2018_100Parcels_17Networks_order.xml"),
-            ("JulichBrain", "atlas/cat12_julichbrain.nii", "atlas/labels_cat12_julichbrain.xml")
+            (
+                "Schaefer 100",
+                "atlas/cat12_Schaefer2018_100Parcels_17Networks_order.nii",
+                "atlas/labels_cat12_Schaefer2018_100Parcels_17Networks_order.xml",
+            ),
+            (
+                "JulichBrain",
+                "atlas/cat12_julichbrain.nii",
+                "atlas/labels_cat12_julichbrain.xml",
+            ),
         ]
         for name, rel_nii, rel_xml in atlas_configs:
             nii_path, xml_path = find_atlas_files(cat12_base, name, rel_nii, rel_xml)
             data, affine, labels = load_atlas(nii_path, xml_path)
             if data is not None:
-                atlases.append({'name': name, 'data': data, 'affine': affine, 'labels': labels})
+                atlases.append(
+                    {"name": name, "data": data, "affine": affine, "labels": labels}
+                )
                 print(f"Loaded atlas: {name}")
     else:
         atlas_configs = [
-            ("DK40", "toolbox/cat12/atlases_surfaces_32k/lh.aparc_DK40.freesurfer.annot", "toolbox/cat12/atlases_surfaces_32k/rh.aparc_DK40.freesurfer.annot"),
-            ("Destrieux", "toolbox/cat12/atlases_surfaces_32k/lh.aparc_a2009s.freesurfer.annot", "toolbox/cat12/atlases_surfaces_32k/rh.aparc_a2009s.freesurfer.annot"),
-            ("HCP MMP1", "toolbox/cat12/atlases_surfaces_32k/lh.aparc_HCP_MMP1.freesurfer.annot", "toolbox/cat12/atlases_surfaces_32k/rh.aparc_HCP_MMP1.freesurfer.annot"),
-            ("Schaefer 100", "toolbox/cat12/atlases_surfaces_32k/lh.Schaefer2018_100Parcels_17Networks_order.annot", "toolbox/cat12/atlases_surfaces_32k/rh.Schaefer2018_100Parcels_17Networks_order.annot")
+            (
+                "DK40",
+                "toolbox/cat12/atlases_surfaces_32k/lh.aparc_DK40.freesurfer.annot",
+                "toolbox/cat12/atlases_surfaces_32k/rh.aparc_DK40.freesurfer.annot",
+            ),
+            (
+                "Destrieux",
+                "toolbox/cat12/atlases_surfaces_32k/lh.aparc_a2009s.freesurfer.annot",
+                "toolbox/cat12/atlases_surfaces_32k/rh.aparc_a2009s.freesurfer.annot",
+            ),
+            (
+                "HCP MMP1",
+                "toolbox/cat12/atlases_surfaces_32k/lh.aparc_HCP_MMP1.freesurfer.annot",
+                "toolbox/cat12/atlases_surfaces_32k/rh.aparc_HCP_MMP1.freesurfer.annot",
+            ),
+            (
+                "Schaefer 100",
+                "toolbox/cat12/atlases_surfaces_32k/lh.Schaefer2018_100Parcels_17Networks_order.annot",
+                "toolbox/cat12/atlases_surfaces_32k/rh.Schaefer2018_100Parcels_17Networks_order.annot",
+            ),
         ]
         for name, lh_rel, rh_rel in atlas_configs:
             lh_path = os.path.join(cat12_base, lh_rel)
             rh_path = os.path.join(cat12_base, rh_rel)
             lh_atlas, rh_atlas = load_surface_atlas(lh_path, rh_path)
             if lh_atlas is not None:
-                atlases.append({'name': name, 'lh': lh_atlas, 'rh': rh_atlas})
+                atlases.append({"name": name, "lh": lh_atlas, "rh": rh_atlas})
                 print(f"Loaded surface atlas: {name}")
-        
+
         # Meshes and Background maps
-        mesh_lh = os.path.join(cat12_base, "toolbox/cat12/templates_surfaces_32k/lh.inflated.freesurfer.gii")
-        mesh_rh = os.path.join(cat12_base, "toolbox/cat12/templates_surfaces_32k/rh.inflated.freesurfer.gii")
-        bg_lh_path = os.path.join(cat12_base, "toolbox/cat12/templates_surfaces_32k/lh.sqrtsulc.freesurfer.gii")
-        bg_rh_path = os.path.join(cat12_base, "toolbox/cat12/templates_surfaces_32k/rh.sqrtsulc.freesurfer.gii")
-        
+        mesh_lh = os.path.join(
+            cat12_base,
+            "toolbox/cat12/templates_surfaces_32k/lh.inflated.freesurfer.gii",
+        )
+        mesh_rh = os.path.join(
+            cat12_base,
+            "toolbox/cat12/templates_surfaces_32k/rh.inflated.freesurfer.gii",
+        )
+        bg_lh_path = os.path.join(
+            cat12_base,
+            "toolbox/cat12/templates_surfaces_32k/lh.sqrtsulc.freesurfer.gii",
+        )
+        bg_rh_path = os.path.join(
+            cat12_base,
+            "toolbox/cat12/templates_surfaces_32k/rh.sqrtsulc.freesurfer.gii",
+        )
+
         try:
             bg_lh_data = nib.load(bg_lh_path).darrays[0].data
             bg_rh_data = nib.load(bg_rh_path).darrays[0].data
         except Exception as e:
             print(f"Warning: Could not load background maps: {e}")
-    
-    # Thresholds
-    thresholds = [
-        (0.01, 2.0, "Significant (p < 0.01)"),
-        (0.05, 1.30103, "Significant (p < 0.05)"),
-        (0.1, 1.0, "Trend (p < 0.1)"),
-        (1.0, 0.0, "All Results")
+
+    # Load thresholds from config if available, otherwise use defaults
+    default_thresholds = [
+        {"p_value": 0.01, "label": "Significant (p < 0.01)"},
+        {"p_value": 0.05, "label": "Significant (p < 0.05)"},
+        {"p_value": 0.1, "label": "Trend (p < 0.1)"},
     ]
     
+    config = {}
+    if config_file and os.path.exists(config_file):
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+                print(f"Loaded config from: {config_file}")
+        except Exception as e:
+            print(f"Warning: Could not load config from {config_file}: {e}")
+    else:
+        config = load_pipeline_config()
+    
+    # Use config thresholds or fall back to defaults
+    config_thresholds = default_thresholds
+    if isinstance(config, dict) and "reporting" in config:
+        try:
+            threshold_list = config["reporting"].get("thresholds", [])
+            if threshold_list:
+                config_thresholds = threshold_list
+                print(f"Loaded {len(config_thresholds)} thresholds from config")
+        except Exception as e:
+            print(f"Warning: Could not load thresholds from config: {e}")
+            print("Using default thresholds.")
+    
+    # Compute log_p from p_value internally
+    thresholds = []
+    for t in config_thresholds:
+        p_value = t.get("p_value", 0.05)
+        log_p = -np.log10(p_value)
+        label = t.get("label", f"p < {p_value}")
+        thresholds.append((p_value, log_p, label))
+
     # Correction types
-    ext_pattern = '.gii*' if is_surface else '.nii*'
+    ext_pattern = ".gii*" if is_surface else ".nii*"
     correction_patterns = {
-        'FWE (Voxel)': [f'T_log_pFWE*{ext_pattern}', f'F_log_pFWE*{ext_pattern}'],
-        'FDR (Voxel)': [f'T_log_pFDR*{ext_pattern}', f'F_log_pFDR*{ext_pattern}'],
-        'FWE (TFCE)': [f'TFCE*FWE*{ext_pattern}'],
-        'FDR (TFCE)': [f'TFCE*FDR*{ext_pattern}'],
-        'Double Threshold': [f'*pk*{ext_pattern}', f'logP_*{ext_pattern}'],
-        'Effect Size': [f'Cohen_d_*{ext_pattern}', f'd_map_*{ext_pattern}']
+        "FWE (Voxel)": [f"T_log_pFWE*{ext_pattern}", f"F_log_pFWE*{ext_pattern}"],
+        "FDR (Voxel)": [f"T_log_pFDR*{ext_pattern}", f"F_log_pFDR*{ext_pattern}"],
+        "FWE (TFCE)": [f"TFCE*FWE*{ext_pattern}"],
+        "FDR (TFCE)": [f"TFCE*FDR*{ext_pattern}"],
+        "Double Threshold": [
+            f"*pk*{ext_pattern}",
+            f"*PK*{ext_pattern}",
+            f"*logP*{ext_pattern}",
+            f"*log_p*{ext_pattern}",
+        ],
+        "Effect Size": [f"Cohen_d_*{ext_pattern}", f"d_map_*{ext_pattern}"],
     }
-    
+
     report_data = []
+
+    design_matrix_plot = plot_design_matrix_to_base64(
+        design_matrix,
+        dpi=quality_settings["dpi_glass"],
+        scale=quality_settings["scale"],
+    )
+    if design_matrix_plot is None:
+        print("Warning: Design matrix plot not available.")
+
+    # Extract regressor names from design matrix
+    regressor_names = None
+    if design_matrix is not None:
+        try:
+            spm_mat = loadmat(spm_mat_path, struct_as_record=False, squeeze_me=True)
+            if hasattr(spm_mat["SPM"], "xX") and hasattr(spm_mat["SPM"].xX, "name"):
+                regressor_names = [str(n) for n in spm_mat["SPM"].xX.name]
+        except Exception as e:
+            print(f"Warning: Could not extract regressor names: {e}")
     
+    contrast_plots = {}
+    for con_num, weights in contrast_weights.items():
+        con_name = contrast_names.get(con_num, f"Contrast {con_num}")
+        contrast_plots[con_num] = plot_contrast_to_base64(
+            weights,
+            title=con_name,
+            regressor_names=regressor_names,
+            dpi=quality_settings["dpi_glass"],
+            scale=quality_settings["scale"],
+        )
+
+    contrast_vectors = {}
+    for con_num, weights in contrast_weights.items():
+        w = np.array(weights, dtype=float)
+        if w.ndim > 1:
+            if 1 in w.shape:
+                w = w.flatten()
+            else:
+                w = w[0]
+        contrast_vectors[con_num] = [float(x) for x in w.tolist()]
+
     # Find all relevant files
     for corr_name, patterns in correction_patterns.items():
         # Filter by mode
@@ -417,92 +775,104 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
             continue
         if filter_mode == "spmt" and corr_name not in ["FWE (Voxel)", "FDR (Voxel)"]:
             continue
-        
+
         files = []
         for s_dir in search_dirs:
             for p in patterns:
                 found = glob.glob(os.path.join(s_dir, p))
                 if found:
                     files.extend(found)
-        
+
         # Remove duplicates and sort
         files = sorted(list(set(files)))
-        
+
         # FILTER: If in Double Threshold, skip raw logP files
         if corr_name == "Double Threshold":
-            pk_bases = [f.replace('_pkFWE5', '').replace('_pkFWE1', '').replace('_pkFWE10', '') 
-                        for f in files if "PK" in f.upper()]
+            pk_bases = [
+                f.replace("_pkFWE5", "").replace("_pkFWE1", "").replace("_pkFWE10", "")
+                for f in files
+                if "PK" in f.upper()
+            ]
             files = [f for f in files if "PK" in f.upper() or f not in pk_bases]
-            files = [f for f in files if "PK" in os.path.basename(f).upper() or 
-                    not os.path.basename(f).upper().startswith("LOGP_")]
-        
+            files = [
+                f
+                for f in files
+                if "PK" in os.path.basename(f).upper()
+                or not os.path.basename(f).upper().startswith("LOGP_")
+            ]
+
         if files:
             print(f"Found {len(files)} files for category: {corr_name}")
-        
+
         for f in files:
             basename = os.path.basename(f)
             base_upper = basename.upper()
-            
+
             # Determine extension of current file
             curr_ext = ""
-            for e in ['.nii.gz', '.nii', '.gii']:
+            for e in [".nii.gz", ".nii", ".gii"]:
                 if basename.lower().endswith(e):
                     curr_ext = e
                     break
-            
+
             # Double-threshold specific parsing
             cluster_size = None
             is_bidirectional = False
             actual_p_fwe = None
             forming_threshold = None
-            
+
             if "PK" in base_upper:
-                k_match = re.search(r'_k(\d+)', basename)
+                k_match = re.search(r"_k(\d+)", basename)
                 if k_match:
                     cluster_size = int(k_match.group(1))
-                
-                p_fwe_match = re.search(r'pkFWE(\d+)', basename)
+
+                p_fwe_match = re.search(r"pkFWE(\d+)", basename)
                 if p_fwe_match:
                     # In CAT12 pkFWE5 means p < 0.05
                     actual_p_fwe = int(p_fwe_match.group(1)) / 100.0
-                
-                forming_match = re.search(r'_p(0\.1|_001)', basename)
+
+                forming_match = re.search(r"_p(0\.1|_001)", basename)
                 if forming_match:
                     forming_threshold = "p < 0.001 (uncorr)"
                 else:
-                    forming_match_gen = re.search(r'_p(\d+\.?\d*)', basename)
+                    forming_match_gen = re.search(r"_p(\d+\.?\d*)", basename)
                     if forming_match_gen:
                         try:
                             val = float(forming_match_gen.group(1))
-                            forming_threshold = f"p < {val/100:.3g} (uncorr)"
+                            forming_threshold = f"p < {val / 100:.3g} (uncorr)"
                         except ValueError:
-                            forming_threshold = f"p < {forming_match_gen.group(1)} (uncorr)"
-                
+                            forming_threshold = (
+                                f"p < {forming_match_gen.group(1)} (uncorr)"
+                            )
+
                 if "_bi" in basename.lower():
                     is_bidirectional = True
-                
+
                 display_corr = "Double Threshold"
             else:
                 # Prevent pkFWE files from appearing in other lists
                 if "PK" in base_upper:
                     continue
                 display_corr = corr_name
-            
+
             con_num = None
-            
+
             # Try to parse con_num from TFCE_log_p..._0001.nii or spmT_0001.nii
-            if any(x in base_upper for x in ['TFCE', 'SPMT', 'SPMF', 'T_LOG', 'F_LOG', 'COHEN', 'D_MAP']):
+            if any(
+                x in base_upper
+                for x in ["TFCE", "SPMT", "SPMF", "T_LOG", "F_LOG", "COHEN", "D_MAP"]
+            ):
                 try:
                     clean_name = basename
                     if curr_ext:
-                        clean_name = basename[:-len(curr_ext)]
-                    parts = clean_name.split('_')
+                        clean_name = basename[: -len(curr_ext)]
+                    parts = clean_name.split("_")
                     # Handle cases like TFCE_log_pFWE_0001 or Cohen_d_0001
                     for part in reversed(parts):
                         try:
-                            val = part.lstrip('0')
-                            if not val and '0' in part:  # Handle '0000'
-                                val = '0'
+                            val = part.lstrip("0")
+                            if not val and "0" in part:  # Handle '0000'
+                                val = "0"
                             if val.isdigit():
                                 con_num = int(val)
                                 break
@@ -510,49 +880,51 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                             continue
                 except (ValueError, IndexError):
                     pass
-            
+
             # If not found, try to match contrast name from filename
             if con_num is None:
                 for num, name in contrast_names.items():
                     # Try exact match with underscores
-                    cat12_style_name = name.replace(' ', '_')
+                    cat12_style_name = name.replace(" ", "_")
                     if cat12_style_name in basename:
                         con_num = num
                         break
-                    
+
                     # Try matching without colons
-                    no_colon_name = name.replace(':', '_').replace(' ', '_')
+                    no_colon_name = name.replace(":", "_").replace(" ", "_")
                     if no_colon_name in basename:
                         con_num = num
                         break
-            
+
             # Fallback: try more aggressive matching
             if con_num is None:
                 for num, name in contrast_names.items():
-                    clean_name = re.sub(r'[^a-zA-Z0-9]', '', name).lower()
-                    clean_basename = re.sub(r'[^a-zA-Z0-9]', '', basename).lower()
+                    clean_name = re.sub(r"[^a-zA-Z0-9]", "", name).lower()
+                    clean_basename = re.sub(r"[^a-zA-Z0-9]", "", basename).lower()
                     if clean_name in clean_basename or clean_basename in clean_name:
                         con_num = num
                         break
-            
+
             # Fallback for CAT12 default names
             if con_num is None:
-                num_match = re.search(r'(?:condition|Group|Contrast)_(\d+)', basename)
+                num_match = re.search(r"(?:condition|Group|Contrast)_(\d+)", basename)
                 if num_match:
                     con_num = int(num_match.group(1))
-            
+
             if con_num is None:
-                print(f"Warning: Could not determine contrast number for {basename}. Skipping.")
+                print(
+                    f"Warning: Could not determine contrast number for {basename}. Skipping."
+                )
                 continue
-            
+
             con_name = contrast_names.get(con_num, f"Contrast {con_num}")
             stat_type = contrast_types.get(con_num, "T")
-            
+
             # Try to find the raw statistic file
             stat_file = None
             current_file_dir = os.path.dirname(f)
-            for prefix in [f'spm{stat_type}_', f'{stat_type}_']:
-                for e in [curr_ext, '.nii', '.nii.gz', '.gii']:
+            for prefix in [f"spm{stat_type}_", f"{stat_type}_"]:
+                for e in [curr_ext, ".nii", ".nii.gz", ".gii"]:
                     if not e:
                         continue
                     for d in [current_file_dir, results_dir]:
@@ -564,13 +936,13 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                         break
                 if stat_file:
                     break
-            
+
             stat_img = nib.load(stat_file) if stat_file else None
             if is_surface:
                 stat_data = stat_img.darrays[0].data if stat_img else None
             else:
                 stat_data = stat_img.get_fdata() if stat_img else None
-            
+
             img = nib.load(f)
             if is_surface:
                 data = img.darrays[0].data
@@ -578,30 +950,32 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
             else:
                 data = img.get_fdata()
                 affine = img.affine
-            
+
             # Determine appropriate thresholds for this file
             current_thresholds_list = thresholds
             if actual_p_fwe is not None:
                 # If double threshold (pkFWE), only show the specifically used level
-                current_thresholds_list = [(actual_p_fwe, 0.0001, f"FWE (p < {actual_p_fwe})")]
+                current_thresholds_list = [
+                    (actual_p_fwe, 0.0001, f"FWE (p < {actual_p_fwe})")
+                ]
             elif corr_name == "Effect Size":
                 # For effect size, we only want one "threshold" (all results)
                 current_thresholds_list = [(1.0, 0.2, "Cohen's d")]
-            
+
             # For each threshold
             for p_val, log_p_thresh, p_label in current_thresholds_list:
                 # Skip "All Results" for p-maps to prevent showing whole brain mask
                 if p_val == 1.0 and corr_name != "Effect Size":
                     continue
-                
+
                 current_p_label = p_label
                 current_log_p_thresh = log_p_thresh
-                
+
                 # Use absolute values for thresholding to catch both positive and negative effects
                 abs_data = np.abs(data)
                 mask = (~np.isnan(abs_data)) & (abs_data >= current_log_p_thresh)
                 sig_elements = np.sum(mask)
-                
+
                 # Include all double-threshold results, even if empty, to show they were processed
                 if sig_elements > 0 or display_corr == "Double Threshold":
                     region_mappings = {}
@@ -609,75 +983,93 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                         # Find peak based on absolute magnitude
                         max_logp_abs = np.nanmax(abs_data[mask])
                         peak_idx = np.nanargmax(np.where(mask, abs_data, -np.inf))
-                        
+
                         # Get the actual signed value at the peak
                         if is_surface:
                             peak_val = data[peak_idx]
                         else:
                             peak_idx_3d = np.unravel_index(peak_idx, data.shape)
                             peak_val = data[peak_idx_3d]
-                        
+
                         if not is_surface:
                             peak_idx_3d = np.unravel_index(peak_idx, data.shape)
                             peak_mni = get_mni_coords(affine, peak_idx_3d)
-                            peak_stat = stat_data[peak_idx_3d] if stat_data is not None else 0
-                            
+                            peak_stat = (
+                                stat_data[peak_idx_3d] if stat_data is not None else 0
+                            )
+
                             for atl in atlases:
-                                atlas_vox = get_vox_coords(atl['affine'], peak_mni)
+                                atlas_vox = get_vox_coords(atl["affine"], peak_mni)
                                 region_name = "Unknown"
-                                if all(0 <= atlas_vox[i] < atl['data'].shape[i] for i in range(3)):
-                                    region_id = int(atl['data'][tuple(atlas_vox)])
-                                    region_name = atl['labels'].get(region_id, f"Unknown (ID: {region_id})")
-                                region_mappings[atl['name']] = region_name
+                                if all(
+                                    0 <= atlas_vox[i] < atl["data"].shape[i]
+                                    for i in range(3)
+                                ):
+                                    region_id = int(atl["data"][tuple(atlas_vox)])
+                                    region_name = atl["labels"].get(
+                                        region_id, f"Unknown (ID: {region_id})"
+                                    )
+                                region_mappings[atl["name"]] = region_name
                         else:
-                            peak_stat = stat_data[peak_idx] if stat_data is not None else 0
+                            peak_stat = (
+                                stat_data[peak_idx] if stat_data is not None else 0
+                            )
                             peak_mni = [0, 0, 0]
                             n_v = len(data)
-                            
+
                             for atl in atlases:
                                 region_name = "Unknown"
                                 if peak_idx < n_v // 2:
-                                    labels, names = atl['lh']
+                                    labels, names = atl["lh"]
                                     region_id = labels[peak_idx]
                                     region_name = f"LH: {names[region_id]}"
                                 else:
-                                    labels, names = atl['rh']
+                                    labels, names = atl["rh"]
                                     region_id = labels[peak_idx - n_v // 2]
                                     region_name = f"RH: {names[region_id]}"
-                                region_mappings[atl['name']] = region_name
+                                region_mappings[atl["name"]] = region_name
                     else:
                         max_logp_abs = 0.0
                         peak_val = 0.0
                         peak_stat = 0.0
                         peak_mni = [0, 0, 0]
                         for atl in atlases:
-                            region_mappings[atl['name']] = "No significant clusters"
-                    
+                            region_mappings[atl["name"]] = "No significant clusters"
+
                     # Direction Detection
                     has_pos = np.any(data[mask] > 1e-7) if sig_elements > 0 else False
                     has_neg = np.any(data[mask] < -1e-7) if sig_elements > 0 else False
-                    
+
                     if has_pos and has_neg:
                         direction = "Bidirectional"
-                        if peak_val > 0: direction += " (+ peak)"
-                        else: direction += " (- peak)"
+                        if peak_val > 0:
+                            direction += " (+ peak)"
+                        else:
+                            direction += " (- peak)"
                     elif has_pos:
                         direction = "Positive"
                     elif has_neg:
                         direction = "Negative"
                     else:
                         direction = "No Effect"
-                    
+
                     if corr_name == "Effect Size":
                         direction = "Positive (d)" if peak_val > 0 else "Negative (d)"
                     elif stat_type == "F" and not is_bidirectional:
                         direction = "Positive (F)"
-                    
+
                     # Generate Cluster Gallery (Volume only)
                     cluster_gallery = []
                     if not is_surface and sig_elements > 0:
-                        cluster_gallery = get_cluster_gallery(img, current_log_p_thresh, atlases=atlases, n_clusters=5)
-                    
+                        cluster_gallery = get_cluster_gallery(
+                            img,
+                            current_log_p_thresh,
+                            atlases=atlases,
+                            n_clusters=5,
+                            dpi=quality_settings["dpi_cluster"],
+                            scale=quality_settings["scale"],
+                        )
+
                     if display_corr == "Double Threshold" and is_bidirectional:
                         if has_pos and has_neg:
                             direction = "Two-sided (Mixed)"
@@ -685,32 +1077,47 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                             direction = "Positive (Two-sided)"
                         elif has_neg:
                             direction = "Negative (Two-sided)"
-                    
-                    report_data.append({
-                        'id': f"con_{con_num}_{corr_name.replace(' ', '_')}_{int(p_val*1000)}",
-                        'con_num': con_num,
-                        'con_name': con_name,
-                        'correction': display_corr,
-                        'orig_correction': corr_name,
-                        'p_thresh': p_val,
-                        'log_p_thresh': current_log_p_thresh,
-                        'p_label': current_p_label,
-                        'sig_voxels': int(sig_elements),
-                        'max_logp': float(max_logp_abs),
-                        'peak_stat': float(peak_stat),
-                        'stat_type': stat_type,
-                        'direction': direction,
-                        'peak_mni': [float(round(c, 2)) for c in peak_mni] if not is_surface else "N/A",
-                        'regions': region_mappings,
-                        'cluster_size': cluster_size,
-                        'forming_threshold': forming_threshold,
-                        'cluster_gallery': cluster_gallery,
-                        'file_path': f
-                    })
-    
+
+                    report_data.append(
+                        {
+                            "id": f"con_{con_num}_{corr_name.replace(' ', '_')}_{int(p_val * 1000)}",
+                            "con_num": con_num,
+                            "con_name": con_name,
+                            "correction": display_corr,
+                            "orig_correction": corr_name,
+                            "p_thresh": p_val,
+                            "log_p_thresh": current_log_p_thresh,
+                            "p_label": current_p_label,
+                            "sig_voxels": int(sig_elements),
+                            "max_logp": float(max_logp_abs),
+                            "peak_stat": float(peak_stat),
+                            "stat_type": stat_type,
+                            "direction": direction,
+                            "peak_mni": (
+                                [float(round(c, 2)) for c in peak_mni]
+                                if not is_surface
+                                else "N/A"
+                            ),
+                            "regions": region_mappings,
+                            "cluster_size": cluster_size,
+                            "forming_threshold": forming_threshold,
+                            "cluster_gallery": cluster_gallery,
+                            "file_path": f,
+                        }
+                    )
+
     # Generate Plots
     plots = {}
-    unique_combos = set((r['con_num'], r['correction'], r['file_path'], r['log_p_thresh']) for r in report_data)
+    unique_combos = set(
+        (r["con_num"], r["correction"], r["file_path"], r["log_p_thresh"])
+        for r in report_data
+    )
+
+    if max_plots and len(unique_combos) > max_plots:
+        print(f"Limiting to {max_plots} plots (out of {len(unique_combos)} total) for faster generation.")
+        unique_combos = list(unique_combos)[:max_plots]
+    else:
+        unique_combos = list(unique_combos)
     
     print(f"Generating {len(unique_combos)} threshold-specific plots...")
     for con_num, corr_name, f_path, log_p_thresh in unique_combos:
@@ -721,28 +1128,55 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                 data = img.get_fdata()
                 data = np.nan_to_num(data)
                 clean_img = nib.Nifti1Image(data, img.affine, img.header)
-                
-                fig = plt.figure(figsize=(12, 5))
-                plotting.plot_glass_brain(clean_img, display_mode='lyrz', colorbar=True,
-                                          title=f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})",
-                                          figure=fig, threshold=log_p_thresh, plot_abs=False)
+
+                fig = plt.figure(
+                    figsize=(12 * quality_settings["scale"], 5 * quality_settings["scale"])
+                )
+                plotting.plot_glass_brain(
+                    clean_img,
+                    display_mode="lyrz",
+                    colorbar=True,
+                    title=f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})",
+                    figure=fig,
+                    threshold=log_p_thresh,
+                    plot_abs=False,
+                )
                 tmpfile = BytesIO()
-                fig.savefig(tmpfile, format='png', bbox_inches='tight', dpi=120)
-                encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+                fig.savefig(
+                    tmpfile,
+                    format="png",
+                    bbox_inches="tight",
+                    dpi=quality_settings["dpi_glass"],
+                )
+                encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
                 plots[img_id] = encoded
                 plt.close(fig)
             except Exception as e:
                 print(f"Warning: Could not generate glass brain for {f_path}: {e}")
         else:
-            encoded = plot_surface_to_base64(f_path, mesh_lh, mesh_rh, bg_lh_data, bg_rh_data, 
-                                            f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})",
-                                            threshold=log_p_thresh)
+            encoded = plot_surface_to_base64(
+                f_path,
+                mesh_lh,
+                mesh_rh,
+                bg_lh_data,
+                bg_rh_data,
+                f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})",
+                threshold=log_p_thresh,
+                dpi=quality_settings["dpi_surface"],
+                scale=quality_settings["scale"],
+            )
             if encoded:
                 plots[img_id] = encoded
-    
-    corr_priority = {'FWE': 0, 'FDR': 1, 'Uncorrected': 2}
-    report_data.sort(key=lambda x: (x['p_thresh'], corr_priority.get(x['correction'], 3), x['con_num']))
-    
+
+    corr_priority = {"FWE": 0, "FDR": 1, "Uncorrected": 2}
+    report_data.sort(
+        key=lambda x: (
+            x["p_thresh"],
+            corr_priority.get(x["correction"], 3),
+            x["con_num"],
+        )
+    )
+
     # HTML Template (included inline)
     html_template = """<!DOCTYPE html>
 <html>
@@ -754,7 +1188,12 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
         h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
         .info-container { display: flex; gap: 20px; margin-bottom: 30px; }
         .info { flex: 1; background-color: #e9ecef; padding: 15px; border-radius: 8px; }
-        .plot-container { flex: 2; background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; min-height: 200px; }
+        .plot-container { flex: 2; background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 200px; }
+        .plot-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+        .plot-main { text-align: center; }
+        .plot-side { display: grid; gap: 10px; }
+        .plot-panel { background: #f8f9fa; padding: 8px; border-radius: 6px; text-align: center; }
+        .plot-panel h4 { margin: 4px 0 6px; font-size: 0.9em; color: #333; }
         #main-plot { max-width: 100%; height: auto; border-radius: 4px; }
         .controls { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         .control-group { display: flex; flex-direction: column; gap: 5px; }
@@ -794,9 +1233,27 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
             <p style="margin-top: 20px;"><small>Click any row in the table to update the visualization.</small></p>
         </div>
         <div class="plot-container">
-            <div id="plot-title" style="font-weight: bold; margin-bottom: 10px; font-size: 1.2em;">Select a result to view plot</div>
-            <img id="main-plot" src="" class="hidden">
-            <div id="no-plot">No visualization available for this selection</div>
+            <div id="plot-title" style="font-weight: bold; margin-bottom: 10px; font-size: 1.2em; text-align: center;">Select a result to view plot</div>
+            <div class="plot-grid">
+                <div class="plot-main">
+                    <img id="main-plot" src="" class="hidden">
+                    <div id="no-plot">No visualization available for this selection</div>
+                </div>
+                <div class="plot-side">
+                    <div class="plot-panel">
+                        <h4>Design Matrix</h4>
+                        <img id="design-matrix-plot" src="" class="hidden">
+                        <div id="no-design-matrix" style="font-size: 0.85em; color: #666;">Unavailable</div>
+                        <div id="regressor-list" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
+                    </div>
+                    <div class="plot-panel">
+                        <h4>Contrast (SPM-style)</h4>
+                        <img id="contrast-plot" src="" class="hidden">
+                        <div id="no-contrast" style="font-size: 0.85em; color: #666;">Unavailable</div>
+                        <div id="contrast-vector" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -895,6 +1352,10 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
     
     <script>
         const plots = {{ plots_json | safe }};
+        const designMatrixPlot = {{ design_matrix_plot | tojson | safe }};
+        const contrastPlots = {{ contrast_plots_json | safe }};
+        const regressorNames = {{ regressor_names_json | safe }};
+        const contrastVectors = {{ contrast_vectors_json | safe }};
         
         function filterTable() {
             const pVal = document.getElementById('filter-p').value;
@@ -947,6 +1408,45 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
                 noPlot.classList.remove('hidden');
                 plotTitle.innerText = 'No visualization available';
             }
+
+            const dmImg = document.getElementById('design-matrix-plot');
+            const dmEmpty = document.getElementById('no-design-matrix');
+            if (designMatrixPlot) {
+                dmImg.src = 'data:image/png;base64,' + designMatrixPlot;
+                dmImg.classList.remove('hidden');
+                dmEmpty.classList.add('hidden');
+            } else {
+                dmImg.classList.add('hidden');
+                dmEmpty.classList.remove('hidden');
+            }
+
+            const conNum = row.getAttribute('data-con');
+            const conImg = document.getElementById('contrast-plot');
+            const conEmpty = document.getElementById('no-contrast');
+            const regressorList = document.getElementById('regressor-list');
+            const contrastVector = document.getElementById('contrast-vector');
+            if (contrastPlots[conNum]) {
+                conImg.src = 'data:image/png;base64,' + contrastPlots[conNum];
+                conImg.classList.remove('hidden');
+                conEmpty.classList.add('hidden');
+            } else {
+                conImg.classList.add('hidden');
+                conEmpty.classList.remove('hidden');
+            }
+
+            if (regressorNames && regressorNames.length > 0) {
+                regressorList.innerHTML = '<strong>Regressors (' + regressorNames.length + '):</strong> ' +
+                    regressorNames.map((n, i) => `${i + 1}. ${n}`).join(' | ');
+            } else {
+                regressorList.innerHTML = '';
+            }
+
+            if (contrastVectors[conNum]) {
+                const vec = contrastVectors[conNum];
+                contrastVector.innerHTML = '<strong>Contrast vector:</strong> [' + vec.map(v => v.toFixed(2)).join(', ') + ']';
+            } else {
+                contrastVector.innerHTML = '';
+            }
             
             const galleryData = JSON.parse(row.getAttribute('data-gallery'));
             const gallerySection = document.getElementById('gallery-section');
@@ -954,16 +1454,27 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
             
             if (galleryData && galleryData.length > 0) {
                 const activeAtlas = document.getElementById('select-atlas').value;
+                const conName = row.cells[1].innerText;
+                const conNum = row.getAttribute('data-con');
+                const contrastPlot = contrastPlots[conNum];
                 gallerySection.classList.remove('hidden');
                 galleryContent.innerHTML = galleryData.map(c => `
                     <div style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <div style="font-weight: bold; margin-bottom: 5px;">
-                            Cluster ${c.id} - ${c.regions[activeAtlas] || 'N/A'} 
+                            ${conName} — Cluster ${c.id} - ${c.regions[activeAtlas] || 'N/A'} 
                             <span style="font-weight: normal; color: #666; font-size: 0.9em; margin-left: 10px;">
                                 MNI: [${c.peak_mni.join(', ')}] | Size: ${c.size} voxels
                             </span>
                         </div>
-                        <img src="data:image/png;base64,${c.plot}" style="max-width: 100%; height: auto; border-radius: 4px;">
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <img src="data:image/png;base64,${c.plot}" style="flex: 1; max-width: 65%; height: auto; border-radius: 4px;">
+                            ${contrastPlot ? `
+                                <div style="flex: 0 0 33%; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px;">Contrast Weights</div>
+                                    <img src="data:image/png;base64,${contrastPlot}" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 `).join('');
             } else {
@@ -980,23 +1491,27 @@ def generate_report(results_dir, output_html, filter_mode="all", spm_path=None):
     </script>
 </body>
 </html>"""
-    
+
     template = Template(html_template)
     html_content = template.render(
         results_dir=results_dir,
         date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        mode='Surface' if is_surface else 'Volume',
+        mode="Surface" if is_surface else "Volume",
         is_surface=is_surface,
         has_tfce=has_tfce,
         contrast_names=contrast_names,
         report_data=report_data,
         plots_json=json.dumps(plots),
-        atlases=[{'name': a['name']} for a in atlases]
+        design_matrix_plot=design_matrix_plot,
+        contrast_plots_json=json.dumps(contrast_plots),
+        regressor_names_json=json.dumps(regressor_names or []),
+        contrast_vectors_json=json.dumps(contrast_vectors),
+        atlases=[{"name": a["name"]} for a in atlases],
     )
-    
-    with open(output_html, 'w') as f:
+
+    with open(output_html, "w") as f:
         f.write(html_content)
-    
+
     print(f"Report saved to: {output_html}")
 
 
@@ -1006,24 +1521,71 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python post_stats_report.py ./stats_results ./report.html
-  python post_stats_report.py ./stats_results ./report.html --filter tfce
-  python post_stats_report.py ./stats_results ./report.html --spm-path /path/to/spm12
+    python post_stats_report.py ./stats_results
+    python post_stats_report.py ./stats_results ./report.html
+    python post_stats_report.py ./stats_results ./report.html --filter tfce
+    python post_stats_report.py ./stats_results ./report.html --quality low
+    python post_stats_report.py ./stats_results ./report.html --spm-path /path/to/spm12
 
 Filter Modes:
   all              - Include all available results (TFCE, SPM{T}, etc.)
   tfce             - Only include TFCE results
   spmt             - Only include standard SPM T-maps
   double_threshold - Only include double-threshold results
-        """
+        """,
     )
-    
-    parser.add_argument("results_dir", help="Directory containing CAT12/SPM statistical results")
-    parser.add_argument("output_html", help="Path where the HTML report will be saved")
-    parser.add_argument("--filter", "-f", choices=["all", "tfce", "spmt", "double_threshold"], default="all",
-                        help="Filter the types of results included (default: all)")
-    parser.add_argument("--spm-path", help="Path to SPM installation (for loading atlases)")
-    
+
+    parser.add_argument(
+        "results_dir", help="Directory containing CAT12/SPM statistical results"
+    )
+    parser.add_argument(
+        "output_html",
+        nargs="?",
+        default=None,
+        help="Optional path where the HTML report will be saved (default: results_data_<timestamp>.html inside results_dir)",
+    )
+    parser.add_argument(
+        "--filter",
+        "-f",
+        choices=["all", "tfce", "spmt", "double_threshold"],
+        default="all",
+        help="Filter the types of results included (default: all)",
+    )
+    parser.add_argument(
+        "--spm-path", help="Path to SPM installation (for loading atlases)"
+    )
+    parser.add_argument(
+        "--quality",
+        choices=["low", "standard", "publication"],
+        default="standard",
+        help="Plot quality preset to control HTML size (default: standard)",
+    )
+    parser.add_argument(
+        "--max-plots",
+        type=int,
+        default=None,
+        help="Maximum number of glass-brain plots to generate (default: unlimited). Use to speed up report generation.",
+    )
+    parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to config.json file (default: config/config.json from workspace root)",
+    )
+
     args = parser.parse_args()
-    
-    generate_report(args.results_dir, args.output_html, args.filter, spm_path=args.spm_path)
+
+    if args.output_html is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        args.output_html = os.path.join(
+            args.results_dir, f"results_data_{timestamp}.html"
+        )
+
+    generate_report(
+        args.results_dir,
+        args.output_html,
+        args.filter,
+        spm_path=args.spm_path,
+        quality=args.quality,
+        max_plots=args.max_plots,
+        config_file=args.config,
+    )

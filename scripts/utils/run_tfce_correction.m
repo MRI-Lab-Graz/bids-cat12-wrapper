@@ -43,8 +43,11 @@ contrast_list = p.Results.contrast_list;
 pilot_mode = p.Results.pilot;
 force_analysis = p.Results.force;
 
-% Load configuration from config.ini
-config_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'config.ini');
+% Load configuration from config.json
+% mfilename('fullpath') = /path/to/stats/scripts/utils/run_tfce_correction.m
+% Need 3 fileparts to get to workspace root
+workspace_root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+config_path = fullfile(workspace_root, 'config', 'config.json');
 if ~exist(config_path, 'file')
     error('Configuration file not found: %s', config_path);
 end
@@ -229,7 +232,7 @@ for i = 1:length(contrasts_to_process)
         case {'freedman-lane','freedman_lane','freedman','1'}
             nuisance_val = 1;
         otherwise
-            warning('Invalid nuisance_method "%s" in config.ini. Defaulting to "smith".', nuisance_method_str);
+            warning('Invalid nuisance_method "%s" in config.json. Defaulting to "smith".', nuisance_method_str);
             nuisance_val = 2;
     end
     matlabbatch{1}.spm.tools.tfce_estimate.nuisance_method = nuisance_val;

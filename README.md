@@ -17,20 +17,21 @@
 ### 1. Configure
 Edit `config/config.json` with your MATLAB and SPM paths.
 
-### 2. Analyze
+### 2. Analyze & Report
 ```bash
-# Run complete workflow: sweep + interactive report
-python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis
+# Generate interactive report from existing results
+python scripts/reporting/post_stats_report.py \
+  ./results/vbm/analysis \
+  report.html
 
-# Or with study-specific config
-python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis \
-  --config config/config.study_intervention.json
+# Or automated workflow (with MATLAB - if functions available)
+python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis --use-matlab
 ```
 
 ### 3. Explore
 ```bash
 # Open interactive HTML report in browser
-open results/vbm/analysis/post_stats_sweep_report.html
+open report.html
 ```
 
 ---

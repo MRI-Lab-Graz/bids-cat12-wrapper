@@ -20,6 +20,7 @@ phrases printed by the wrapper (e.g., 'Probe nuisance method: ...' and
     exchangeability: string|null (verbatim TFCE line)
 
 """
+
 import json
 import re
 import sys
@@ -102,9 +103,7 @@ def _extract_conditions(block: str):
 
 
 def _extract_exchangeability(block: str):
-    exch_match = re.search(
-        r"Exchangeability block/variable:\s*([^\n]+)", block
-    )
+    exch_match = re.search(r"Exchangeability block/variable:\s*([^\n]+)", block)
     if not exch_match:
         return None
     return exch_match.group(1).strip()
@@ -171,6 +170,7 @@ def parse_log(path):
 
     return results
 
+
 def main():
     if len(sys.argv) < 3:
         print(__doc__)
@@ -178,9 +178,10 @@ def main():
     logfile = sys.argv[1]
     outjson = sys.argv[2]
     data = parse_log(logfile)
-    with open(outjson, 'w', encoding='utf-8') as f:
+    with open(outjson, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     print(f"Wrote summary for {len(data)} contrasts to {outjson}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

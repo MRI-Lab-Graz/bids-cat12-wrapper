@@ -259,7 +259,7 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
                     # Check if filename starts with s<N> or contains s<N>.mesh
                     # We use the robust extractor to be sure
                     s_val = extract_smoothing_from_filename(m.name)
-                    
+
                     # Case 1: Requested smoothing is explicit (e.g. 6, 8, 9)
                     if isinstance(args.smoothing, int):
                         if s_val == args.smoothing:
@@ -267,7 +267,7 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
                     # Case 2: Requested smoothing is string/auto (should be resolved by now, but just in case)
                     elif str(s_val) == str(args.smoothing):
                         filtered_matches.append(m)
-                        
+
                 matches = filtered_matches
 
             if not matches:
@@ -334,7 +334,7 @@ def parse_participants(args):
     # BIDS-compliant format: one row per subject with nr_sessions column
     has_nr_sessions = "nr_sessions" in df.columns
     has_session_col = args.session_col in df.columns
-    
+
     if has_nr_sessions:
         # BIDS format: one row per subject with nr_sessions
         print("Detected BIDS-compliant format (one row per subject with nr_sessions)")
@@ -347,10 +347,12 @@ def parse_participants(args):
         is_bids_format = False
     else:
         # Subject-level format: one row per subject, sessions auto-detected
-        print("Detected subject-level format (sessions will be auto-detected from filenames)")
+        print(
+            "Detected subject-level format (sessions will be auto-detected from filenames)"
+        )
         required_cols = ["participant_id", args.group_col]
         is_bids_format = True  # Treat like BIDS but without explicit session count
-        
+
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         print(f"Error: Missing required columns: {', '.join(missing)}")
@@ -370,16 +372,16 @@ def parse_participants(args):
 
         print(f"Found smoothing kernels: {', '.join(map(str, available_smoothing))}mm")
 
-        # Use the most common smoothing for the modality
-        if args.modality == "vbm":
-            # Prefer 8mm for VBM
-            args.smoothing = 8 if 8 in available_smoothing else available_smoothing[0]
-        else:
-            # Prefer 15mm for surface
-            args.smoothing = (
-                15 if 15 in available_smoothing else available_smoothing[-1]
+        # Require explicit specification if multiple kernels found
+        if len(available_smoothing) > 1:
+            print(
+                f"\nError: Multiple smoothing kernels detected ({', '.join(map(str, available_smoothing))}mm)."
             )
+            print("Please specify which smoothing kernel to use explicitly.")
+            print(f"Update config.json 'smoothing_kernel' to one of: {', '.join(map(str, available_smoothing))}")
+            sys.exit(1)
 
+        args.smoothing = available_smoothing[0]
         print(f"Selected smoothing: {args.smoothing}mm")
     else:
         args.smoothing = int(args.smoothing)
@@ -387,18 +389,18 @@ def parse_participants(args):
     # Parse covariate columns
     covariate_cols = []
     categorical_covariates = set()
-    
+
     if args.covariates:
         covariate_cols = [c.strip() for c in args.covariates.split(",")]
-        
+
         # --------------------------------------------------------------------
         # Auto-encode categorical covariates (BIDS-aware)
         # --------------------------------------------------------------------
-        json_path = Path(args.participants).with_suffix('.json')
+        json_path = Path(args.participants).with_suffix(".json")
         sidecar = {}
         if json_path.exists():
             try:
-                with open(json_path, 'r') as f:
+                with open(json_path, "r") as f:
                     sidecar = json.load(f)
                 print(f"Loaded BIDS sidecar: {json_path.name}")
             except Exception as e:
@@ -420,11 +422,11 @@ def parse_participants(args):
                     # Get unique values, sorted for deterministic mapping
                     unique_vals = sorted(df[cov].dropna().unique())
                     mapping = {val: i for i, val in enumerate(unique_vals)}
-                    
+
                     print(f"  → Auto-encoding categorical covariate '{cov}':")
                     for val, code in mapping.items():
                         print(f"      '{val}' -> {code}")
-                    
+
                     # Apply mapping to DataFrame
                     df[cov] = df[cov].map(mapping)
         # --------------------------------------------------------------------
@@ -472,7 +474,9 @@ def parse_participants(args):
             all_sessions = [int(s.strip()) for s in args.sessions.split(",")]
         else:
             all_sessions = [1, 2, 3]  # Default assumption
-        print(f"Subject-level format: {len(df)} subjects, sessions will be detected from filenames")
+        print(
+            f"Subject-level format: {len(df)} subjects, sessions will be detected from filenames"
+        )
 
     # Filter sessions based on --sessions argument
     if args.sessions == "all":
@@ -639,24 +643,29 @@ def parse_participants(args):
     # Standardize continuous covariates if requested
     if args.standardize_continuous:
         import numpy as np
+
         print("\nStandardizing continuous covariates (z-score)...")
         for cov, values in resolved_covariates.items():
             if cov in categorical_covariates:
                 print(f"  Skipping categorical covariate: {cov}")
                 continue
-            
+
             try:
                 vals = np.array(values)
                 mean_val = np.nanmean(vals)
                 std_val = np.nanstd(vals)
-                
+
                 if std_val == 0:
-                    print(f"  ⚠ Warning: Covariate '{cov}' has zero variance, skipping standardization")
+                    print(
+                        f"  ⚠ Warning: Covariate '{cov}' has zero variance, skipping standardization"
+                    )
                     continue
-                    
+
                 z_vals = (vals - mean_val) / std_val
                 resolved_covariates[cov] = z_vals.tolist()
-                print(f"  ✓ Standardized '{cov}' (mean={mean_val:.2f}, sd={std_val:.2f})")
+                print(
+                    f"  ✓ Standardized '{cov}' (mean={mean_val:.2f}, sd={std_val:.2f})"
+                )
             except Exception as e:
                 print(f"  ⚠ Failed to standardize '{cov}': {e}")
 

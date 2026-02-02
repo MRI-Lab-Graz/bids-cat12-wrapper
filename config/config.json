@@ -24,16 +24,46 @@
   },
 
   "analysis": {
-    "modality": "vbm",
-    "_modality_options": ["vbm", "thickness", "depth", "gyrification", "fractal"],
-    "smoothing_kernel": 9,
-    "group_column": "group_beh",
+    "participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/orig_participants.tsv",
+    "group_column": "group",
     "session_column": "session",
     "sessions": ["1", "2"],
     "_sessions_options": "Use ['all'] or specific list like ['1', '2', '3']",
-    "covariates": ["tiv"],
-    "_covariates_example": ["age", "sex", "tiv", "intracranial_volume"],
-    "standardize_continuous": true
+    "standardize_continuous": true,
+    "_comment": "Define modalities below; each can have different smoothing, covariates, masks",
+    
+    "modalities": [
+      { 
+        "name": "vbm",
+        "folder_name": "vbm_9mm_3G_tiv_sex_age",
+        "smoothing_kernel": null,
+        "_smoothing_comment": "null for auto-detect (must be single kernel)",
+        "covariates": ["tiv", "sex", "age"],
+        "mask": "/Volumes/Thunder/129_PK01/cat12/stats/templates/brainmask_GMtight.nii"
+      },
+      {
+        "name": "thickness",
+        "folder_name": "thickness_15mm_sex_age",
+        "smoothing_kernel": 15,
+        "covariates": ["sex", "age"],
+        "_covariates_comment": "Note: tiv not applicable for surface modality",
+        "mask": null
+      },
+      {
+        "name": "depth",
+        "folder_name": "depth_12mm_sex_age",
+        "smoothing_kernel": 12,
+        "covariates": ["sex", "age"],
+        "mask": null
+      },
+      {
+        "name": "gyrification",
+        "folder_name": "gyrification_12mm_sex_age",
+        "smoothing_kernel": 12,
+        "covariates": ["sex", "age"],
+        "mask": null
+      }
+    ]
   },
 
   "screening": {
@@ -44,12 +74,21 @@
 
   "tfce": {
     "n_permutations": 5000,
-    "pilot_mode": false,
+    "pilot_mode": true,
     "_pilot_permutations": "Use 100 for quick testing"
   },
 
+  "reporting": {
+    "thresholds": [
+      {"p_value": 0.01, "label": "Significant (p < 0.01)"},
+      {"p_value": 0.05, "label": "Significant (p < 0.05)"},
+      {"p_value": 0.1, "label": "Trend (p < 0.1)"}
+    ],
+    "_thresholds_note": "Specify p-value thresholds; log_p is computed internally as -log10(p)"
+  },
+
   "performance": {
-    "parallel_jobs": 4,
+    "parallel_jobs": 1,
     "memory_limit_gb": 16
   },
 

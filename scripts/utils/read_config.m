@@ -1,16 +1,31 @@
 
 function config = read_config(file_path)
-% READ_CONFIG - Reads a simple INI file and returns a struct
+% READ_CONFIG - Reads a configuration file (JSON or INI) and returns a struct
 %
 % Usage:
+%   config = read_config('config.json');
 %   config = read_config('config.ini');
 %
 % Input:
-%   file_path - Path to the INI file
+%   file_path - Path to the config file (JSON or INI format)
 %
 % Output:
-%   config    - Struct with sections and key-value pairs
+%   config    - Struct with configuration values
 
+    % Check file format by extension
+    [~, ~, ext] = fileparts(file_path);
+    
+    if strcmpi(ext, '.json')
+        % Read JSON file
+        if ~exist(file_path, 'file')
+            error('Configuration file not found: %s', file_path);
+        end
+        text = fileread(file_path);
+        config = jsondecode(text);
+        return;
+    end
+    
+    % Otherwise read as INI file (legacy support)
     config = struct();
     fid = fopen(file_path, 'r');
     if fid == -1

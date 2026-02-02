@@ -11,6 +11,7 @@ import matplotlib
 
 import matplotlib.colors
 import matplotlib.cm
+
 matplotlib.use("Agg")  # noqa: E402
 import matplotlib.pyplot as _plt  # noqa: E402
 from datetime import datetime
@@ -69,9 +70,9 @@ def generate_methods_text(
 
         <p><strong>Statistical Modeling</strong></p>
         <p>A flexible factorial design was specified in SPM12 to model longitudinal changes.
-        The design included {n_subjects} subjects across {n_groups} groups ({', '.join(groups)}) and {n_sessions} time points.
+        The design included {n_subjects} subjects across {n_groups} groups ({", ".join(groups)}) and {n_sessions} time points.
         Subject-specific intercepts were modeled to account for repeated measures (within-subject factor: Time; between-subject factor: Group).
-        {'Covariates of no interest included: ' + ', '.join(covariates) + '.' if covariates else 'No additional covariates were included.'}</p>
+        {"Covariates of no interest included: " + ", ".join(covariates) + "." if covariates else "No additional covariates were included."}</p>
 
         {inference_text}
 
@@ -100,14 +101,15 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     if output_dir:
         report_dir = os.path.join(output_dir, "report")
         os.makedirs(report_dir, exist_ok=True)
-        
+
         # Prefer the MATLAB-generated design matrix image if available
         matlab_img_path = os.path.join(output_dir, "design_matrix.png")
         report_img_path = os.path.join(report_dir, "design_matrix.png")
-        
+
         if os.path.exists(matlab_img_path):
             # Copy it to the report directory
             import shutil
+
             shutil.copy2(matlab_img_path, report_img_path)
             design_matrix_img = "design_matrix.png"
         elif os.path.exists(report_img_path):
@@ -267,7 +269,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     covariates = design.get("covariates", {})
     if covariates:
         cov_list = ", ".join(f"<code>{cov}</code>" for cov in covariates.keys())
-        
+
         # Build summary table for covariates
         cov_table_rows = []
         for cov_name, values in covariates.items():
@@ -278,22 +280,26 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 std_val = _np.nanstd(vals)
                 min_val = _np.nanmin(vals)
                 max_val = _np.nanmax(vals)
-                
-                cov_table_rows.append(f"""
+
+                cov_table_rows.append(
+                    f"""
                 <tr>
                     <td><strong>{cov_name}</strong></td>
                     <td>{mean_val:.2f} ± {std_val:.2f}</td>
                     <td>{min_val:.2f} - {max_val:.2f}</td>
                 </tr>
-                """)
+                """
+                )
             except Exception:
                 # Fallback for non-numeric covariates if any slip through
-                cov_table_rows.append(f"""
+                cov_table_rows.append(
+                    f"""
                 <tr>
                     <td><strong>{cov_name}</strong></td>
                     <td colspan="2"><em>Non-numeric or mixed data</em></td>
                 </tr>
-                """)
+                """
+                )
 
         covariates_section = f"""
             <h4 style="margin-top: 1.5rem; color: #333;">Covariates:</h4>
@@ -307,7 +313,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                     </tr>
                 </thead>
                 <tbody>
-                    {''.join(cov_table_rows)}
+                    {"".join(cov_table_rows)}
                 </tbody>
             </table>
         """
@@ -360,7 +366,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
     # Generate thumbnails / montages for TFCE result NIfTIs if possible
     tfce_thumbnails = []
     start_time = kwargs.get("start_time")
-    
+
     if output_dir and report_dir:
         # search for TFCE_log_pFWE_*.nii in output_dir and subdirs
         nifti_paths = []
@@ -387,7 +393,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 fwe_p_thresh = 0.05
                 if tfce_summary:
                     fwe_p_thresh = tfce_summary.get("fwe_threshold", 0.05)
-                
+
                 # Convert p-value to -log10(p)
                 log_threshold = -_np.log10(fwe_p_thresh)
 
@@ -419,7 +425,9 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                         slice_imgs = [_np.rot90(data_masked[:, :, z]) for z in idxs]
 
                     fig = _plt.figure(figsize=(ncols * 1.2 + 1, nrows * 1.2), dpi=dpi)
-                    gs = fig.add_gridspec(nrows, ncols + 1, width_ratios=[1] * ncols + [0.1])
+                    gs = fig.add_gridspec(
+                        nrows, ncols + 1, width_ratios=[1] * ncols + [0.1]
+                    )
 
                     vmax = _np.nanmax(data_masked)
                     if _np.isnan(vmax) or vmax < threshold:
@@ -430,12 +438,20 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                             break
                         r, c = divmod(i, ncols)
                         ax = fig.add_subplot(gs[r, c])
-                        ax.imshow(sl, cmap=cmap, interpolation="nearest", vmin=threshold, vmax=vmax)
+                        ax.imshow(
+                            sl,
+                            cmap=cmap,
+                            interpolation="nearest",
+                            vmin=threshold,
+                            vmax=vmax,
+                        )
                         ax.axis("off")
 
                     cax = fig.add_subplot(gs[:, -1])
                     norm = matplotlib.colors.Normalize(vmin=threshold, vmax=vmax)
-                    cb = _plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax)
+                    cb = _plt.colorbar(
+                        matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax
+                    )
                     cb.set_label("-log10(p)")
 
                     if title:
@@ -456,7 +472,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
 
                         c_name = base
                         c_idx = None
-                        parts = base.split('_')
+                        parts = base.split("_")
                         for p in parts:
                             if p.isdigit():
                                 c_idx = int(p)
@@ -521,13 +537,22 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                             _append_thumb(neg_mask, "neg", "−", "winter")
 
                         # Fallback: if no directional thumbnails were produced, keep combined view
-                        if not any(t.get("nifti") == os.path.relpath(npth, report_dir) for t in tfce_thumbnails):
+                        if not any(
+                            t.get("nifti") == os.path.relpath(npth, report_dir)
+                            for t in tfce_thumbnails
+                        ):
                             outpng = os.path.join(report_dir, base + "_fwe_moire.png")
                             needs_update = (not os.path.exists(outpng)) or (
                                 os.path.getmtime(npth) > os.path.getmtime(outpng)
                             )
                             if needs_update:
-                                make_moire_single(npth, outpng, ncols=8, nrows=1, threshold=log_threshold)
+                                make_moire_single(
+                                    npth,
+                                    outpng,
+                                    ncols=8,
+                                    nrows=1,
+                                    threshold=log_threshold,
+                                )
                             tfce_thumbnails.append(
                                 {
                                     "nifti": os.path.relpath(npth, report_dir),
@@ -537,14 +562,15 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                                 }
                             )
                     except Exception as exc:
-                        print(f"Warning: Failed to build TFCE thumbnail for {npth}: {exc}")
+                        print(
+                            f"Warning: Failed to build TFCE thumbnail for {npth}: {exc}"
+                        )
                         continue
             except Exception:
                 tfce_thumbnails = []
 
     # Uncorrected contrast maps are no longer generated/displayed as per user request
     contrast_items = []
-
 
     # Build HTML items for contrasts (Bootstrap columns)
     contrast_items_html = ""
@@ -553,11 +579,11 @@ def generate_report(design_json_path, output_html_path, **kwargs):
             contrast_items_html += f"""
             <div class="col-md-4 col-lg-3">
                 <div class="card contrast-card">
-                    <a href="{it['nifti']}" target="_blank">
-                        <img src="{it['thumb']}" class="card-img-top" alt="{it['name']}">
+                    <a href="{it["nifti"]}" target="_blank">
+                        <img src="{it["thumb"]}" class="card-img-top" alt="{it["name"]}">
                     </a>
                     <div class="card-body p-2 text-center">
-                        <small class="text-muted">{it['name']}</small>
+                        <small class="text-muted">{it["name"]}</small>
                     </div>
                 </div>
             </div>
@@ -582,22 +608,24 @@ def generate_report(design_json_path, output_html_path, **kwargs):
             # Only show contrasts that have significant results
             if not c.get("has_results"):
                 continue
-                
+
             status_icon = "✓"
             status_class = "bg-success text-white"
 
             tfce_table_rows.append(
                 f"""
                 <tr>
-                    <td>{c['index']}</td>
-                    <td>{c['name']}</td>
+                    <td>{c["index"]}</td>
+                    <td>{c["name"]}</td>
                     <td><span class="badge {status_class}">{status_icon}</span></td>
                 </tr>
             """
             )
-        
+
         if not tfce_table_rows:
-            tfce_table_rows.append('<tr><td colspan="3" class="text-center text-muted">No significant clusters found at FWE < 0.05</td></tr>')
+            tfce_table_rows.append(
+                '<tr><td colspan="3" class="text-center text-muted">No significant clusters found at FWE < 0.05</td></tr>'
+            )
 
         tfce_results_section = f"""
         <div class="alert alert-info">
@@ -614,7 +642,7 @@ def generate_report(design_json_path, output_html_path, **kwargs):
                 </tr>
             </thead>
             <tbody>
-                {''.join(tfce_table_rows)}
+                {"".join(tfce_table_rows)}
             </tbody>
         </table>
         
@@ -630,28 +658,32 @@ def generate_report(design_json_path, output_html_path, **kwargs):
         thumb_items = []
         for t in tfce_thumbnails:
             direction_badge = t.get("direction", "")
-            badge_text = direction_badge if direction_badge in {"+", "-", "±"} else direction_badge
+            badge_text = (
+                direction_badge
+                if direction_badge in {"+", "-", "±"}
+                else direction_badge
+            )
 
             thumb_items.append(
                 f"""
             <div class="col-md-6 mb-3">
                 <div class="card">
-                    <a href="{t['nifti']}" target="_blank">
-                        <img src="{t['thumb']}" class="card-img-top" alt="{t.get('name', 'TFCE Map')}">
+                    <a href="{t["nifti"]}" target="_blank">
+                        <img src="{t["thumb"]}" class="card-img-top" alt="{t.get("name", "TFCE Map")}">
                     </a>
                     <div class="card-footer text-center small text-muted">
                         {t.get("name", os.path.basename(t["nifti"]))}
-                        {f"<span class='badge bg-secondary ms-2'>{badge_text}</span>" if badge_text else ''}
+                        {f"<span class='badge bg-secondary ms-2'>{badge_text}</span>" if badge_text else ""}
                     </div>
                 </div>
             </div>
             """
             )
-        
+
         if thumb_items:
             tfce_thumbs_section = f"""
             <div class="row mt-4">
-                {''.join(thumb_items)}
+                {"".join(thumb_items)}
             </div>
             """
         tfce_results_section += tfce_thumbs_section
@@ -784,7 +816,10 @@ if __name__ == "__main__":
         "--uncorrected-p", type=float, default=0.001, help="Uncorrected p threshold"
     )
     parser.add_argument(
-        "--start-time", type=float, default=None, help="Unix timestamp of pipeline start"
+        "--start-time",
+        type=float,
+        default=None,
+        help="Unix timestamp of pipeline start",
     )
 
     args = parser.parse_args()
