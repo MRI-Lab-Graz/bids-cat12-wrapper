@@ -281,7 +281,7 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
         else:
             measure_map = {
                 "thickness": "thickness",
-                "depth": "depthWM",
+                "depth": "depth",
                 "gyrification": "gyrification",
                 "fractal": "fractaldimension",
             }
@@ -293,12 +293,18 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
             if not surf_dir.exists():
                 continue
 
-            matches = list(surf_dir.glob(f"*{measure}*.r{subject}_{session}_*.gii"))
-            if not matches:
-                continue
-
+            # Surface files have pattern: s<smoothing>.mesh.<measure>.resampled_32k.rsub-<subject_id>_<session>_*.gii
+            # Strip 'sub-' prefix from subject for filename matching, but keep 'ses-' in session
+            subject_id = subject.replace("sub-", "")
+            
+            # Build pattern based on whether smoothing is specified
             if smoothing_kw:
-                matches = sorted(matches, key=lambda p: smoothing_kw not in p.name)
+                pattern = f"s{smoothing_kw}.mesh.{measure}*.rsub-{subject_id}_{session}_*.gii"
+            else:
+                # If smoothing not specified, match any smoothing level
+                pattern = f"s*.mesh.{measure}*.rsub-{subject_id}_{session}_*.gii"
+            
+            matches = list(surf_dir.glob(pattern))
             if matches:
                 return str(matches[0])
 
@@ -606,7 +612,8 @@ def parse_participants(args):
 
                 files_found += 1
             else:
-                print(f"  ⚠ Missing: {subject} ses-{session}")
+                # File not found for this subject-session - this is normal incomplete data,
+                # not necessarily an error. Only track the count; don't spam warnings.
                 files_missing += 1
 
     print(f"\n✓ Found {files_found} files")

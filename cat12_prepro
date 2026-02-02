@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# CAT12 Preprocessing Wrapper
+# ===========================
+#
+# Wrapper script for BIDS CAT12 Preprocessing.
+# Automatically handles environment activation and passes arguments
+# to the Python processor.
+#
+# USAGE:
+#   ./cat12_prepro <bids_dir> <output_dir> <level> [options]
+#
+# EXAMPLES:
+#   ./cat12_prepro /data/bids /data/out participant --preproc --qa
+#   ./cat12_prepro /data/bids /data/out participant --preproc --nohup
+#
+# See './cat12_prepro --help' for full options.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source environment variables
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+fi
+
+# Activate virtual environment if not already active
+if [ -z "$VIRTUAL_ENV" ]; then
+    if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+        source "$SCRIPT_DIR/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment not found. Please run installation script."
+        exit 1
+    fi
+fi
+
+# Run the command
+python "$SCRIPT_DIR/scripts/preprocessing/bids_cat12_processor.py" "$@"

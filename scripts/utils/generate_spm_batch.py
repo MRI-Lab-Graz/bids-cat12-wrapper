@@ -211,10 +211,14 @@ def generate_batch(args):
     # Handle explicit mask for VBM: if a mask_file is provided, embed it
     # as the explicit mask in the generated batch. This ensures the SPM
     # Batch Editor will open with the selected explicit mask applied.
+    # NOTE: Surface modalities (thickness, depth, gyrification) should NOT use masks
     # Escape output_dir for MATLAB single-quoted string
     safe_output_dir = str(args.output_dir).replace("'", "''")
 
-    if hasattr(args, "mask_file") and args.mask_file:
+    # Check if modality is surface-based
+    is_surface_modality = design["modality"] in ("thickness", "depth", "gyrification", "fractal")
+    
+    if hasattr(args, "mask_file") and args.mask_file and not is_surface_modality:
         # Escape single quotes in mask path for MATLAB
         safe_mask = str(args.mask_file).replace("'", "''")
         # Add volume index ,1 for NIfTI files (SPM requirement)
@@ -222,6 +226,8 @@ def generate_batch(args):
         print(f"Embedding explicit mask in batch: {args.mask_file}")
     else:
         masking_em = "% matlabbatch{1}.spm.stats.factorial_design.masking.em = {};  % No explicit mask"
+        if is_surface_modality:
+            print(f"Surface modality detected ({design['modality']}): skipping explicit mask (not applicable)")
 
     # Fill template
     batch_content = MATLAB_BATCH_TEMPLATE.format(

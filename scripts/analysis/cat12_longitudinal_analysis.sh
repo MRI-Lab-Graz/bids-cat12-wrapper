@@ -1033,9 +1033,9 @@ echo "Running missing-voxel diagnostics (this is fast)"
 # Read optional failure threshold from config.ini (empty disables failure)
 MISSING_FAIL_PCT=$(get_ini_value "TFCE" "missing_fail_pct" "")
 
-# Thickness is surface-based; skip volumetric missing-voxel diagnostics.
-if [[ "$MODALITY" == "thickness" ]]; then
-    echo "Skipping volumetric missing-voxel diagnostic for thickness modality"
+# Surface modalities (thickness, depth, gyrification) are surface-based; skip volumetric missing-voxel diagnostics.
+if [[ "$MODALITY" == "thickness" || "$MODALITY" == "depth" || "$MODALITY" == "gyrification" || "$MODALITY" == "fractal" ]]; then
+    echo "Skipping volumetric missing-voxel diagnostic for surface modality ($MODALITY)"
 else
     GM_MASK_ARG=""
     if [[ -n "$MASK_FILE" ]]; then
