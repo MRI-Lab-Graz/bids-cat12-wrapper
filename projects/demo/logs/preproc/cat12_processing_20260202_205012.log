@@ -1,0 +1,19 @@
+2026-02-02 20:50:12,285 - INFO - [35m============================================================[0m
+2026-02-02 20:50:12,285 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-02 20:50:12,285 - INFO - [35m============================================================[0m
+2026-02-02 20:50:12,285 - INFO - [36m▶ Command: /Volumes/Thunder/129_PK01/cat12/stats/.venv/bin/python3 scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_config.json[0m
+2026-02-02 20:50:12,285 - INFO - [36m📁 BIDS directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw[0m
+2026-02-02 20:50:12,285 - INFO - [36m📂 Output directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12[0m
+2026-02-02 20:50:12,285 - INFO - [36m🗂️ Working directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/work[0m
+2026-02-02 20:50:12,285 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-02 20:50:12,285 - INFO - [36m📝 Log file: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/logs/preproc/cat12_processing_20260202_205012.log[0m
+2026-02-02 20:50:12,285 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-02 20:50:12,687 - ERROR - GraphQL query failed with 1 errors
+2026-02-02 20:50:12,687 - INFO - Error #0 dataset:
+2026-02-02 20:50:12,687 - INFO -    | Dataset /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw does not exist.
+2026-02-02 20:50:12,687 - INFO -    -
+2026-02-02 20:50:12,687 - INFO -    | Locations:
+2026-02-02 20:50:12,688 - INFO -    |  0 | 
+2026-02-02 20:50:12,688 - INFO -    |  1 |     query {
+2026-02-02 20:50:12,688 - INFO -    |  2 |         dataset(id: "/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw") {
+2026-02-02 20:50:12,688 - INFO -    |      --------^

@@ -1,0 +1,44 @@
+{
+  "_comment": "Dummy CAT12 preprocessing run config",
+  "_updated": "2026-02-02",
+  "run": {
+    "bids_dir": "/path/to/bids",
+    "output_dir": "/path/to/derivatives",
+    "analysis_level": "participant",
+    "participant_label": ["01", "02"],
+    "session_label": ["1", "2"],
+    "preproc": true,
+    "smooth_volume": [6],
+    "smooth_surface": [12],
+    "qa": true,
+    "tiv": true,
+    "roi": false,
+    "no_surface": false,
+    "no_validate": false,
+    "n_jobs": "auto",
+    "work_dir": "/path/to/work",
+    "log_dir": "/path/to/derivatives/logs",
+    "skip_existing": true,
+    "dry_run": false,
+    "cross": false,
+    "pilot": false,
+    "openneuro": false,
+    "openneuro_tag": null,
+    "openneuro_dir": null,
+    "openneuro_download_all": false
+  },
+  "cat12": {
+    "longitudinal": true,
+    "surface_processing": true,
+    "volume_processing": true,
+    "quality_check": true,
+    "parallel_jobs": 1
+  },
+  "bids": {
+    "validate": true,
+    "derivatives_name": "cat12"
+  },
+  "system": {
+    "memory_limit": "16GB"
+  }
+}

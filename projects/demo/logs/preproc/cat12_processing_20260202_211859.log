@@ -1,0 +1,96 @@
+2026-02-02 21:18:59,653 - INFO - [35m============================================================[0m
+2026-02-02 21:18:59,653 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-02 21:18:59,653 - INFO - [35m============================================================[0m
+2026-02-02 21:18:59,653 - INFO - [36m▶ Command: /Volumes/Thunder/129_PK01/cat12/stats/.venv/bin/python3 scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_config.json[0m
+2026-02-02 21:18:59,653 - INFO - [36m📁 BIDS directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw[0m
+2026-02-02 21:18:59,653 - INFO - [36m📂 Output directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12[0m
+2026-02-02 21:18:59,653 - INFO - [36m🗂️ Working directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/work[0m
+2026-02-02 21:18:59,653 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-02 21:18:59,653 - INFO - [36m📝 Log file: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/logs/preproc/cat12_processing_20260202_211859.log[0m
+2026-02-02 21:18:59,653 - INFO - [36m🔎 Running preflight checks...[0m
+2026-02-02 21:18:59,973 - INFO - ======================================================================
+PREFLIGHT CHECKS
+======================================================================
+
+1. Checking MATLAB and SPM...
+✓ MATLAB executable found: /Applications/MATLAB_R2025b.app/bin/matlab
+✓ SPM installation found: /Volumes/Evo/software/spm25
+
+======================================================================
+✓ All preflight checks PASSED
+2026-02-02 21:18:59,973 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-02 21:18:59,974 - INFO - [36m🔍 Initializing BIDS layout for: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw[0m
+2026-02-02 21:18:59,974 - INFO - [36m📊 Using BIDS database: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/.bids_cache/bidsdb_1779206085235691825.db[0m
+2026-02-02 21:19:00,057 - INFO - [32m👥 Found 4 subjects[0m
+2026-02-02 21:19:00,057 - INFO - CAT12 execution mode: MATLAB
+2026-02-02 21:19:00,062 - INFO - Validating BIDS dataset...
+2026-02-02 21:19:00,062 - INFO - Running BIDS validation...
+2026-02-02 21:19:00,062 - INFO - Found 4 subject directories
+2026-02-02 21:19:00,119 - INFO - Running BIDS validation with Deno validator...
+2026-02-02 21:19:00,566 - WARNING - BIDS validation reported issues:
+2026-02-02 21:19:00,566 - WARNING - 	[WARNING] SUBJECT_FOLDERS There are no subject directories (labeled "sub-*") in the root of this BIDS dataset.
+
+		/dataset_description.json
+
+	Please visit https://neurostars.org/search?q=SUBJECT_FOLDERS for existing conversations about this issue.
+
+	[WARNING] UNKNOWN_BIDS_VERSION The BIDSVersion field of 'dataset_description.json' does not match a known release.
+The BIDS Schema used for validation may be out of date.
+
+		/dataset_description.json
+
+	Please visit https://neurostars.org/search?q=UNKNOWN_BIDS_VERSION for existing conversations about this issue.
+
+	[WARNING] README_FILE_MISSING The recommended file /README is missing.
+See Section 03 (Modality agnostic files) of the BIDS specification.
+
+		/dataset_description.json
+
+	Please visit https://neurostars.org/search?q=README_FILE_MISSING for existing conversations about this issue.
+
+	[WARNING] JSON_KEY_RECOMMENDED A JSON file is missing a key listed as recommended.
+		GeneratedBy
+		/dataset_description.json - Field description: Used to specify provenance of the dataset.
+
+
+		SourceDatasets
+		/dataset_description.json - Field description: Used to specify the locations and relevant attributes of all source datasets.
+Valid keys in each object include `"URL"`, `"DOI"` (see
+[URI](SPEC_ROOT/common-principles.md#uniform-resource-indicator)), and
+`"Version"` with
+[string](https://www.w3schools.com/js/js_json_datatypes.asp)
+values.
+
+
+	Please visit https://neurostars.org/search?q=JSON_KEY_RECOMMENDED for existing conversations about this issue.
+
+	[WARNING] TSV_ADDITIONAL_COLUMNS_UNDEFINED A TSV file has extra columns which are not defined in its associated JSON sidecar
+		dominant_hand
+		/participants.tsv
+
+	Please visit https://neurostars.org/search?q=TSV_ADDITIONAL_COLUMNS_UNDEFINED for existing conversations about this issue.
+
+	[ERROR] NOT_INCLUDED Files with such naming scheme are not part of BIDS specification. This error is most commonly caused by typos in file names that make them not BIDS compatible. Please consult the specification and make sure your files are named correctly. If this is not a file naming issue (for example when including files not yet covered by the BIDS specification) you should include a ".bidsignore" file in your dataset (see https://github.com/bids-standard/bids-validator#bidsignore for details). Please note that derived (processed) data should be placed in /derivatives folder and source data (such as DICOMS or behavioural logs in proprietary formats) should be placed in the /sourcedata folder.
+		/sub-01
+		/sub-02
+
+		2 more files with the same issue
+
+	Please visit https://neurostars.org/search?q=NOT_INCLUDED for existing conversations about this issue.
+
+	[ERROR] PARTICIPANT_ID_MISMATCH Subject directories found in this dataset did not match the values in
+the participant_id column found in the participants.tsv file.
+
+		/participants.tsv
+
+	Please visit https://neurostars.org/search?q=PARTICIPANT_ID_MISMATCH for existing conversations about this issue.
+
+
+          Summary:                         Available Tasks:        Available Modalities:
+          7 Files, 1.8 kB                                                               
+          0 - Subjects 1 - Sessions                                                     
+
+	If you have any questions, please post on https://neurostars.org/tags/bids.
+
+
+2026-02-02 21:19:00,566 - ERROR - BIDS validation failed! Use --no-validate to skip validation.

@@ -1,0 +1,12 @@
+[?1h=
+                                       < M A T L A B (R) >
+                             Copyright 1984-2025 The MathWorks, Inc.
+                         R2025b Update 2 (25.2.0.3055257) 64-bit (maca64)
+                                         October 16, 2025
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+MATLAB Error: Unable to perform assignment because brace indexing is not supported for variables of this type.
+[?1l>

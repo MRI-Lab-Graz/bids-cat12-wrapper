@@ -10,6 +10,12 @@ __pycache__/
 tmp/
 .tmp_* 
 
+# Project configs (ignore all except demo)
+projects/*
+!projects/.gitignore
+!projects/demo/
+!projects/demo/**
+
 # NIfTI / imaging outputs (if you want to keep them, remove these)
 *.nii
 *.nii.gz

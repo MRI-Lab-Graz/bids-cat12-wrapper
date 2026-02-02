@@ -21,6 +21,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import shutil
 import subprocess
 import sys
@@ -37,7 +38,11 @@ from colorama import init as colorama_init
 from tqdm import tqdm
 
 # Import custom utilities
-sys.path.append(os.path.join(os.path.dirname(__file__), "../utils"))
+SCRIPT_DIR = Path(__file__).resolve().parent
+UTILS_DIR = (SCRIPT_DIR / "../utils").resolve()
+if UTILS_DIR.exists():
+    sys.path.append(str(UTILS_DIR))
+
 from bids_utils import BIDSSessionManager, BIDSValidator  # noqa: E402
 from cat12_utils import (  # noqa: E402
     CAT12Processor,
@@ -118,6 +123,118 @@ def deep_update(base: Dict[Any, Any], updates: Dict[Any, Any]) -> Dict[Any, Any]
         else:
             base[key] = value
     return base
+
+
+def load_run_config(config_path: Optional[Path]) -> Dict[str, Any]:
+    """Load run-level options from a JSON/YAML config.
+
+    Supports multiple config formats:
+    - Top-level "run" key (standalone run config)
+    - Top-level "preproc.run" (merged config)
+    - Top-level "project.preproc.run" (project-based config)
+    - Top-level "preprocessing" key (project_config.json format)
+    - Top-level "study.project_folder" + "preprocessing.bids/processing/execution" (new unified format)
+
+    If a top-level "run" key exists, only that subsection is used.
+    If a top-level "preproc" key exists, its "run" subsection is used if present.
+    Otherwise, the entire document is treated as run configuration.
+    """
+
+    if not config_path:
+        return {}
+
+    config_path = Path(config_path)
+    if not config_path.exists():
+        return {}
+
+    try:
+        with open(config_path, "r") as f:
+            suffix = config_path.suffix.lower()
+            if suffix == ".json":
+                data = json.load(f)
+            elif suffix in {".yml", ".yaml"}:
+                data = yaml.safe_load(f)
+            else:
+                return {}
+    except (yaml.YAMLError, json.JSONDecodeError, ValueError) as exc:
+        logger.warning(f"Failed to load run configuration from {config_path}: {exc}")
+        return {}
+
+    if data is None:
+        return {}
+
+    # Try multiple config structure formats
+    if isinstance(data, dict):
+        # Format 1: Top-level "run" key
+        if isinstance(data.get("run"), dict):
+            return data["run"]
+
+        # Format 2: "preproc.run"
+        if isinstance(data.get("preproc"), dict):
+            preproc = data["preproc"]
+            if isinstance(preproc.get("run"), dict):
+                return preproc["run"]
+            return preproc
+
+        # Format 3: "project.preproc.run"
+        if isinstance(data.get("project"), dict):
+            project = data["project"]
+            preproc = project.get("preproc")
+            if isinstance(preproc, dict):
+                if isinstance(preproc.get("run"), dict):
+                    return preproc["run"]
+                return preproc
+
+        # Format 4: New unified format (project_config.json)
+        # Extract project_folder and merge with preprocessing config
+        if isinstance(data.get("study"), dict) and isinstance(data.get("preprocessing"), dict):
+            project_folder = data["study"].get("project_folder", "")
+            preprocessing = data["preprocessing"].copy()
+
+            # Build merged run config from nested structure
+            merged_config: Dict[str, Any] = {}
+
+            # Extract BIDS settings
+            if "bids" in preprocessing:
+                merged_config.update(preprocessing["bids"])
+
+            # Extract processing settings
+            if "processing" in preprocessing:
+                merged_config.update(preprocessing["processing"])
+
+            # Extract smoothing settings
+            if "smoothing" in preprocessing:
+                merged_config.update(preprocessing["smoothing"])
+
+            # Extract execution settings with path resolution
+            if "execution" in preprocessing:
+                exec_config = preprocessing["execution"]
+                for key, value in exec_config.items():
+                    if key.endswith("_dir") and isinstance(value, str) and project_folder:
+                        # Resolve relative paths to absolute
+                        merged_config[key] = str(Path(project_folder) / value)
+                    else:
+                        merged_config[key] = value
+
+            # Extract validation settings
+            if "validation" in preprocessing:
+                merged_config.update(preprocessing["validation"])
+
+            # Resolve bids_dir to absolute path if relative
+            if "bids_dir" in merged_config and project_folder:
+                bids_dir = merged_config["bids_dir"]
+                if not bids_dir.startswith("/"):
+                    merged_config["bids_dir"] = str(Path(project_folder) / bids_dir)
+
+            # If OpenNeuro is enabled, use openneuro_dataset as the dataset id
+            # (bids_dir should be the local download target, not the dataset id)
+            if merged_config.get("openneuro") and merged_config.get("openneuro_dataset"):
+                merged_config["bids_dir"] = merged_config["openneuro_dataset"]
+
+            return merged_config
+
+    return data if isinstance(data, dict) else {}
+
 
 
 class BIDSLongitudinalProcessor:
@@ -1139,14 +1256,18 @@ class BIDSLongitudinalProcessor:
 
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]}, name="cat12_prepro")
-@click.argument("bids_dir", type=str)
-@click.argument("output_dir", type=click.Path(path_type=Path))
+@click.argument("bids_dir", type=str, required=False)
+@click.argument("output_dir", type=click.Path(path_type=Path), required=False)
 @click.argument(
-    "analysis_level", type=click.Choice(["participant", "group"]), default="participant"
+    "analysis_level",
+    type=click.Choice(["participant", "group"]),
+    required=False,
+    default=None,
 )
 @click.option(
     "--openneuro",
     is_flag=True,
+    default=None,
     help=(
         "Treat BIDS_DIR as an OpenNeuro dataset id (e.g., ds003138), download it, "
         "then run preprocessing on the downloaded BIDS dataset."
@@ -1171,6 +1292,7 @@ class BIDSLongitudinalProcessor:
 @click.option(
     "--openneuro-download-all",
     is_flag=True,
+    default=None,
     help=(
         "If set, download T1w data for all subjects in the dataset (can be large). "
         "If not set, you should pass --participant-label (or --pilot) to limit downloads."
@@ -1193,7 +1315,9 @@ class BIDSLongitudinalProcessor:
     ),
 )
 # Processing stages (opt-in)
-@click.option("--preproc", is_flag=True, help="Run preprocessing/segmentation")
+@click.option(
+    "--preproc", is_flag=True, default=None, help="Run preprocessing/segmentation"
+)
 @click.option(
     "--smooth-volume",
     "smooth_volume",
@@ -1208,20 +1332,30 @@ class BIDSLongitudinalProcessor:
     default=None,
     help='Run surface data smoothing with specified FWHM kernel(s) in mm. Provide space-separated values (e.g., --smooth-surface "12 15 20"). Defaults to 12mm if flag used without values.',
 )
-@click.option("--qa", is_flag=True, help="Run quality assessment")
-@click.option("--tiv", is_flag=True, help="Estimate total intracranial volume (TIV)")
-@click.option("--roi", is_flag=True, help="Extract ROI values")
+@click.option("--qa", is_flag=True, default=None, help="Run quality assessment")
+@click.option(
+    "--tiv",
+    is_flag=True,
+    default=None,
+    help="Estimate total intracranial volume (TIV)",
+)
+@click.option("--roi", is_flag=True, default=None, help="Extract ROI values")
 # Processing options (opt-out)
 @click.option(
-    "--no-surface", is_flag=True, help="Skip surface extraction during preprocessing"
+    "--no-surface",
+    is_flag=True,
+    default=None,
+    help="Skip surface extraction during preprocessing",
 )
-@click.option("--no-validate", is_flag=True, help="Skip BIDS validation")
+@click.option(
+    "--no-validate", is_flag=True, default=None, help="Skip BIDS validation"
+)
 @click.option(
     "--config", type=click.Path(exists=True, path_type=Path), help="Configuration file"
 )
 @click.option(
     "--n-jobs",
-    default=1,
+    default=None,
     type=str,
     help='Number of parallel jobs (default: 1). Use "auto" to automatically set jobs based on available RAM (4GB/job, 16GB reserved for system).',
 )
@@ -1230,33 +1364,40 @@ class BIDSLongitudinalProcessor:
     type=click.Path(path_type=Path),
     help="Work directory for temporary files",
 )
-@click.option("--verbose", is_flag=True, help="Verbose output")
+@click.option("--verbose", is_flag=True, default=None, help="Verbose output")
 @click.option(
     "--log-dir",
     type=click.Path(path_type=Path),
     help="Directory to write log files (default: <output_dir>/logs)",
 )
 @click.option(
-    "--pilot", is_flag=True, help="Process a single random participant for a pilot run"
+    "--pilot",
+    is_flag=True,
+    default=None,
+    help="Process a single random participant for a pilot run",
 )
 @click.option(
     "--cross",
     is_flag=True,
+    default=None,
     help="Force cross-sectional (use first available session per subject)",
 )
 @click.option(
     "--nohup",
     is_flag=True,
+    default=None,
     help="Run in background with nohup (detaches from terminal, writes to nohup.out)",
 )
 @click.option(
     "--dry-run",
     is_flag=True,
+    default=None,
     help="Plan and validate inputs without executing CAT12 (no processing is performed)",
 )
 @click.option(
     "--skip-existing",
     is_flag=True,
+    default=None,
     help="Skip subjects that have already been successfully processed",
 )
 def main(
@@ -1351,9 +1492,87 @@ def main(
       # Run in background (detached from terminal)
       cat12_prepro /data/bids /data/derivatives participant --preproc --qa --tiv --n-jobs auto --nohup
     """
+    run_config = load_run_config(config)
+
+    def resolve_value(value: Any, key: str, default: Any = None) -> Any:
+        if value is None or (isinstance(value, tuple) and len(value) == 0):
+            return run_config.get(key, default)
+        return value
+
+    def resolve_bool(value: Optional[bool], key: str, default: bool = False) -> bool:
+        if value is None:
+            return bool(run_config.get(key, default))
+        return bool(value)
+
+    def normalize_list(value: Any) -> List[str]:
+        if value is None:
+            return []
+        if isinstance(value, (list, tuple)):
+            return [str(v) for v in value]
+        return [str(value)]
+
+    def normalize_path(value: Any) -> Optional[Path]:
+        if value is None:
+            return None
+        return value if isinstance(value, Path) else Path(str(value))
+
+    def normalize_smoothing(value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        if isinstance(value, (list, tuple)):
+            return " ".join(str(v) for v in value)
+        return str(value)
+
+    bids_dir = resolve_value(bids_dir, "bids_dir")
+    output_dir = resolve_value(output_dir, "output_dir")
+    analysis_level = resolve_value(analysis_level, "analysis_level", default="participant")
+
+    if not bids_dir or not output_dir:
+        raise click.ClickException(
+            "bids_dir and output_dir must be provided either as CLI arguments or in the JSON config."
+        )
+
+    output_dir = normalize_path(output_dir)
+    assert output_dir is not None
+
+    openneuro = resolve_bool(openneuro, "openneuro", default=False)
+    openneuro_tag = resolve_value(openneuro_tag, "openneuro_tag")
+    openneuro_dir = normalize_path(resolve_value(openneuro_dir, "openneuro_dir"))
+    openneuro_download_all = resolve_bool(
+        openneuro_download_all, "openneuro_download_all", default=False
+    )
+
+    participant_label = normalize_list(
+        resolve_value(participant_label, "participant_label")
+    )
+    session_label = normalize_list(resolve_value(session_label, "session_label"))
+
+    preproc = resolve_bool(preproc, "preproc", default=False)
+    smooth_volume = normalize_smoothing(
+        resolve_value(smooth_volume, "smooth_volume")
+    )
+    smooth_surface = normalize_smoothing(
+        resolve_value(smooth_surface, "smooth_surface")
+    )
+    qa = resolve_bool(qa, "qa", default=False)
+    tiv = resolve_bool(tiv, "tiv", default=False)
+    roi = resolve_bool(roi, "roi", default=False)
+    no_surface = resolve_bool(no_surface, "no_surface", default=False)
+    no_validate = resolve_bool(no_validate, "no_validate", default=False)
+
+    n_jobs = resolve_value(n_jobs, "n_jobs", default="1")
+    n_jobs = str(n_jobs) if n_jobs is not None else "1"
+    work_dir = normalize_path(resolve_value(work_dir, "work_dir"))
+    verbose = resolve_bool(verbose, "verbose", default=False)
+    log_dir = normalize_path(resolve_value(log_dir, "log_dir"))
+    pilot = resolve_bool(pilot, "pilot", default=False)
+    cross = resolve_bool(cross, "cross", default=False)
+    nohup = resolve_bool(nohup, "nohup", default=False)
+    dry_run = resolve_bool(dry_run, "dry_run", default=False)
+    skip_existing = resolve_bool(skip_existing, "skip_existing", default=False)
+
     # Handle --nohup flag: restart in background with nohup-like behavior
     if nohup:
-        import shlex
 
         # script path and output
         script_path = Path(__file__).absolute()
@@ -1422,12 +1641,48 @@ def main(
         f"{Fore.MAGENTA}🧠 CAT12 BIDS App - Structural MRI Processing{Style.RESET_ALL}"
     )
     logger.info(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
+    logger.info(
+        f"{Fore.CYAN}▶ Command: {shlex.join([sys.executable] + sys.argv)}{Style.RESET_ALL}"
+    )
     logger.info(f"{Fore.CYAN}📁 BIDS directory: {bids_dir}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}📂 Output directory: {output_dir}{Style.RESET_ALL}")
     if work_dir:
         logger.info(f"{Fore.CYAN}🗂️ Working directory: {work_dir}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}🔬 Analysis level: {analysis_level}{Style.RESET_ALL}")
     logger.info(f"{Fore.CYAN}📝 Log file: {log_file_path}{Style.RESET_ALL}")
+
+    # Run preflight checks before any processing
+    if config and Path(config).exists():
+        try:
+            preflight_script = Path(__file__).resolve().parents[1] / "utils" / "run_preflight_from_config.py"
+            if preflight_script.exists():
+                logger.info(f"{Fore.CYAN}🔎 Running preflight checks...{Style.RESET_ALL}")
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(preflight_script),
+                        "--project-config",
+                        str(config),
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
+                if result.stdout:
+                    logger.info(result.stdout.strip())
+                if result.stderr:
+                    logger.warning(result.stderr.strip())
+                if result.returncode != 0:
+                    logger.error(
+                        f"{Fore.RED}❌ Preflight checks failed. Fix the issues above before running.{Style.RESET_ALL}"
+                    )
+                    sys.exit(1)
+            else:
+                logger.warning(
+                    "Preflight script not found; skipping preflight checks."
+                )
+        except Exception as exc:
+            logger.error(f"Preflight checks failed: {exc}")
+            sys.exit(1)
 
     # Check if at least one processing stage is requested
     if not any([preproc, smooth_volume, smooth_surface, qa, tiv, roi]):
@@ -1482,6 +1737,68 @@ def main(
         f"{Fore.MAGENTA}🛠️  Processing stages: {', '.join(stages)}{Style.RESET_ALL}"
     )
 
+    if dry_run:
+        # Print the concrete commands early (before downloads)
+        try:
+            preproc_cmd = [sys.executable, str(Path(__file__).resolve())]
+            preproc_cmd.extend([arg for arg in sys.argv[1:] if arg != "--dry-run"])
+            logger.info(f"{Fore.CYAN}▶ Preprocessing command:{Style.RESET_ALL} {shlex.join(preproc_cmd)}")
+        except Exception as exc:
+            logger.warning(f"Could not render preprocessing command: {exc}")
+
+        try:
+            stats_cmd = None
+            if config and Path(config).exists():
+                with open(config, "r") as f:
+                    cfg_data = json.load(f)
+
+                if isinstance(cfg_data, dict) and "statistics" in cfg_data:
+                    stats_section = cfg_data.get("statistics", {})
+                    study_section = cfg_data.get("study", {})
+                    project_folder = study_section.get("project_folder")
+
+                    def resolve_project_path(value: Optional[str]) -> Optional[str]:
+                        if not value:
+                            return value
+                        if value.startswith("/"):
+                            return value
+                        if project_folder:
+                            return str(Path(project_folder) / value)
+                        return value
+
+                    cat12_dir = resolve_project_path(
+                        stats_section.get("input", {}).get("cat12_dir")
+                    )
+                    participants_file = resolve_project_path(
+                        stats_section.get("input", {}).get("participants_file")
+                    )
+
+                    stats_config_path = Path(config).with_name("stats_config.json")
+                    if stats_config_path.exists():
+                        stats_config = str(stats_config_path)
+                    else:
+                        stats_config = None
+
+                    if stats_config and cat12_dir:
+                        stats_cmd = [
+                            str((Path(__file__).resolve().parents[1] / "analysis" / "cat12_multi_modality.sh")),
+                            "--config",
+                            stats_config,
+                            "--cat12-dir",
+                            cat12_dir,
+                        ]
+                        if participants_file:
+                            stats_cmd.extend(["--participants", participants_file])
+
+            if stats_cmd:
+                logger.info(f"{Fore.CYAN}▶ Statistics command:{Style.RESET_ALL} {shlex.join(stats_cmd)}")
+            else:
+                logger.info(
+                    f"{Fore.YELLOW}⚠️  Statistics command could not be assembled. Ensure stats_config.json exists or provide a statistics config with analysis.modalities.{Style.RESET_ALL}"
+                )
+        except Exception as exc:
+            logger.warning(f"Could not render statistics command: {exc}")
+
     # Resolve BIDS input directory (local path, or OpenNeuro dataset download)
     resolved_bids_dir: Path
 
@@ -1512,7 +1829,7 @@ def main(
                 dataset=dataset_id,
                 tag=openneuro_tag,
                 target_dir=target_dir,
-                include=["dataset_description.json", "participants.tsv", "participants.json"],
+                include=["dataset_description.json", "participants.tsv"],
             )
         except Exception as exc:
             raise click.ClickException(
@@ -1556,10 +1873,9 @@ def main(
                     "or use --pilot, or pass --openneuro-download-all to download all subjects."
                 )
 
-        include_paths = ["dataset_description.json", "participants.tsv", "participants.json"]
+        include_paths = ["dataset_description.json", "participants.tsv"]
         for pid in requested_subjects:
             include_paths.append(f"{pid}/**/anat/*T1w.nii.gz")
-            include_paths.append(f"{pid}/**/anat/*T1w.json")
 
         try:
             on.download(
@@ -1602,6 +1918,23 @@ def main(
         resolved_bids_dir = Path(bids_dir)
         if not resolved_bids_dir.exists():
             raise click.ClickException(f"BIDS_DIR does not exist: {resolved_bids_dir}")
+
+    # If using project_config.json, hydrate env vars for MATLAB mode
+    if config and Path(config).exists():
+        try:
+            with open(config, "r") as f:
+                cfg_data = json.load(f)
+            if isinstance(cfg_data, dict):
+                software = cfg_data.get("software", {})
+                spm_path = software.get("spm", {}).get("path")
+                if spm_path:
+                    os.environ.setdefault("SPMROOT", spm_path)
+                    os.environ.setdefault("SPM_ROOT", spm_path)
+                matlab_exe = software.get("matlab", {}).get("executable")
+                if matlab_exe:
+                    os.environ.setdefault("MATLAB_EXE", matlab_exe)
+        except Exception as exc:
+            logger.warning(f"Failed to apply software paths from config: {exc}")
 
     # Initialize processor
     processor = BIDSLongitudinalProcessor(

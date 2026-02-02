@@ -1,0 +1,65 @@
+{
+  "_comment": "Demo stats config (OpenNeuro ds000114)",
+  "_updated": "2026-02-02",
+  "matlab": {
+    "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
+    "allow_graphics": false
+  },
+  "spm": {
+    "path": "/Volumes/Evo/software/spm25/"
+  },
+  "analysis": {
+    "participants_file": "./demo/participants_demo.tsv",
+    "group_column": "group",
+    "session_column": "session",
+    "sessions": ["all"],
+    "standardize_continuous": false,
+    "modalities": [
+      {
+        "name": "vbm",
+        "folder_name": "demo_vbm_s6",
+        "smoothing_kernel": 6,
+        "covariates": [],
+        "mask": null
+      },
+      {
+        "name": "thickness",
+        "folder_name": "demo_thickness_s12",
+        "smoothing_kernel": 12,
+        "covariates": [],
+        "mask": null
+      },
+      {
+        "name": "depth",
+        "folder_name": "demo_depth_s12",
+        "smoothing_kernel": 12,
+        "covariates": [],
+        "mask": null
+      },
+      {
+        "name": "gyrification",
+        "folder_name": "demo_gyrification_s12",
+        "smoothing_kernel": 12,
+        "covariates": [],
+        "mask": null
+      }
+    ]
+  },
+  "screening": {
+    "uncorrected_p": 0.001,
+    "cluster_size_voxels": 10,
+    "skip_screening": true
+  },
+  "tfce": {
+    "n_permutations": 100,
+    "pilot_mode": false
+  },
+  "performance": {
+    "parallel_jobs": 1,
+    "memory_limit_gb": 16
+  },
+  "output": {
+    "analysis_name": "demo_analysis",
+    "force_clean": false
+  }
+}

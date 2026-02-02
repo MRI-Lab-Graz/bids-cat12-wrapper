@@ -1,0 +1,17 @@
+{
+  "Name": "CAT12 Longitudinal Processing",
+  "BIDSVersion": "1.6.0",
+  "GeneratedBy": [
+    {
+      "Name": "CAT12 Standalone",
+      "Version": "12.8",
+      "CodeURL": "https://neuro-jena.github.io/cat12-help/"
+    }
+  ],
+  "SourceDatasets": [
+    {
+      "URL": "/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw",
+      "Version": "unknown"
+    }
+  ]
+}

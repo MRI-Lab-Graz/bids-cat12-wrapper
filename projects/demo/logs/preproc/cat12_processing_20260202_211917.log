@@ -1,0 +1,59 @@
+2026-02-02 21:19:17,789 - INFO - [35m============================================================[0m
+2026-02-02 21:19:17,789 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-02 21:19:17,789 - INFO - [35m============================================================[0m
+2026-02-02 21:19:17,789 - INFO - [36m▶ Command: /Volumes/Thunder/129_PK01/cat12/stats/.venv/bin/python3 scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_config.json[0m
+2026-02-02 21:19:17,790 - INFO - [36m📁 BIDS directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw[0m
+2026-02-02 21:19:17,790 - INFO - [36m📂 Output directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12[0m
+2026-02-02 21:19:17,790 - INFO - [36m🗂️ Working directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/work[0m
+2026-02-02 21:19:17,790 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-02 21:19:17,790 - INFO - [36m📝 Log file: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/logs/preproc/cat12_processing_20260202_211917.log[0m
+2026-02-02 21:19:17,790 - INFO - [36m🔎 Running preflight checks...[0m
+2026-02-02 21:19:17,983 - INFO - ======================================================================
+PREFLIGHT CHECKS
+======================================================================
+
+1. Checking MATLAB and SPM...
+✓ MATLAB executable found: /Applications/MATLAB_R2025b.app/bin/matlab
+✓ SPM installation found: /Volumes/Evo/software/spm25
+
+======================================================================
+✓ All preflight checks PASSED
+2026-02-02 21:19:17,983 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-02 21:19:17,984 - INFO - [36m🔍 Initializing BIDS layout for: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/bids_raw[0m
+2026-02-02 21:19:17,984 - INFO - [36m📊 Using BIDS database: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/.bids_cache/bidsdb_3830275402617060262.db[0m
+2026-02-02 21:19:18,060 - INFO - [32m👥 Found 4 subjects[0m
+2026-02-02 21:19:18,060 - INFO - CAT12 execution mode: MATLAB
+2026-02-02 21:19:18,063 - INFO - Validating BIDS dataset...
+2026-02-02 21:19:18,063 - INFO - Running BIDS validation...
+2026-02-02 21:19:18,063 - INFO - Found 4 subject directories
+2026-02-02 21:19:18,071 - INFO - Running BIDS validation with Deno validator...
+2026-02-02 21:19:18,302 - INFO - BIDS validation passed
+2026-02-02 21:19:18,302 - INFO - Processing participants: sub-01, sub-02, sub-03, sub-04
+2026-02-02 21:19:18,302 - INFO - [36m📅 Requested sessions: test, retest[0m
+2026-02-02 21:19:18,309 - INFO - Subject 01: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:19:18,310 - INFO - Subject 02: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:19:18,311 - INFO - Subject 03: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:19:18,312 - INFO - Subject 04: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:19:18,312 - INFO - Dataset summary: 4 longitudinal, 0 cross-sectional subjects
+2026-02-02 21:19:18,312 - INFO - [36m📋 Filtered to 4 subjects with requested sessions[0m
+2026-02-02 21:19:18,312 - INFO - Running preprocessing stage...
+2026-02-02 21:19:18,319 - INFO - Processing subject 01 with sessions: retest, test
+2026-02-02 21:19:18,324 - INFO - Using 2 uncompressed NIfTI files for processing
+2026-02-02 21:19:18,324 - INFO - Generated CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:19:18,324 - INFO - [36m📊 Using generated CAT12 batch script (longitudinal)[0m
+2026-02-02 21:19:18,324 - INFO - Using CAT12 batch script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:19:18,324 - INFO - Executing CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:19:18,324 - INFO - Using MATLAB at /Applications/MATLAB_R2025b.app/bin/matlab
+2026-02-02 21:19:18,324 - INFO - Script path: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:19:18,325 - INFO - [33m⏳ CAT12 processing started (this may take 10-30 minutes)...[0m
+2026-02-02 21:19:26,459 - ERROR - [31m❌ CAT12 processing failed with return code 1[0m
+2026-02-02 21:19:26,460 - ERROR - Failed to process subject 01
+2026-02-02 21:19:28,465 - INFO - Processing subject 02 with sessions: retest, test
+2026-02-02 21:19:28,481 - INFO - Using 2 uncompressed NIfTI files for processing
+2026-02-02 21:19:28,482 - INFO - Generated CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:19:28,482 - INFO - [36m📊 Using generated CAT12 batch script (longitudinal)[0m
+2026-02-02 21:19:28,483 - INFO - Using CAT12 batch script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:19:28,483 - INFO - Executing CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:19:28,483 - INFO - Using MATLAB at /Applications/MATLAB_R2025b.app/bin/matlab
+2026-02-02 21:19:28,483 - INFO - Script path: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:19:28,483 - INFO - [33m⏳ CAT12 processing started (this may take 10-30 minutes)...[0m

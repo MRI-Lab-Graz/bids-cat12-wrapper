@@ -1,0 +1,78 @@
+2026-02-02 21:11:00,268 - INFO - [35m============================================================[0m
+2026-02-02 21:11:00,268 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-02 21:11:00,268 - INFO - [35m============================================================[0m
+2026-02-02 21:11:00,268 - INFO - [36m▶ Command: /Volumes/Thunder/129_PK01/cat12/stats/.venv/bin/python3 scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_config.json[0m
+2026-02-02 21:11:00,268 - INFO - [36m📁 BIDS directory: ds000114[0m
+2026-02-02 21:11:00,268 - INFO - [36m📂 Output directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12[0m
+2026-02-02 21:11:00,268 - INFO - [36m🗂️ Working directory: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/work[0m
+2026-02-02 21:11:00,268 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-02 21:11:00,268 - INFO - [36m📝 Log file: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/logs/preproc/cat12_processing_20260202_211100.log[0m
+2026-02-02 21:11:00,268 - INFO - [36m🔎 Running preflight checks...[0m
+2026-02-02 21:11:00,444 - INFO - ======================================================================
+PREFLIGHT CHECKS
+======================================================================
+
+1. Checking MATLAB and SPM...
+✓ MATLAB executable found: /Applications/MATLAB_R2025b.app/bin/matlab
+✓ SPM installation found: /Volumes/Evo/software/spm25
+
+======================================================================
+✓ All preflight checks PASSED
+2026-02-02 21:11:00,444 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-02 21:11:04,165 - INFO - HTTP Request: HEAD https://openneuro.org/crn/datasets/ds000114/objects/7331a97d91edaec0eee894f96c79e32ac5da343e "HTTP/1.1 200 OK"
+2026-02-02 21:11:04,167 - INFO - HTTP Request: HEAD https://openneuro.org/crn/datasets/ds000114/objects/808b1441d8830caccb3966b2971b48e6fe4523ff "HTTP/1.1 200 OK"
+2026-02-02 21:11:04,326 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/participants.tsv?versionId=fjl0ZNvAXDJmeJh0_uF4H7tsiTVn_OOb&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=i0eitRR5QI3NhTw10FvK37SUTuY%3D&Expires=1770667860 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,505 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/participants.tsv?versionId=fjl0ZNvAXDJmeJh0_uF4H7tsiTVn_OOb&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=joVKQDKLn2%2BIfjGVz5bGSf48JXs%3D&Expires=1770667864 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,521 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-01/ses-test/anat/sub-01_ses-test_T1w.nii.gz?versionId=mrf6fwt5fTAbROGNZn42vj.FPYjyvyvX&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=CZA9nD2NsY8t8b07qG6oGFglaCY%3D&Expires=1770505235 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,533 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-01/ses-retest/anat/sub-01_ses-retest_T1w.nii.gz?versionId=_YkpqKhOFKnwZbRNr.9iGepRv6Xjc.gH&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=qWkHpN5WGI9wgUBr416sDruUvZU%3D&Expires=1770657865 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,552 - INFO - HTTP Request: HEAD https://openneuro.org/crn/datasets/ds000114/objects/808b1441d8830caccb3966b2971b48e6fe4523ff "HTTP/1.1 200 OK"
+2026-02-02 21:11:19,597 - INFO - HTTP Request: HEAD https://openneuro.org/crn/datasets/ds000114/objects/7331a97d91edaec0eee894f96c79e32ac5da343e "HTTP/1.1 200 OK"
+2026-02-02 21:11:19,924 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-02/ses-retest/anat/sub-02_ses-retest_T1w.nii.gz?versionId=WNIL4nOybQwn03hteuumXdlpIgTk06YK&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=3XEuuqX%2BVpESifVww0dXynMJckY%3D&Expires=1770505237 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,939 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-02/ses-test/anat/sub-02_ses-test_T1w.nii.gz?versionId=zH2SlMeYgzMWtN2D62UWBOUNhYkcXCMI&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=Est8c3U12k5eZhr73d1BtNFhtyE%3D&Expires=1770505238 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,953 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-03/ses-test/anat/sub-03_ses-test_T1w.nii.gz?versionId=JYJof1QaEbf.UrfzNOicoyf7Vans1fgK&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=BandeSeimb3waMUxnmByzBNOniA%3D&Expires=1770505242 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:19,956 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-03/ses-retest/anat/sub-03_ses-retest_T1w.nii.gz?versionId=UFL5cPg89bMcZSUVadm3YkGysHbBaDx5&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=ITcz672FyV6LNrNTJADzHe8Jt%2Bo%3D&Expires=1770505240 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:20,010 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-04/ses-retest/anat/sub-04_ses-retest_T1w.nii.gz?versionId=qudjbEoqb4UXy4mxLTfgKtwa2UrKrLlC&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=jmoFXJkFtRlLvrIcPHRc%2Bf8O%2BH0%3D&Expires=1770505243 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:20,331 - INFO - HTTP Request: HEAD https://s3.amazonaws.com/openneuro.org/ds000114/sub-04/ses-test/anat/sub-04_ses-test_T1w.nii.gz?versionId=D8zpehNj58GW7yaflxfxzP2L7TSjdhQC&AWSAccessKeyId=AKIARTA7OOV5WQ3DGSOB&Signature=EUkJHqBSj17FFd1feRQQiY0IB2U%3D&Expires=1770505244 "HTTP/1.1 403 Forbidden"
+2026-02-02 21:11:20,338 - INFO - Using OpenNeuro dataset ds000114 downloaded to: /Volumes/Thunder/129_PK01/cat12/stats/openneuro/ds000114
+2026-02-02 21:11:20,339 - INFO - [36m🔍 Initializing BIDS layout for: /Volumes/Thunder/129_PK01/cat12/stats/openneuro/ds000114[0m
+2026-02-02 21:11:20,340 - INFO - [36m📊 Using BIDS database: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/.bids_cache/bidsdb_8496590149330531986.db[0m
+2026-02-02 21:11:20,440 - INFO - [32m👥 Found 4 subjects[0m
+2026-02-02 21:11:20,440 - INFO - CAT12 execution mode: MATLAB
+2026-02-02 21:11:20,445 - INFO - Validating BIDS dataset...
+2026-02-02 21:11:20,445 - INFO - Running BIDS validation...
+2026-02-02 21:11:20,445 - INFO - Found 4 subject directories
+2026-02-02 21:11:20,501 - INFO - Running BIDS validation with Deno validator...
+2026-02-02 21:11:20,946 - INFO - BIDS validation passed
+2026-02-02 21:11:20,946 - INFO - Processing participants: sub-01, sub-02, sub-03, sub-04
+2026-02-02 21:11:20,946 - INFO - [36m📅 Requested sessions: test, retest[0m
+2026-02-02 21:11:20,952 - INFO - Subject 01: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:11:20,953 - INFO - Subject 02: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:11:20,955 - INFO - Subject 03: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:11:20,956 - INFO - Subject 04: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-02 21:11:20,956 - INFO - Dataset summary: 4 longitudinal, 0 cross-sectional subjects
+2026-02-02 21:11:20,956 - INFO - [36m📋 Filtered to 4 subjects with requested sessions[0m
+2026-02-02 21:11:20,956 - INFO - Running preprocessing stage...
+2026-02-02 21:11:20,957 - INFO - Processing subject 01 with sessions: retest, test
+2026-02-02 21:11:20,959 - INFO - Gunzipping: sub-01_ses-retest_T1w.nii.gz
+2026-02-02 21:11:20,998 - INFO - Gunzipping: sub-01_ses-test_T1w.nii.gz
+2026-02-02 21:11:21,037 - INFO - Using 2 uncompressed NIfTI files for processing
+2026-02-02 21:11:21,038 - INFO - Generated CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:11:21,038 - INFO - [36m📊 Using generated CAT12 batch script (longitudinal)[0m
+2026-02-02 21:11:21,038 - INFO - Using CAT12 batch script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:11:21,038 - INFO - Executing CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:11:21,038 - INFO - Using MATLAB at /Applications/MATLAB_R2025b.app/bin/matlab
+2026-02-02 21:11:21,038 - INFO - Script path: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-02 21:11:21,038 - INFO - [33m⏳ CAT12 processing started (this may take 10-30 minutes)...[0m
+2026-02-02 21:11:30,256 - ERROR - [31m❌ CAT12 processing failed with return code 1[0m
+2026-02-02 21:11:30,256 - ERROR - Failed to process subject 01
+2026-02-02 21:11:32,258 - INFO - Processing subject 02 with sessions: retest, test
+2026-02-02 21:11:32,269 - INFO - Gunzipping: sub-02_ses-retest_T1w.nii.gz
+2026-02-02 21:11:32,327 - INFO - Gunzipping: sub-02_ses-test_T1w.nii.gz
+2026-02-02 21:11:32,370 - INFO - Using 2 uncompressed NIfTI files for processing
+2026-02-02 21:11:32,370 - INFO - Generated CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:11:32,370 - INFO - [36m📊 Using generated CAT12 batch script (longitudinal)[0m
+2026-02-02 21:11:32,370 - INFO - Using CAT12 batch script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:11:32,370 - INFO - Executing CAT12 script: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:11:32,370 - INFO - Using MATLAB at /Applications/MATLAB_R2025b.app/bin/matlab
+2026-02-02 21:11:32,370 - INFO - Script path: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-02/cat12_longitudinal_02.m
+2026-02-02 21:11:32,370 - INFO - [33m⏳ CAT12 processing started (this may take 10-30 minutes)...[0m

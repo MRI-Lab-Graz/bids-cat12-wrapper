@@ -132,7 +132,7 @@ if ~exist(output_dir, 'dir')
 end
 
 % CAT12 batch configuration
-matlabbatch = struct();
+matlabbatch = {};
 
 % Longitudinal processing job
 if {LONGITUDINAL}
@@ -162,10 +162,7 @@ if {LONGITUDINAL}
     % Volume processing
     if {VOLUME_PROCESSING}
         matlabbatch{1}.spm.tools.cat.long.output.surface = 1;
-        matlabbatch{1}.spm.tools.cat.long.output.ROImenu.atlases.neuromorphometrics = 1;
-        matlabbatch{1}.spm.tools.cat.long.output.ROImenu.atlases.lpba40 = 1;
-        matlabbatch{1}.spm.tools.cat.long.output.ROImenu.atlases.cobra = 1;
-        matlabbatch{1}.spm.tools.cat.long.output.ROImenu.atlases.hammers = 1;
+        matlabbatch{1}.spm.tools.cat.long.output.ROI = 1;
         matlabbatch{1}.spm.tools.cat.long.output.GM.native = 0;
         matlabbatch{1}.spm.tools.cat.long.output.GM.mod = 1;
         matlabbatch{1}.spm.tools.cat.long.output.GM.dartel = 0;
@@ -253,9 +250,17 @@ class CAT12Processor:
             self.cat12_root: str = cat12_root_env
             self.mcr_root: str = mcr_root_env
         else:
-            self.matlab_exe = os.environ.get("MATLAB_EXE", "matlab")
-            # Support both SPM_ROOT and SPMROOT env names
-            self.spm_root = os.environ.get("SPM_ROOT") or os.environ.get("SPMROOT")
+            self.matlab_exe = (
+                self.config.get("matlab", {}).get("executable")
+                or os.environ.get("MATLAB_EXE")
+                or "matlab"
+            )
+            # Support both SPM_ROOT and SPMROOT env names, fallback to config
+            self.spm_root = (
+                self.config.get("spm", {}).get("path")
+                or os.environ.get("SPM_ROOT")
+                or os.environ.get("SPMROOT")
+            )
             if not self.spm_root:
                 raise ValueError(
                     "SPM_ROOT (or SPMROOT) environment variable not set for MATLAB mode"
@@ -293,14 +298,37 @@ class CAT12Processor:
                 cmd.extend(["-m", self.mcr_root, "-b", str(script_path)])
             else:
                 # MATLAB mode
-                script_dir = script_path.parent
-                script_name = script_path.stem
+                abs_script_path = script_path.resolve()
                 
                 # Build MATLAB command
-                # We add SPM and the script directory to the path, then run the script
-                matlab_cmd = f"addpath('{self.spm_root}'); spm('defaults','fmri'); addpath('{script_dir}'); {script_name}; exit;"
+                # Use run() with absolute path, and add paths for SPM
+                # Note: run() expects a .m filename without extension
+                spm_root = Path(self.spm_root).resolve()
+                script_parent = abs_script_path.parent.resolve()
+                script_stem = abs_script_path.stem
+                
+                # Build command that:
+                # 1. Adds SPM to path
+                # 2. Initializes SPM 
+                # 3. Adds script directory to path
+                # 4. Runs the script by name (run() expects .m file without extension)
+                # 5. Exits MATLAB
+                matlab_cmd = (
+                    f"try; "
+                    f"addpath('{spm_root}'); "
+                    f"spm('defaults', 'fmri'); "
+                    f"cd('{script_parent}'); "
+                    f"run('{script_stem}'); "
+                    f"catch ME; "
+                    f"fprintf('MATLAB Error: %s\\n', ME.message); "
+                    f"exit(1); "
+                    f"end; "
+                    f"exit(0);"
+                )
                 cmd = [self.matlab_exe, "-nodisplay", "-nosplash", "-nodesktop", "-r", matlab_cmd]
                 logger.info(f"Using MATLAB at {self.matlab_exe}")
+                logger.info(f"Script path: {abs_script_path}")
+                logger.debug(f"MATLAB command: {matlab_cmd}")
 
             # Set up environment
             env = os.environ.copy()
