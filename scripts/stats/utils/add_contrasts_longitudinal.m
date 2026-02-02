@@ -28,13 +28,6 @@ fprintf('%s\n\n', repmat('═', 1, 80));
 % Load SPM.mat
 load(spm_file, 'SPM');
 
-% Get existing contrast count to ensure correct numbering in output
-if isfield(SPM, 'xCon')
-    n_existing_cons = length(SPM.xCon);
-else
-    n_existing_cons = 0;
-end
-
 % Extract design information
 n_params = size(SPM.xX.X, 2);
 fprintf('Design matrix: %d scans × %d parameters\n\n', size(SPM.xX.X, 1), n_params);
@@ -364,7 +357,7 @@ spm_jobman('run', matlabbatch);
 fprintf('\n✓ Successfully added %d contrasts.\n', numel(contrasts));
 fprintf('Contrast list:\n');
 for k = 1:numel(contrasts)
-    fprintf('  %02d. %s\n', k + n_existing_cons, contrasts{k}.name);
+    fprintf('  %02d. %s\n', k, contrasts{k}.name);
 end
 
 % Save contrast list to JSON for reporting
@@ -376,9 +369,9 @@ if fid > 0
         % Escape quotes in name
         safe_name = strrep(contrasts{k}.name, '"', '\"');
         if k < numel(contrasts)
-            fprintf(fid, '  {"index": %d, "name": "%s"},\n', k + n_existing_cons, safe_name);
+            fprintf(fid, '  {"index": %d, "name": "%s"},\n', k, safe_name);
         else
-            fprintf(fid, '  {"index": %d, "name": "%s"}\n', k + n_existing_cons, safe_name);
+            fprintf(fid, '  {"index": %d, "name": "%s"}\n', k, safe_name);
         end
     end
     fprintf(fid, ']\n');

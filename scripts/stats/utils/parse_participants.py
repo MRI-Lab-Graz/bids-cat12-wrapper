@@ -8,12 +8,11 @@ with CAT12 preprocessed files, and generates the design structure for SPM.
 
 import argparse
 import json
-import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
-
 import pandas as pd
+import re
+import xml.etree.ElementTree as ET
 
 
 def find_xml_for_subject(cat12_dir, subject, session=None):
@@ -144,7 +143,7 @@ def extract_smoothing_from_filename(filepath):
 
 def detect_available_smoothing(cat12_dir, modality):
     """
-    Detect available smoothing kernels in CAT12 directory and count subjects for each.
+    Detect available smoothing kernels in CAT12 directory.
 
     Parameters:
     -----------
@@ -155,36 +154,27 @@ def detect_available_smoothing(cat12_dir, modality):
 
     Returns:
     --------
-    dict
-        Dictionary mapping smoothing kernel size to set of subject IDs
+    list
+        List of available smoothing kernel sizes
     """
-    smoothing_counts = {}  # kernel -> set(subject_ids)
+    smoothing_kernels = set()
     bases = _candidate_cat12_bases(cat12_dir)
 
     if modality == "vbm":
-        pattern = "mri/s*mwp1*.nii"
+        for base in bases:
+            for nii_file in base.rglob("mri/s*mwp1*.nii"):
+                smooth = extract_smoothing_from_filename(nii_file.name)
+                if smooth:
+                    smoothing_kernels.add(smooth)
     else:
-        pattern = "surf/s*.mesh.*.gii"
+        # Check surf directory for smoothed surface files
+        for base in bases:
+            for gii_file in base.rglob("surf/s*.mesh.*.gii"):
+                smooth = extract_smoothing_from_filename(gii_file.name)
+                if smooth:
+                    smoothing_kernels.add(smooth)
 
-    for base in bases:
-        for file_path in base.rglob(pattern):
-            smooth = extract_smoothing_from_filename(file_path.name)
-            if smooth:
-                # Extract subject ID from path or filename
-                # Path is usually .../sub-<ID>/mri/...
-                parts = file_path.parts
-                subject_id = None
-                for p in parts:
-                    if p.startswith("sub-"):
-                        subject_id = p
-                        break
-                
-                if subject_id:
-                    if smooth not in smoothing_counts:
-                        smoothing_counts[smooth] = set()
-                    smoothing_counts[smooth].add(subject_id)
-
-    return smoothing_counts
+    return sorted(list(smoothing_kernels))
 
 
 def _candidate_cat12_bases(cat12_dir):
@@ -269,15 +259,15 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
                     # Check if filename starts with s<N> or contains s<N>.mesh
                     # We use the robust extractor to be sure
                     s_val = extract_smoothing_from_filename(m.name)
-                    
+
                     # Case 1: Requested smoothing is explicit (e.g. 6, 8, 9)
-                    if isinstance(smoothing, int):
-                        if s_val == smoothing:
+                    if isinstance(args.smoothing, int):
+                        if s_val == args.smoothing:
                             filtered_matches.append(m)
                     # Case 2: Requested smoothing is string/auto (should be resolved by now, but just in case)
-                    elif str(s_val) == str(smoothing):
+                    elif str(s_val) == str(args.smoothing):
                         filtered_matches.append(m)
-                        
+
                 matches = filtered_matches
 
             if not matches:
@@ -291,7 +281,7 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
         else:
             measure_map = {
                 "thickness": "thickness",
-                "depth": "depthWM",
+                "depth": "depth",
                 "gyrification": "gyrification",
                 "fractal": "fractaldimension",
             }
@@ -303,12 +293,18 @@ def find_cat12_files(cat12_dir, subject, session, modality, smoothing):
             if not surf_dir.exists():
                 continue
 
-            matches = list(surf_dir.glob(f"*{measure}*.r{subject}_{session}_*.gii"))
-            if not matches:
-                continue
-
+            # Surface files have pattern: s<smoothing>.mesh.<measure>.resampled_32k.rsub-<subject_id>_<session>_*.gii
+            # Strip 'sub-' prefix from subject for filename matching, but keep 'ses-' in session
+            subject_id = subject.replace("sub-", "")
+            
+            # Build pattern based on whether smoothing is specified
             if smoothing_kw:
-                matches = sorted(matches, key=lambda p: smoothing_kw not in p.name)
+                pattern = f"s{smoothing_kw}.mesh.{measure}*.rsub-{subject_id}_{session}_*.gii"
+            else:
+                # If smoothing not specified, match any smoothing level
+                pattern = f"s*.mesh.{measure}*.rsub-{subject_id}_{session}_*.gii"
+            
+            matches = list(surf_dir.glob(pattern))
             if matches:
                 return str(matches[0])
 
@@ -342,19 +338,27 @@ def parse_participants(args):
 
     # Check required columns exist
     # BIDS-compliant format: one row per subject with nr_sessions column
-    if "nr_sessions" in df.columns:
-        # BIDS format: one row per subject
-        print("Detected BIDS-compliant format (one row per subject)")
+    has_nr_sessions = "nr_sessions" in df.columns
+    has_session_col = args.session_col in df.columns
+
+    if has_nr_sessions:
+        # BIDS format: one row per subject with nr_sessions
+        print("Detected BIDS-compliant format (one row per subject with nr_sessions)")
         required_cols = ["participant_id", "nr_sessions", args.group_col]
         is_bids_format = True
-    else:
-        # Old format: one row per scan
+    elif has_session_col:
+        # Scan-level format: one row per scan with session column
         print("Detected scan-level format (one row per scan)")
         required_cols = ["participant_id", args.group_col]
         is_bids_format = False
-        if args.session_col not in df.columns:
-            print(f"Error: session column '{args.session_col}' not found")
-            sys.exit(1)
+    else:
+        # Subject-level format: one row per subject, sessions auto-detected
+        print(
+            "Detected subject-level format (sessions will be auto-detected from filenames)"
+        )
+        required_cols = ["participant_id", args.group_col]
+        is_bids_format = True  # Treat like BIDS but without explicit session count
+
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         print(f"Error: Missing required columns: {', '.join(missing)}")
@@ -362,51 +366,47 @@ def parse_participants(args):
         sys.exit(1)
 
     # Auto-detect smoothing if not specified
-    if args.smoothing == "auto" or not args.smoothing:
+    if args.smoothing == "auto":
         print(f"\nAuto-detecting smoothing kernels for {args.modality}...")
-        smoothing_map = detect_available_smoothing(args.cat12_dir, args.modality)
+        available_smoothing = detect_available_smoothing(args.cat12_dir, args.modality)
 
-        if not smoothing_map:
+        if not available_smoothing:
             print(
                 f"Error: Could not find any smoothed {args.modality} files in {args.cat12_dir}"
             )
             sys.exit(1)
 
-        available_kernels = sorted(smoothing_map.keys())
-        
-        print("Found the following smoothing kernels:")
-        for k in available_kernels:
-            print(f"  - {k}mm: found for {len(smoothing_map[k])} subjects")
+        print(f"Found smoothing kernels: {', '.join(map(str, available_smoothing))}mm")
 
-        if len(available_kernels) > 1:
-            print("\nError: Multiple smoothing kernels detected. You must specify which one to use.")
-            print(f"Please re-run with: --smoothing [{'|'.join(map(str, available_kernels))}]")
+        # Require explicit specification if multiple kernels found
+        if len(available_smoothing) > 1:
+            print(
+                f"\nError: Multiple smoothing kernels detected ({', '.join(map(str, available_smoothing))}mm)."
+            )
+            print("Please specify which smoothing kernel to use explicitly.")
+            print(f"Update config.json 'smoothing_kernel' to one of: {', '.join(map(str, available_smoothing))}")
             sys.exit(1)
 
-        args.smoothing = available_kernels[0]
+        args.smoothing = available_smoothing[0]
         print(f"Selected smoothing: {args.smoothing}mm")
     else:
-        try:
-            args.smoothing = int(args.smoothing)
-        except ValueError:
-            print(f"Error: Smoothing kernel must be an integer (got '{args.smoothing}')")
-            sys.exit(1)
+        args.smoothing = int(args.smoothing)
 
     # Parse covariate columns
     covariate_cols = []
     categorical_covariates = set()
-    
+
     if args.covariates:
         covariate_cols = [c.strip() for c in args.covariates.split(",")]
-        
+
         # --------------------------------------------------------------------
         # Auto-encode categorical covariates (BIDS-aware)
         # --------------------------------------------------------------------
-        json_path = Path(args.participants).with_suffix('.json')
+        json_path = Path(args.participants).with_suffix(".json")
         sidecar = {}
         if json_path.exists():
             try:
-                with open(json_path, 'r') as f:
+                with open(json_path, "r") as f:
                     sidecar = json.load(f)
                 print(f"Loaded BIDS sidecar: {json_path.name}")
             except Exception as e:
@@ -428,11 +428,11 @@ def parse_participants(args):
                     # Get unique values, sorted for deterministic mapping
                     unique_vals = sorted(df[cov].dropna().unique())
                     mapping = {val: i for i, val in enumerate(unique_vals)}
-                    
+
                     print(f"  → Auto-encoding categorical covariate '{cov}':")
                     for val, code in mapping.items():
                         print(f"      '{val}' -> {code}")
-                    
+
                     # Apply mapping to DataFrame
                     df[cov] = df[cov].map(mapping)
         # --------------------------------------------------------------------
@@ -464,15 +464,25 @@ def parse_participants(args):
     # Get unique groups and determine sessions
     groups = df[args.group_col].dropna().unique()
 
-    if is_bids_format:
+    if has_nr_sessions:
         # Determine sessions from nr_sessions column
         max_sessions = int(df["nr_sessions"].max())
         all_sessions = list(range(1, max_sessions + 1))
         print(f"BIDS format: {len(df)} subjects, up to {max_sessions} sessions each")
-    else:
+    elif has_session_col:
         # Determine sessions from session column
         all_sessions = sorted(df[args.session_col].dropna().unique())
         print(f"Scan format: {len(df)} scans")
+    else:
+        # Subject-level without explicit sessions: will detect from filenames
+        # For now, use sessions filter if provided, otherwise assume 1-3
+        if args.sessions != "all":
+            all_sessions = [int(s.strip()) for s in args.sessions.split(",")]
+        else:
+            all_sessions = [1, 2, 3]  # Default assumption
+        print(
+            f"Subject-level format: {len(df)} subjects, sessions will be detected from filenames"
+        )
 
     # Filter sessions based on --sessions argument
     if args.sessions == "all":
@@ -515,13 +525,13 @@ def parse_participants(args):
             continue
 
         # Determine which sessions to process
-        if is_bids_format:
+        if has_nr_sessions:
             # BIDS format: enumerate sessions based on nr_sessions
             nr_sessions = int(row["nr_sessions"])
             all_subj_sessions = list(range(1, nr_sessions + 1))
             # Filter to only requested sessions
             sessions_to_process = [s for s in all_subj_sessions if s in sessions]
-        else:
+        elif has_session_col:
             # Scan format: single session from this row
             session = row[args.session_col]
             if pd.isna(session):
@@ -530,6 +540,9 @@ def parse_participants(args):
             if session not in sessions:
                 continue
             sessions_to_process = [session]
+        else:
+            # Subject-level without nr_sessions: check all requested sessions
+            sessions_to_process = sessions
 
         # Process each session for this subject
         for session in sessions_to_process:
@@ -599,7 +612,8 @@ def parse_participants(args):
 
                 files_found += 1
             else:
-                print(f"  ⚠ Missing: {subject} ses-{session}")
+                # File not found for this subject-session - this is normal incomplete data,
+                # not necessarily an error. Only track the count; don't spam warnings.
                 files_missing += 1
 
     print(f"\n✓ Found {files_found} files")
@@ -636,30 +650,29 @@ def parse_participants(args):
     # Standardize continuous covariates if requested
     if args.standardize_continuous:
         import numpy as np
+
         print("\nStandardizing continuous covariates (z-score)...")
         for cov, values in resolved_covariates.items():
             if cov in categorical_covariates:
                 print(f"  Skipping categorical covariate: {cov}")
                 continue
-            
+
             try:
                 vals = np.array(values)
-                # Filter out NaNs for calculation
-                valid_vals = vals[~np.isnan(vals)]
-                if len(valid_vals) == 0:
-                    print(f"  ⚠ Warning: Covariate '{cov}' has no valid numeric values, skipping standardization")
+                mean_val = np.nanmean(vals)
+                std_val = np.nanstd(vals)
+
+                if std_val == 0:
+                    print(
+                        f"  ⚠ Warning: Covariate '{cov}' has zero variance, skipping standardization"
+                    )
                     continue
 
-                mean_val = np.mean(valid_vals)
-                std_val = np.std(valid_vals)
-                
-                if std_val == 0:
-                    print(f"  ⚠ Warning: Covariate '{cov}' has zero variance, skipping standardization")
-                    continue
-                    
                 z_vals = (vals - mean_val) / std_val
                 resolved_covariates[cov] = z_vals.tolist()
-                print(f"  ✓ Standardized '{cov}' (n={len(valid_vals)}, mean={mean_val:.2f}, sd={std_val:.2f})")
+                print(
+                    f"  ✓ Standardized '{cov}' (mean={mean_val:.2f}, sd={std_val:.2f})"
+                )
             except Exception as e:
                 print(f"  ⚠ Failed to standardize '{cov}': {e}")
 

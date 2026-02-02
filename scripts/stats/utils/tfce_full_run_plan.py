@@ -12,6 +12,7 @@ one tab-separated line per contrast:
 
 This lightweight format can be consumed directly by tfce_two_stage.sh.
 """
+
 from __future__ import annotations
 
 import json
@@ -76,7 +77,11 @@ def derive_plan_for_entry(
     cc_val = _to_float(entry.get("probe_cc"))
     method = entry.get("chosen_full_method")
     if not method:
-        method = "freedman-lane" if (cc_val is not None and cc_val < cc_threshold) else "smith"
+        method = (
+            "freedman-lane"
+            if (cc_val is not None and cc_val < cc_threshold)
+            else "smith"
+        )
         if cc_val is not None and cc_val < cc_threshold:
             reasons.append(f"cc<{cc_threshold}")
 

@@ -249,21 +249,13 @@ for con_idx = 1:n_contrasts
                 screening_results(con_idx).significant = false;
             end
         else
-            % Use spm_bwlabel for 3D connectivity analysis (NIfTI) - Standalone compatible
+            % Use bwconncomp for 3D connectivity analysis (NIfTI)
             try
                 % Find connected components (6-connectivity for 3D)
-                [L, num] = spm_bwlabel(double(sig_mask), 6);
+                CC = bwconncomp(sig_mask, 6);
                 
                 % Get cluster sizes
-                if num > 0
-                    % Count voxels per label
-                    cluster_sizes = zeros(1, num);
-                    for i = 1:num
-                        cluster_sizes(i) = sum(L(:) == i);
-                    end
-                else
-                    cluster_sizes = [];
-                end
+                cluster_sizes = cellfun(@numel, CC.PixelIdxList);
                 
                 % Find clusters above size threshold
                 large_clusters = cluster_sizes(cluster_sizes >= cluster_size);

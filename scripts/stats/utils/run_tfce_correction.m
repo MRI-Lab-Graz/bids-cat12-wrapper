@@ -33,7 +33,6 @@ addParameter(p, 'contrast_list', [], @isnumeric);
 addParameter(p, 'pilot', false, @islogical);
 addParameter(p, 'force', false, @islogical);
 addParameter(p, 'nuisance_method', '', @ischar);
-addParameter(p, 'config_file', '', @ischar);
 parse(p, stats_folder, varargin{:});
 
 stats_folder = p.Results.stats_folder;
@@ -44,17 +43,15 @@ contrast_list = p.Results.contrast_list;
 pilot_mode = p.Results.pilot;
 force_analysis = p.Results.force;
 
-% Load configuration
-% Note: Config reading removed for standalone compatibility. 
-% Parameters are passed from the bash script which handles config parsing.
-config = struct();
-config.tfce = struct();
-config.performance = struct();
-
-% if ~isempty(config_file) && exist(config_file, 'file')
-%     fprintf('Loading configuration from: %s\n', config_file);
-%     config = read_config_ini(config_file);
-% end
+% Load configuration from config.json
+% mfilename('fullpath') = /path/to/stats/scripts/utils/run_tfce_correction.m
+% Need 3 fileparts to get to workspace root
+workspace_root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+config_path = fullfile(workspace_root, 'config', 'config.json');
+if ~exist(config_path, 'file')
+    error('Configuration file not found: %s', config_path);
+end
+config = read_config(config_path);
 
 % Override defaults with config values if they exist
 if isfield(config, 'tfce')
@@ -235,7 +232,7 @@ for i = 1:length(contrasts_to_process)
         case {'freedman-lane','freedman_lane','freedman','1'}
             nuisance_val = 1;
         otherwise
-            warning('Invalid nuisance_method "%s" in config.ini. Defaulting to "smith".', nuisance_method_str);
+            warning('Invalid nuisance_method "%s" in config.json. Defaulting to "smith".', nuisance_method_str);
             nuisance_val = 2;
     end
     matlabbatch{1}.spm.tools.tfce_estimate.nuisance_method = nuisance_val;

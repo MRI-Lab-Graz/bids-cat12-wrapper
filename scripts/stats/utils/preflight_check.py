@@ -29,16 +29,12 @@ except ImportError:
 def check_matlab_and_spm() -> bool:
     """Ensure MATLAB executable and SPM installation path are available."""
     script_dir = os.path.dirname(__file__)
-    repo_root = os.path.dirname(script_dir)
+    repo_root = os.path.dirname(os.path.dirname(script_dir))
 
     if script_dir not in sys.path:
         sys.path.insert(0, script_dir)
     try:
-        from load_config import (  # type: ignore
-            get_matlab_exe,
-            get_spm_path,
-            load_config,
-        )
+        from load_config import load_config, get_matlab_exe, get_spm_path  # type: ignore
     except Exception as exc:  # pragma: no cover - defensive import guard
         print(f"ERROR: Unable to import load_config helper: {exc}")
         return False
@@ -65,7 +61,7 @@ def check_matlab_and_spm() -> bool:
         print(f"✓ MATLAB executable found: {matlab_path}")
     else:
         print(
-            "ERROR: MATLAB executable not found. Update [MATLAB] exe in config.ini or ensure 'matlab' is on PATH."
+            "ERROR: MATLAB executable not found. Update [matlab] executable in config/config.json or ensure 'matlab' is on PATH."
         )
         if matlab_path:
             print(f"       Checked: {matlab_path}")
@@ -118,7 +114,7 @@ def check_matlab_and_spm() -> bool:
             path, missing = missing_details
             print(f"       Checked {path} but missing files: {', '.join(missing)}")
         print(
-            "       Set [SPM] path in config.ini, export SPM_PATH, or create spm_config.txt with the correct path."
+            "       Set [spm] path in config/config.json, export SPM_PATH, or create spm_config.txt with the correct path."
         )
         overall_ok = False
 
@@ -165,13 +161,29 @@ def gather_expected_sessions(
     participants_file: str, session_col: str
 ) -> Dict[str, List[str]]:
     df = pd.read_csv(participants_file, sep="\t")
-    if "participant_id" not in df.columns:
-        raise ValueError("participants.tsv must contain 'participant_id' column")
+
+    # Support both 'participant_id' and 'subject_id' column names
+    id_col = None
+    if "participant_id" in df.columns:
+        id_col = "participant_id"
+    elif "subject_id" in df.columns:
+        id_col = "subject_id"
+    else:
+        raise ValueError(
+            "participants.tsv must contain 'participant_id' or 'subject_id' column"
+        )
 
     expected: Dict[str, List[str]] = {}
+
+    # Three modes:
+    # 1. Subject-level with nr_sessions column
+    # 2. Scan-level with session column
+    # 3. Subject-level without session info (will auto-detect from filenames)
+
     if "nr_sessions" in df.columns:
+        # Mode 1: Subject-level with explicit session count
         for _, row in df.iterrows():
-            subject = row["participant_id"]
+            subject = row[id_col]
             if pd.isna(subject):
                 continue
             nr_sessions = row["nr_sessions"]
@@ -184,17 +196,19 @@ def gather_expected_sessions(
             expected.setdefault(subject, []).extend(
                 [str(i) for i in range(1, nr_sessions + 1)]
             )
-    else:
-        if session_col not in df.columns:
-            raise ValueError(
-                f"participants.tsv is scan-level but lacks session column '{session_col}'"
-            )
+    elif session_col in df.columns:
+        # Mode 2: Scan-level with session column
         for _, row in df.iterrows():
-            subject = row["participant_id"]
+            subject = row[id_col]
             session = row[session_col]
             if pd.isna(subject) or pd.isna(session):
                 continue
             expected.setdefault(subject, []).append(str(session))
+    else:
+        # Mode 3: Subject-level without session info
+        # Sessions will be auto-detected from CAT12 filenames
+        # Just return empty dict to skip session validation
+        return {}
 
     normalized: Dict[str, List[str]] = {}
     for subject, sessions in expected.items():
@@ -350,7 +364,7 @@ def check_tiv_presence(
         for subj, ses in missing_tiv[:20]:
             print(f"  - {subj} ses-{ses}")
         if len(missing_tiv) > 20:
-            print(f"  ... and {len(missing_tiv)-20} more")
+            print(f"  ... and {len(missing_tiv) - 20} more")
         print(
             "Please add TIV to your participants.tsv or ensure CAT12 XMLs contain 'vol_TIV' entries for these subjects."
         )
@@ -445,7 +459,7 @@ def check_covariates_presence(
                 for subj, ses in missing_entries[:10]:
                     print(f"  - {subj} ses-{ses}")
                 if len(missing_entries) > 10:
-                    print(f"  ... and {len(missing_entries)-10} more")
+                    print(f"  ... and {len(missing_entries) - 10} more")
                 overall_ok = False
             else:
                 print(
@@ -476,10 +490,8 @@ def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bo
 
     # Determine pattern based on modality
     if modality == "vbm":
-        if smoothing and smoothing != "auto":
+        if smoothing:
             pattern = f"*s{smoothing}mwp1r*.nii*"
-        elif smoothing == "auto":
-            pattern = "s*mwp1r*.nii*"
         else:
             pattern = "*mwp1r*.nii*"
         # VBM files are typically in 'mri' subfolder
@@ -488,16 +500,14 @@ def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bo
         # Surface modalities (thickness, gyrification, etc.)
         # Pattern: s{smoothing}.mesh.{modality}.resampled*.gii
         # Location: 'surf' subfolder
-        if smoothing and smoothing != "auto":
+        if smoothing:
             pattern = f"s{smoothing}.mesh.{modality}.resampled*.gii"
-        elif smoothing == "auto":
-            pattern = "s*.mesh.{modality}.resampled*.gii"
         else:
             pattern = f"*.mesh.{modality}.resampled*.gii"
         search_path = os.path.join(data_dir, "**", "surf", pattern)
 
     samples = glob.glob(search_path, recursive=True)
-    
+
     if not samples:
         # Fallback search without specific subfolder if strict structure not found
         fallback_path = os.path.join(data_dir, "**", pattern)
@@ -519,8 +529,8 @@ def check_cat12_dir(cat12_dir: str, smoothing: str, modality: str = "vbm") -> bo
 
         img = nb.load(sample)
         # For GIfTI (surface), header handling is different than NIfTI
-        if sample.endswith('.gii'):
-             print(f"✓ Sample GIfTI OK: {os.path.basename(sample)} (surface data)")
+        if sample.endswith(".gii"):
+            print(f"✓ Sample GIfTI OK: {os.path.basename(sample)} (surface data)")
         else:
             hdr = img.header
             data_shape = hdr.get_data_shape()
@@ -567,7 +577,7 @@ def find_and_copy_cat12_brainmask(cat12_dir: str) -> str | None:
         found = found.split(",")[0]
 
     repo_utils = os.path.dirname(__file__)
-    repo_root = os.path.dirname(repo_utils)
+    repo_root = os.path.dirname(os.path.dirname(repo_utils))
     templates_dir = os.path.join(repo_root, "templates")
     os.makedirs(templates_dir, exist_ok=True)
     dest = os.path.join(templates_dir, "brainmask_GMtight.nii")
@@ -636,11 +646,6 @@ def main() -> None:
         default="vbm",
         help="Analysis modality (vbm, thickness, gyrification, etc.)",
     )
-    parser.add_argument(
-        "--standalone",
-        action="store_true",
-        help="Skip MATLAB/SPM checks for standalone mode",
-    )
     args = parser.parse_args()
 
     overall_ok = True
@@ -650,9 +655,7 @@ def main() -> None:
         overall_ok = False
 
     print("\n=== Preflight: MATLAB/SPM availability ===")
-    if args.standalone:
-        print("✓ Standalone mode enabled: Skipping MATLAB/SPM checks.")
-    elif not check_matlab_and_spm():
+    if not check_matlab_and_spm():
         overall_ok = False
 
     print("\n=== Preflight: CAT12 files ===")
@@ -693,7 +696,7 @@ def main() -> None:
             print("✓ Custom mask installed")
 
     repo_utils = os.path.dirname(__file__)
-    repo_root = os.path.dirname(repo_utils)
+    repo_root = os.path.dirname(os.path.dirname(repo_utils))
     templates_dir = os.path.join(repo_root, "templates")
     dest = os.path.join(templates_dir, "brainmask_GMtight.nii")
     if not os.path.exists(dest):

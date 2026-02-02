@@ -11,13 +11,13 @@ generated batch file. If `spm-python` cannot run the batch (or is not
 installed), it exits with non-zero so the caller can fallback to the
 standalone runner or MATLAB.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
+import json
 
 
 def run_via_spm_python(batch_m: str, utils_dir: str) -> int:
@@ -27,21 +27,21 @@ def run_via_spm_python(batch_m: str, utils_dir: str) -> int:
     """
     try:
         # set MATLABPATH so run() or the batch can find helper functions
-        prev = os.environ.get('MATLABPATH', '')
+        prev = os.environ.get("MATLABPATH", "")
         if prev:
-            os.environ['MATLABPATH'] = utils_dir + os.pathsep + prev
+            os.environ["MATLABPATH"] = utils_dir + os.pathsep + prev
         else:
-            os.environ['MATLABPATH'] = utils_dir
+            os.environ["MATLABPATH"] = utils_dir
 
         import spm  # type: ignore
 
         # initialize SPM using the package API
         try:
-            spm.spm('defaults', 'FMRI')
+            spm.spm("defaults", "FMRI")
         except Exception:
             pass
         try:
-            spm.spm_jobman('initcfg')
+            spm.spm_jobman("initcfg")
         except Exception:
             pass
 
@@ -50,62 +50,73 @@ def run_via_spm_python(batch_m: str, utils_dir: str) -> int:
         # reconstructing the matlabbatch in Python and calling spm_jobman
         # directly. This avoids relying on MATLAB-run parsing of .m files.
         # Prefer an on-disk MATLAB .mat if present (written by generate_spm_batch.py)
-        batch_mat = str(Path(batch_m).with_suffix('.mat'))
+        batch_mat = str(Path(batch_m).with_suffix(".mat"))
         if os.path.isfile(batch_mat):
             try:
                 from scipy.io import loadmat
+
                 loaded = loadmat(batch_mat, simplify_cells=True)
                 # 'matlabbatch' may be present
-                if 'matlabbatch' in loaded:
-                    matlabbatch = loaded['matlabbatch']
+                if "matlabbatch" in loaded:
+                    matlabbatch = loaded["matlabbatch"]
                     try:
-                        spm.spm_jobman('initcfg')
+                        spm.spm_jobman("initcfg")
                     except Exception:
                         pass
                     try:
-                        spm.spm_jobman('run', matlabbatch)
+                        spm.spm_jobman("run", matlabbatch)
                     except Exception as e:
-                        print(f'Error running matlabbatch from .mat via spm_jobman: {e}', file=sys.stderr)
+                        print(
+                            f"Error running matlabbatch from .mat via spm_jobman: {e}",
+                            file=sys.stderr,
+                        )
                         return 6
                     return 0
             except Exception as e:
-                print(f'Failed to load/execute batch .mat: {e}', file=sys.stderr)
+                print(f"Failed to load/execute batch .mat: {e}", file=sys.stderr)
                 # fall through to JSON or .m paths
 
-        batch_json = str(batch_m) + '.json'
+        batch_json = str(batch_m) + ".json"
         if os.path.isfile(batch_json):
             try:
-                with open(batch_json, 'r') as bj:
+                with open(batch_json, "r") as bj:
                     meta = json.load(bj)
 
                 # Construct a minimal matlabbatch structure expected by SPM
                 # using Python nested dicts/lists. spm-python will convert
                 # these into MATLAB structs/cells when calling into SPM.
-                facts = meta.get('facts', [])
-                icell = meta.get('icell', [])
-                covs = meta.get('covariates', [])
+                facts = meta.get("facts", [])
+                icell = meta.get("icell", [])
+                covs = meta.get("covariates", [])
 
                 matlabbatch = [
                     {
-                        'spm': {
-                            'stats': {
-                                'factorial_design': {
-                                    'dir': [meta.get('dir')],
-                                    'des': {
-                                        'fd': {
-                                            'fact': [
-                                                {k: v for k, v in f.items()} for f in facts
+                        "spm": {
+                            "stats": {
+                                "factorial_design": {
+                                    "dir": [meta.get("dir")],
+                                    "des": {
+                                        "fd": {
+                                            "fact": [
+                                                {k: v for k, v in f.items()}
+                                                for f in facts
                                             ],
-                                            'icell': [
-                                                {'scans': c.get('scans', [])} for c in icell
-                                            ]
+                                            "icell": [
+                                                {"scans": c.get("scans", [])}
+                                                for c in icell
+                                            ],
                                         }
                                     },
-                                    'cov': [
-                                        {'c': cov.get('c', []), 'cname': cov.get('cname', ''), 'iCFI': 1, 'iCC': 1}
+                                    "cov": [
+                                        {
+                                            "c": cov.get("c", []),
+                                            "cname": cov.get("cname", ""),
+                                            "iCFI": 1,
+                                            "iCC": 1,
+                                        }
                                         for cov in covs
                                     ],
-                                    'masking': {'tm': 0, 'im': 1, 'em': ''},
+                                    "masking": {"tm": 0, "im": 1, "em": ""},
                                 }
                             }
                         }
@@ -114,19 +125,22 @@ def run_via_spm_python(batch_m: str, utils_dir: str) -> int:
 
                 # initialize and run
                 try:
-                    spm.spm_jobman('initcfg')
+                    spm.spm_jobman("initcfg")
                 except Exception:
                     pass
 
                 try:
-                    spm.spm_jobman('run', matlabbatch)
+                    spm.spm_jobman("run", matlabbatch)
                 except Exception as e:
-                    print(f'Error running matlabbatch via spm_jobman: {e}', file=sys.stderr)
+                    print(
+                        f"Error running matlabbatch via spm_jobman: {e}",
+                        file=sys.stderr,
+                    )
                     return 5
 
                 return 0
             except Exception as e:
-                print(f'Failed to load/execute batch JSON: {e}', file=sys.stderr)
+                print(f"Failed to load/execute batch JSON: {e}", file=sys.stderr)
                 # fall through to trying the .m runner below
 
         # Attempt to run the .m batch by calling MATLAB's run function
@@ -137,32 +151,39 @@ def run_via_spm_python(batch_m: str, utils_dir: str) -> int:
         # should be preferred. Attempt to call spm.spm_jobman on the
         # assumption the .m file defines `matlabbatch` in the workspace.
         try:
-            spm.spm_jobman('run', 'matlabbatch')
+            spm.spm_jobman("run", "matlabbatch")
         except Exception:
-            print('spm-python could not execute the .m batch via spm_jobman run fallback', file=sys.stderr)
+            print(
+                "spm-python could not execute the .m batch via spm_jobman run fallback",
+                file=sys.stderr,
+            )
             return 2
 
         return 0
     except Exception as e:
-        print(f'spm-python execution failed: {e}', file=sys.stderr)
+        print(f"spm-python execution failed: {e}", file=sys.stderr)
         return 4
     finally:
         # restore MATLABPATH
         if prev:
-            os.environ['MATLABPATH'] = prev
+            os.environ["MATLABPATH"] = prev
         else:
-            os.environ.pop('MATLABPATH', None)
+            os.environ.pop("MATLABPATH", None)
 
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser()
-    sub = p.add_subparsers(dest='cmd')
-    m = sub.add_parser('model')
-    m.add_argument('--batch', required=True, help='Path to spm_batch.m')
-    m.add_argument('--output', required=True, help='Output directory (SPM.mat will be written here)')
+    sub = p.add_subparsers(dest="cmd")
+    m = sub.add_parser("model")
+    m.add_argument("--batch", required=True, help="Path to spm_batch.m")
+    m.add_argument(
+        "--output",
+        required=True,
+        help="Output directory (SPM.mat will be written here)",
+    )
     args = p.parse_args(argv)
 
-    if args.cmd != 'model':
+    if args.cmd != "model":
         p.print_help()
         return 2
 
@@ -171,7 +192,7 @@ def main(argv=None) -> int:
     utils_dir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
     if not os.path.isfile(batch_m):
-        print(f'Batch file not found: {batch_m}', file=sys.stderr)
+        print(f"Batch file not found: {batch_m}", file=sys.stderr)
         return 10
 
     # Try spm-python
@@ -179,5 +200,5 @@ def main(argv=None) -> int:
     return rc
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -8,10 +8,11 @@ showing FWE-corrected (p < 0.05) results as PNG overlays for HTML inclusion.
 Usage:
     python3 generate_tfce_images.py --output-dir results/vbm/vbm_smooth_auto --fwe-threshold 0.05
 """
+
 import argparse
 import glob
-import json
 import os
+import json
 
 
 def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
@@ -59,11 +60,11 @@ def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
         fwe_file = os.path.join(tfce_dir, "logP_max.nii")
         if not os.path.exists(fwe_file):
             fwe_file = os.path.join(tfce_dir, "logP_max.gii")
-        
+
         if not os.path.exists(fwe_file):
             # Try alternative naming
             fwe_file = os.path.join(tfce_dir, "TFCE_log_pFWE.nii")
-        
+
         if not os.path.exists(fwe_file):
             fwe_file = os.path.join(tfce_dir, "TFCE_log_pFWE.gii")
 
@@ -92,10 +93,12 @@ def find_tfce_results(output_dir, fwe_threshold=0.05, start_time=None):
 
     # Also check for newer naming convention (files in root)
     # Matches TFCE_log_pFWE_0001.nii/.gii AND TFCE_0001_log_pFWE.nii/.gii
-    root_tfce_files = glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.nii")) + \
-                      glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.nii")) + \
-                      glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.gii")) + \
-                      glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.gii"))
+    root_tfce_files = (
+        glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.nii"))
+        + glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.nii"))
+        + glob.glob(os.path.join(output_dir, "TFCE_*_log_pFWE.gii"))
+        + glob.glob(os.path.join(output_dir, "TFCE_log_pFWE_*.gii"))
+    )
 
     for fpath in root_tfce_files:
         # Filter by start time if provided
@@ -150,8 +153,9 @@ def generate_summary_json(tfce_results, output_dir, fwe_threshold=0.05):
     }
 
     # Calculate log threshold: -log10(0.05) approx 1.301
-    import nibabel as nb
     import numpy as np
+    import nibabel as nb
+
     log_threshold = -np.log10(fwe_threshold)
 
     for res in tfce_results:
@@ -214,7 +218,9 @@ def main():
     print()
 
     # Find TFCE results
-    tfce_results = find_tfce_results(args.output_dir, args.fwe_threshold, args.start_time)
+    tfce_results = find_tfce_results(
+        args.output_dir, args.fwe_threshold, args.start_time
+    )
 
     if not tfce_results:
         print("⚠ No TFCE results found")

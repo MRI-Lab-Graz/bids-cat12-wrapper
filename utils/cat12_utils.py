@@ -8,6 +8,7 @@ executing CAT12 standalone, and managing CAT12 processing workflows.
 import json
 import logging
 import os
+import platform
 import shutil
 import subprocess
 from datetime import datetime
@@ -228,7 +229,17 @@ class CAT12Processor:
         )
         self.use_cuda = bool(self.config.get("system", {}).get("use_cuda", True))
 
-        self.use_standalone = os.environ.get("USE_STANDALONE", "true").lower() == "true"
+        # Auto-select CAT12 execution mode by OS unless explicitly overridden.
+        # Linux: prefer standalone (MCR) if available. macOS: prefer MATLAB (no standalone).
+        use_standalone_env = os.environ.get("USE_STANDALONE")
+        if use_standalone_env is not None:
+            self.use_standalone = use_standalone_env.lower() == "true"
+        else:
+            self.use_standalone = platform.system().lower() == "linux"
+        logger.info(
+            "CAT12 execution mode: %s",
+            "standalone" if self.use_standalone else "MATLAB",
+        )
 
         if self.use_standalone:
             cat12_root_env = os.environ.get("CAT12_ROOT")
@@ -243,9 +254,12 @@ class CAT12Processor:
             self.mcr_root: str = mcr_root_env
         else:
             self.matlab_exe = os.environ.get("MATLAB_EXE", "matlab")
-            self.spm_root = os.environ.get("SPM_ROOT")
+            # Support both SPM_ROOT and SPMROOT env names
+            self.spm_root = os.environ.get("SPM_ROOT") or os.environ.get("SPMROOT")
             if not self.spm_root:
-                raise ValueError("SPM_ROOT environment variable not set for MATLAB mode")
+                raise ValueError(
+                    "SPM_ROOT (or SPMROOT) environment variable not set for MATLAB mode"
+                )
 
     def execute_script(
         self, script_path: Path, input_files: Optional[List[str]] = None

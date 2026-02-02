@@ -4,30 +4,22 @@
 # =====================================
 #
 # Complete automated workflow from CAT12 preprocessing to TFCE-corrected results.
-# Production Ready - Reviewed 2025-12-03
+# Production Ready - Reviewed 2025-11-19
 #
-# USAGE (preferred):
-#   cat12_stats --cat12-dir <path> --participants <tsv> [options]
-#   cat12_stats --design <json> [options]
+# USAGE:
+#   ./cat12_longitudinal_analysis.sh --config <json> --cat12-dir <path> --participants <tsv> [options]
 #
-# Note: `cat12_stats` is a small wrapper in the repo root that sets up the
-# virtualenv and optional `--nohup` background logging. It invokes
-# `scripts/stats/cat12_longitudinal_analysis.sh` under the hood.
-#
-# REQUIRED ARGUMENTS (Standard Mode):
+# REQUIRED ARGUMENTS:
+#   --config <json>         Path to config.json file (required)
 #   --cat12-dir <path>      Path to CAT12 preprocessing output directory
 #   --participants <tsv>    Path to BIDS participants.tsv file
-#
-# REQUIRED ARGUMENTS (Reproduction Mode):
-#   --design <json>         Path to design.json file (reproduces exact analysis)
 #
 # ANALYSIS OPTIONS:
 #   --modality <name>       Analysis type: vbm, thickness, depth, gyrification, fractal
 #                           (default: vbm)
 #   --smoothing <mm>        Smoothing kernel in mm (default: auto-detect)
 #   --analysis-name <name>  Custom name for analysis (default: auto-generated)
-#   --output-dir <path> / --output <path>
-#                           Custom output directory (overrides default location)
+#   --output-dir <path>     Custom output directory (overrides default location)
 #
 # DESIGN OPTIONS:
 #   --group-col <name>      Column name for group variable in participants.tsv
@@ -40,7 +32,6 @@
 #                         Number of TFCE permutations (default: 5000)
 #   --pilot                Run pilot mode (100 permutations, 1 contrast)
 #   --skip-screening       Run TFCE on all contrasts (not recommended)
-#   --no-tfce              Stop after screening (skip TFCE correction)
 #
 # Behavior note: the pipeline now runs TFCE in an automatic two-stage
 # probe-then-full strategy by default (a short probe run is performed to
@@ -53,21 +44,19 @@
 #   --uncorrected-p <p>    Uncorrected p-value threshold for screening (default: 0.001)
 #
 # OTHER OPTIONS:
-#   --config <file>        Path to custom config.ini file
 #   --force                Delete existing results directory before starting
-#   --n-jobs <N>           Parallel jobs for TFCE (default: 4)
 #
-# EXAMPLES (use the `cat12_stats` wrapper):
+# EXAMPLES:
 #
 #   # Basic VBM analysis with 6mm smoothing and sessions 1,3
-#   cat12_stats \
+#   ./cat12_longitudinal_analysis.sh \
 #       --cat12-dir /data/cat12 \
 #       --participants /data/participants.tsv \
 #       --smoothing 6 \
 #       --sessions "1,3"
 #
 #   # Cortical thickness with covariates
-#   cat12_stats \
+#   ./cat12_longitudinal_analysis.sh \
 #       --cat12-dir /data/cat12 \
 #       --participants /data/participants.tsv \
 #       --modality thickness \
@@ -76,36 +65,48 @@
 
 set -euo pipefail
 
-# Initialize early to avoid `set -u` failures in pre-parse logic
-CAT12_DIR=""
+# ============================================================================
+# Logging Functions
+# ============================================================================
 
-# Optional background mode when the wrapper is bypassed
-NOHUP_MODE=false
-NOHUP_ARGS=()
-for arg in "$@"; do
-    if [[ "$arg" == "--nohup" ]]; then
-        NOHUP_MODE=true
-    else
-        NOHUP_ARGS+=("$arg")
-    fi
-done
+# ANSI color codes
+COLOR_RESET='\033[0m'
+COLOR_INFO='\033[0;36m'      # Cyan
+COLOR_WARNING='\033[0;33m'   # Yellow
+COLOR_ERROR='\033[0;31m'     # Red
+COLOR_SUCCESS='\033[0;32m'   # Green
+COLOR_DEBUG='\033[0;90m'     # Gray
 
-if [[ "$NOHUP_MODE" == "true" ]]; then
-    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    LOG_FILE="cat12_stats_${TIMESTAMP}.log"
-    CMD="$0 ${NOHUP_ARGS[*]}"
+# Indent external tool output (e.g., SPM/MATLAB) for readability
+external_prefix() {
+    sed 's/^/    /'
+}
 
-    echo "Running in background (nohup)..."
-    echo "Log file: $LOG_FILE"
-    echo "# Command: $CMD" > "$LOG_FILE"
-    echo "# Started: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$LOG_FILE"
+# Logging functions with timestamp and color
+log_info() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} - ${COLOR_INFO}INFO${COLOR_RESET} - $*"
+}
 
-    nohup "$0" "${NOHUP_ARGS[@]}" >> "$LOG_FILE" 2>&1 &
-    PID=$!
-    echo "Process ID: $PID"
-    echo "You can monitor progress with: tail -f $LOG_FILE"
-    exit 0
-fi
+log_warning() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} - ${COLOR_WARNING}WARNING${COLOR_RESET} - $*"
+}
+
+log_error() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} - ${COLOR_ERROR}ERROR${COLOR_RESET} - $*" >&2
+}
+
+log_success() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} - ${COLOR_SUCCESS}SUCCESS${COLOR_RESET} - $*"
+}
+
+log_debug() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} - ${COLOR_DEBUG}DEBUG${COLOR_RESET} - $*"
+}
 
 # Capture original arguments early so we can safely reconstruct the exact
 # command line later (avoids issues with unmatched quotes when we pass the
@@ -117,51 +118,14 @@ PIPELINE_START_TIME=$(date +%s)
 
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-STATS_DIR="$SCRIPT_DIR"
-
-# ============================================================================
-# Colors and Formatting
-# ============================================================================
-
-# Define colors (only if connected to a terminal)
-if [[ -t 1 ]]; then
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    MAGENTA='\033[0;35m'
-    CYAN='\033[0;36m'
-    BOLD='\033[1m'
-    NC='\033[0m' # No Color
-else
-    RED=''
-    GREEN=''
-    YELLOW=''
-    BLUE=''
-    MAGENTA=''
-    CYAN=''
-    BOLD=''
-    NC=''
-fi
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+STATS_DIR="$ROOT_DIR"
+UTILS_DIR="$ROOT_DIR/scripts/utils"
+CONFIG_JSON=""
 
 # ============================================================================
 # Load Configuration from config.ini
 # ============================================================================
-
-# Default config file
-CONFIG_FILE="$STATS_DIR/../../config/config.ini"
-
-# Pre-parse for --config flag to load correct defaults
-args=("$@")
-for ((i=0; i<$#; i++)); do
-    if [[ "${args[i]}" == "--config" ]]; then
-        next_index=$((i+1))
-        if [[ $next_index -lt $# ]]; then
-            CONFIG_FILE="${args[next_index]}"
-        fi
-        break
-    fi
-done
 
 # Function to read INI values
 get_ini_value() {
@@ -169,7 +133,7 @@ get_ini_value() {
     local key="$2"
     local default="$3"
     
-    if [[ ! -f "$CONFIG_FILE" ]]; then
+    if [[ ! -f "$STATS_DIR/config.ini" ]]; then
         echo "$default"
         return
     fi
@@ -182,7 +146,7 @@ get_ini_value() {
             print val
             exit
         }
-    ' "$CONFIG_FILE")
+    ' "$STATS_DIR/config.ini")
     
     if [[ -z "$value" ]]; then
         echo "$default"
@@ -191,101 +155,92 @@ get_ini_value() {
     fi
 }
 
+get_json_value() {
+    local key="$1"
+    local default="$2"
+
+    if [[ ! -f "$CONFIG_JSON" ]]; then
+        echo "$default"
+        return
+    fi
+
+    "$PYTHON_EXE" - <<PY 2>/dev/null || echo "$default"
+import json
+import sys
+
+path = "$CONFIG_JSON"
+key = "$key"
+default = "$default"
+
+try:
+    with open(path, "r") as f:
+        data = json.load(f)
+    value = data
+    for part in key.split("."):
+        if isinstance(value, dict) and part in value:
+            value = value[part]
+        else:
+            value = default
+            break
+    if value is None:
+        value = default
+    if isinstance(value, (dict, list)):
+        print(default)
+    elif isinstance(value, bool):
+        # Convert Python bool to lowercase string for bash
+        print(str(value).lower())
+    else:
+        print(value)
+except Exception:
+    print(default)
+PY
+}
+
 # Load configuration defaults from config.ini
 MATLAB_EXE=$(get_ini_value "MATLAB" "exe" "/Applications/MATLAB_R2025b.app/bin/matlab")
 SPM_PATH=$(get_ini_value "SPM" "path" "")
 PYTHON_EXE=$(get_ini_value "PYTHON" "exe" "python3")
 
-# Allow graphics windows in MATLAB? If true we omit -nodisplay. If false we add -nodisplay.
-# Default to headless execution.
-MATLAB_ALLOW_GRAPHICS=$(get_ini_value "MATLAB" "allow_graphics" "false")
+# Allow graphics windows in MATLAB? If true we omit -nodisplay. If false we add -nodisplay
+MATLAB_ALLOW_GRAPHICS=$(get_ini_value "MATLAB" "allow_graphics" "true")
 
-
-MODALITY=$(get_ini_value "ANALYSIS" "modality" "vbm")
-SMOOTHING=$(get_ini_value "ANALYSIS" "smoothing" "")
-GROUP_COL=$(get_ini_value "ANALYSIS" "group_col" "")
-SESSION_COL=$(get_ini_value "ANALYSIS" "session_col" "session")
-SESSIONS=$(get_ini_value "ANALYSIS" "sessions" "all")
-COVARIATES=$(get_ini_value "ANALYSIS" "covariates" "")
-STANDARDIZE_CONTINUOUS=$(get_ini_value "ANALYSIS" "standardize_continuous_variables" "false")
-
-UNCORRECTED_P=$(get_ini_value "SCREENING" "uncorrected_p" "0.01")
-CLUSTER_SIZE=$(get_ini_value "SCREENING" "cluster_size" "50")
-SKIP_SCREENING=$(get_ini_value "SCREENING" "skip_screening" "false")
-
-N_PERM=$(get_ini_value "TFCE" "n_perm" "5000")
-PILOT_MODE=$(get_ini_value "TFCE" "pilot_mode" "false")
+# Initialize variables that will be populated from config.json AFTER argument parsing
+# (see "Read configuration from config.json" section after CONFIG_JSON validation)
+MODALITY=""
+SMOOTHING=""
+GROUP_COL=""
+SESSION_COL=""
+SESSIONS=""
+COVARIATES=""
+STANDARDIZE_CONTINUOUS=""
+UNCORRECTED_P=""
+CLUSTER_SIZE=""
+SKIP_SCREENING=""
+N_PERM=""
+PILOT_MODE=""
+INITIAL_PERM=""
+CC_THRESHOLD=""
+N_JOBS=""
+OUTPUT_DIR=""
+ANALYSIS_NAME=""
+FORCE=""
+PARTICIPANTS_FILE=""
+MATLAB_EXE=""
 NO_TFCE=false
 
-# Two-stage TFCE probe parameters (automatic, no CLI flag required)
-# initial_perm: quick probe run to estimate cc (default: 100)
-# cc_threshold: if probe cc < threshold, use Freedman-Lane for full run
-INITIAL_PERM=$(get_ini_value "TFCE" "initial_perm" "100")
-CC_THRESHOLD=$(get_ini_value "TFCE" "cc_threshold" "0.98")
-
-N_JOBS=$(get_ini_value "PERFORMANCE" "parallel_jobs" "4")
-
-OUTPUT_DIR=$(get_ini_value "OUTPUT" "output_dir" "")
-ANALYSIS_NAME=$(get_ini_value "OUTPUT" "analysis_name" "")
-FORCE=$(get_ini_value "OUTPUT" "force_clean" "false")
-
-# Safety check: If OUTPUT_DIR is the same as CAT12_DIR, abort immediately
-if [[ -n "$OUTPUT_DIR" ]] && [[ -n "$CAT12_DIR" ]]; then
-    # Normalize paths for comparison
-    ABS_OUTPUT=$(cd "$OUTPUT_DIR" 2>/dev/null && pwd || echo "$OUTPUT_DIR")
-    ABS_CAT12=$(cd "$CAT12_DIR" 2>/dev/null && pwd || echo "$CAT12_DIR")
-    
-    if [[ "$ABS_OUTPUT" == "$ABS_CAT12" ]]; then
-        echo "CRITICAL ERROR: Output directory cannot be the same as CAT12 input directory!"
-        echo "  Input:  $ABS_CAT12"
-        echo "  Output: $ABS_OUTPUT"
-        echo "This would overwrite/delete your input data."
-        exit 1
-    fi
-fi
-
 # Auto-detect MATLAB if empty in config
-USE_STANDALONE=false
-
-# Check if configured MATLAB_EXE exists
-if [[ ! -x "$MATLAB_EXE" ]] && ! command -v "$MATLAB_EXE" &> /dev/null; then
-    # Configured MATLAB not found. Try auto-detection.
-    # Use '|| true' to prevent script exit if find fails (e.g. /Applications missing on Linux)
-    FOUND_MATLAB=$(find /Applications -name "MATLAB_R*.app" -maxdepth 1 2>/dev/null | sort -r | head -1 || true)
+if [[ -z "$MATLAB_EXE" ]] || [[ "$MATLAB_EXE" == "false" ]]; then
+    FOUND_MATLAB=$(find /Applications -name "MATLAB_R*.app" -maxdepth 1 2>/dev/null | sort -r | head -1)
     if [[ -n "$FOUND_MATLAB" ]]; then
         MATLAB_EXE="$FOUND_MATLAB/bin/matlab"
-    elif command -v matlab &> /dev/null; then
+    else
         MATLAB_EXE="matlab"
-    else
-        # Fallback to standalone
-        echo "MATLAB executable not found at configured path or in PATH."
-        echo "Switching to CAT12 Standalone mode."
-        USE_STANDALONE=true
-        MATLAB_EXE="standalone"
     fi
-fi
-
-# Function to run MATLAB commands (via MATLAB or Standalone)
-run_matlab() {
-    local cmd="$1"
-    if [[ "$USE_STANDALONE" == "true" ]]; then
-        # Use the Python wrapper for standalone
-        # We assume run_matlab_standalone.py is in STATS_DIR
-        "$PYTHON_EXE" "$STATS_DIR/run_matlab_standalone.py" --utils "$STATS_DIR/utils" "$cmd"
-    else
-        "$MATLAB_EXE" $MATLAB_FLAGS "$cmd"
-    fi
-}
-
-if [[ "$USE_STANDALONE" == "true" ]]; then
-    UTILS_PATH_CMD=""
-else
-    UTILS_PATH_CMD="addpath('$STATS_DIR/utils');"
 fi
 
 # Check for Python 3
 if ! command -v "$PYTHON_EXE" &> /dev/null; then
-    echo "Error: Python executable '$PYTHON_EXE' not found."
+    log_error "Python executable '$PYTHON_EXE' not found."
     echo "Please install Python 3 or update [PYTHON] exe in config.ini."
     exit 1
 fi
@@ -306,31 +261,26 @@ fi
 CAT12_DIR=""
 PARTICIPANTS_FILE=""
 DESIGN_FILE=""
-DRY_RUN=false
 
-print_help() {
+# Show help if no arguments provided
+if [[ $# -eq 0 ]]; then
     echo ""
     echo "╔════════════════════════════════════════════════════════════════════════╗"
     echo "║              CAT12 Longitudinal Analysis Pipeline                      ║"
     echo "╚════════════════════════════════════════════════════════════════════════╝"
     echo ""
     echo "USAGE:"
-    echo "  cat12_stats [--nohup] --cat12-dir <path> --participants <tsv> [options]"
-    echo "  cat12_stats [--nohup] --design <json> [options]"
+    echo "  $0 --config <json> --cat12-dir <path> --participants <tsv> [options]"
     echo ""
-    echo "REQUIRED ARGUMENTS (Standard Mode):"
+    echo "REQUIRED ARGUMENTS:"
+    echo "  --config <json>         Path to config.json file"
     echo "  --cat12-dir <path>      Path to CAT12 preprocessing output"
     echo "  --participants <tsv>    Path to BIDS participants.tsv file"
-    echo ""
-    echo "REQUIRED ARGUMENTS (Reproduction Mode):"
-    echo "  --design <json>         Path to design.json file"
     echo ""
     echo "ANALYSIS OPTIONS:"
     echo "  --modality <name>       vbm (default), thickness, depth, gyrification, fractal"
     echo "  --smoothing <mm>        Smoothing kernel (default: auto-detect)"
     echo "  --analysis-name <name>  Custom analysis name (default: auto-generated)"
-    echo "  --output-dir <path> / --output <path>"
-    echo "                          Custom output directory (overrides default location)"
     echo "  --group-col <name>      Group column in participants.tsv (auto-detect if omitted)"
     echo "  --covariates <list>     Covariates: age,sex,tiv (optional)"
     echo ""
@@ -345,9 +295,6 @@ print_help() {
     echo "  --cluster-size <k>      Minimum cluster size (default: 50 voxels)"
     echo ""
     echo "OTHER OPTIONS:"
-    echo "  --nohup                Run in background (wrapper or direct). Logs to cat12_stats_<timestamp>.log"
-    echo "  --dry-run              Run preflight + design generation only (skip MATLAB/SPM/TFCE)"
-    echo "  --config <file>         Path to custom config.ini file"
     echo "  --force                 Delete existing results before starting"
     echo "  --n-jobs <N>            Parallel jobs for TFCE (default: 4)"
     echo "  --help, -h              Show this help message"
@@ -355,26 +302,26 @@ print_help() {
     echo "EXAMPLES:"
     echo ""
     echo "  # Basic VBM analysis"
-    echo "  cat12_stats --cat12-dir /data/cat12 --participants participants.tsv"
+    echo "  $0 --config config/config.json --cat12-dir /data/cat12 --participants participants.tsv"
     echo ""
     echo "  # Quick test"
-    echo "  cat12_stats --cat12-dir /data/cat12 --participants participants.tsv --pilot"
+    echo "  $0 --config config/config.json --cat12-dir /data/cat12 --participants participants.tsv --pilot"
     echo ""
     echo "  # With covariates"
-    echo "  cat12_stats --cat12-dir /data/cat12 --participants participants.tsv \\" 
+    echo "  $0 --config config/config.json --cat12-dir /data/cat12 --participants participants.tsv \\"
     echo "     --covariates \"age,sex,tiv\""
     echo ""
     echo "  # Cortical thickness"
-    echo "  cat12_stats --cat12-dir /data/cat12 --participants participants.tsv \\" 
+    echo "  $0 --config config/config.json --cat12-dir /data/cat12 --participants participants.tsv \\"
     echo "     --modality thickness"
     echo ""
     echo "CONFIGURATION:"
-    echo "  Edit config.ini to customize defaults for:"
+    echo "  Edit config.json to customize defaults for:"
     echo "    - MATLAB and SPM paths"
     echo "    - Analysis parameters (n_perm, uncorrected_p, cluster_size)"
     echo "    - Performance settings (parallel_jobs)"
     echo ""
-    echo "  Command-line arguments override config.ini values."
+    echo "  Command-line arguments override config.json values."
     echo ""
     echo "RESULTS:"
     echo "  Saved to: results/<modality>/<analysis_name>/"
@@ -385,11 +332,6 @@ print_help() {
     echo ""
     echo "════════════════════════════════════════════════════════════════════════"
     echo ""
-}
-
-# Show help if no arguments provided
-if [[ $# -eq 0 ]]; then
-    print_help
     exit 0
 fi
 
@@ -400,7 +342,7 @@ fi
 while [[ $# -gt 0 ]]; do
     case $1 in
         --config)
-            # Handled in pre-parse loop, just skip
+            CONFIG_JSON="$2"
             shift 2
             ;;
         --cat12-dir)
@@ -415,10 +357,6 @@ while [[ $# -gt 0 ]]; do
             DESIGN_FILE="$2"
             shift 2
             ;;
-        --dry-run)
-            DRY_RUN=true
-            shift
-            ;;
         --modality)
             MODALITY="$2"
             shift 2
@@ -431,7 +369,7 @@ while [[ $# -gt 0 ]]; do
             ANALYSIS_NAME="$2"
             shift 2
             ;;
-        --output-dir|--output)
+        --output-dir)
             OUTPUT_DIR="$2"
             shift 2
             ;;
@@ -485,21 +423,243 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --help|-h)
-            print_help
+            # Print the top-of-file help header
+            grep "^#" "$0" | tail -n +3
+
+            # Also extract CLI flags declared in utility scripts under utils/
+            echo ""
+            echo "────────────────────────────────────────────────────────────────────────" 
+            echo "Additional flags exposed by helper scripts in ./scripts/utils/ (extracted):"
+            echo "(Showing raw add_argument(...) entries from each utils/*.py file)"
+            echo ""
+            for f in "$UTILS_DIR"/*.py; do
+                if [[ -f "$f" ]]; then
+                    echo "== $(basename "$f") =="
+                    # print add_argument contents, one-per-line (safe text extraction)
+                    grep -E "add_argument\(" "$f" 2>/dev/null | sed -E "s/.*add_argument\(([^)]*)\).*/  \1/" | sed -E "s/^[[:space:]]*//;s/[[:space:]]+/ /g" || true
+                    echo ""
+                fi
+            done
             exit 0
             ;;
         *)
-            echo "Error: Unknown argument '$1'"
-            echo "Run 'cat12_stats --help' for usage."
+            log_error "Unknown argument: $1"
             exit 1
             ;;
     esac
 done
 
-# =========================================================================
-# Output directory handling
-# =========================================================================
+if [[ -z "$CONFIG_JSON" ]]; then
+    echo "Error: --config <json> is required."
+    echo "Usage: $0 --config <json> --cat12-dir <path> --participants <tsv> [options]"
+    exit 1
+fi
 
+if [[ ! -f "$CONFIG_JSON" ]]; then
+    log_error "config file not found: $CONFIG_JSON"
+    exit 1
+fi
+
+# ============================================================================
+# Read configuration from config.json (now that it's validated)
+# ============================================================================
+
+# Modality and analysis settings
+if [[ -z "$MODALITY" ]]; then
+    MODALITY=$(get_json_value "analysis.modalities[0].name" "vbm")
+fi
+if [[ -z "$SMOOTHING" ]]; then
+    SMOOTHING=$(get_json_value "analysis.modalities[0].smoothing_kernel" "")
+fi
+if [[ -z "$GROUP_COL" ]]; then
+    GROUP_COL=$(get_json_value "analysis.group_column" "")
+fi
+if [[ -z "$SESSION_COL" ]]; then
+    SESSION_COL=$(get_json_value "analysis.session_column" "session")
+fi
+if [[ -z "$SESSIONS" ]]; then
+    # Read sessions from config - converts JSON array ["1", "2"] to "1,2"
+    SESSIONS=$(python3 << PYEOF
+import json
+try:
+    with open("$CONFIG_JSON") as f:
+        config = json.load(f)
+    sessions = config.get("analysis", {}).get("sessions", ["all"])
+    if sessions == ["all"]:
+        print("all")
+    else:
+        print(",".join(str(s) for s in sessions))
+except Exception:
+    print("all")
+PYEOF
+)
+    echo "DEBUG: Sessions from config = '$SESSIONS'"
+fi
+
+# Extract covariates from the modality config (if not already set by --covariates)
+if [[ -z "$COVARIATES" ]]; then
+    # Get covariates array from the matching modality in config.json
+    COVARIATES=$(python3 << PYEOF
+import json
+try:
+    with open("$CONFIG_JSON") as f:
+        config = json.load(f)
+    # Find the matching modality
+    modality_name = "$MODALITY"
+    for mod in config.get("analysis", {}).get("modalities", []):
+        if mod.get("name") == modality_name:
+            covs = mod.get("covariates", [])
+            if covs:
+                # Convert list to comma-separated string
+                print(",".join(covs))
+            break
+except Exception:
+    pass
+PYEOF
+)
+    echo "DEBUG: Covariates from modality config = '$COVARIATES'"
+fi
+if [[ -z "$STANDARDIZE_CONTINUOUS" ]]; then
+    STANDARDIZE_CONTINUOUS=$(get_json_value "analysis.standardize_continuous" "true")
+fi
+
+# Screening settings
+if [[ -z "$UNCORRECTED_P" ]]; then
+    UNCORRECTED_P=$(get_json_value "screening.uncorrected_p" "0.001")
+fi
+if [[ -z "$CLUSTER_SIZE" ]]; then
+    CLUSTER_SIZE=$(get_json_value "screening.cluster_size_voxels" "10")
+fi
+if [[ -z "$SKIP_SCREENING" ]]; then
+    SKIP_SCREENING=$(get_json_value "screening.skip_screening" "false")
+fi
+
+# TFCE settings
+N_PERM=$(get_json_value "tfce.n_permutations" "5000")
+PILOT_MODE=$(get_json_value "tfce.pilot_mode" "false")
+
+# Debug: show what was read
+echo "DEBUG: PILOT_MODE from config = '$PILOT_MODE'"
+
+# If pilot mode is enabled, override N_PERM to 100
+if [[ "$PILOT_MODE" == "true" ]]; then
+    N_PERM=100
+    echo "DEBUG: Pilot mode enabled, N_PERM set to 100"
+else
+    echo "DEBUG: Pilot mode disabled, N_PERM = $N_PERM"
+fi
+
+INITIAL_PERM=100
+CC_THRESHOLD=0.98
+
+# Performance settings
+if [[ -z "$N_JOBS" ]]; then
+    N_JOBS=$(get_json_value "performance.parallel_jobs" "1")
+fi
+
+# Output settings
+if [[ -z "$OUTPUT_DIR" ]]; then
+    OUTPUT_DIR=$(get_json_value "output.output_dir" "")
+fi
+if [[ -z "$ANALYSIS_NAME" ]]; then
+    ANALYSIS_NAME=$(get_json_value "output.analysis_name" "")
+fi
+if [[ -z "$FORCE" ]]; then
+    FORCE=$(get_json_value "output.force_clean" "false")
+fi
+
+if [[ -z "$PARTICIPANTS_FILE" ]]; then
+    PARTICIPANTS_FILE=$(get_json_value "analysis.participants_file" "")
+fi
+
+# ============================================================================
+# Validation
+# ============================================================================
+
+if [[ -n "$DESIGN_FILE" ]]; then
+    if [[ ! -f "$DESIGN_FILE" ]]; then
+        log_error "Design file not found: $DESIGN_FILE"
+        exit 1
+    fi
+else
+    if [[ -z "$CAT12_DIR" ]] || [[ -z "$PARTICIPANTS_FILE" ]]; then
+        echo "Error: Missing required arguments"
+        echo "Usage: $0 --config <json> --cat12-dir <path> --participants <tsv>"
+        echo "   OR: $0 --design <json_file>"
+        echo "Run: $0 --help   for full help"
+        exit 1
+    fi
+fi
+
+if [[ -n "$CAT12_DIR" ]] && [[ ! -d "$CAT12_DIR" ]]; then
+    echo "Error: CAT12 directory not found: $CAT12_DIR"
+    exit 1
+fi
+
+if [[ -n "$PARTICIPANTS_FILE" ]] && [[ ! -f "$PARTICIPANTS_FILE" ]]; then
+    echo "Error: Participants file not found: $PARTICIPANTS_FILE"
+    exit 1
+fi
+
+# Make paths absolute
+if [[ -n "$CAT12_DIR" ]]; then
+    CAT12_DIR="$(cd "$CAT12_DIR" && pwd)"
+fi
+if [[ -n "$PARTICIPANTS_FILE" ]]; then
+    PARTICIPANTS_FILE="$(cd "$(dirname "$PARTICIPANTS_FILE")" && pwd)/$(basename "$PARTICIPANTS_FILE")"
+fi
+if [[ -n "$DESIGN_FILE" ]]; then
+    DESIGN_FILE="$(cd "$(dirname "$DESIGN_FILE")" && pwd)/$(basename "$DESIGN_FILE")"
+fi
+
+# Auto-detect smoothing if not specified
+if [[ -z "$SMOOTHING" ]]; then
+    # Find one representative mwp1r file under the supplied CAT12 dir and
+    # try to extract the smoothing kernel (e.g. 's6mwp1r' -> 6). If no
+    # smoothing prefix is present, fall back to default 6 mm.
+    if [[ -n "$CAT12_DIR" ]]; then
+        FOUND_FILE=$(find "$CAT12_DIR" -type f -iname "*mwp1r*.nii*" 2>/dev/null | head -n 1 || true)
+        if [[ -n "$FOUND_FILE" ]]; then
+            basefn=$(basename "$FOUND_FILE")
+            if [[ "$basefn" =~ s([0-9]+)mwp1r ]]; then
+                SMOOTHING="${BASH_REMATCH[1]}"
+            else
+                # No explicit smoothing prefix found in filename; default to 6
+                SMOOTHING="6"
+            fi
+        else
+            SMOOTHING="6"
+        fi
+    else
+        SMOOTHING="6"
+    fi
+fi
+
+# Set analysis name from config's folder_name field or use provided ANALYSIS_NAME
+if [[ -z "$ANALYSIS_NAME" ]]; then
+    # Get folder_name from the matching modality in config.json
+    ANALYSIS_NAME=$(python3 << PYEOF
+import json
+try:
+    with open("$CONFIG_JSON") as f:
+        config = json.load(f)
+    modality_name = "$MODALITY"
+    for mod in config.get("analysis", {}).get("modalities", []):
+        if mod.get("name") == modality_name:
+            folder_name = mod.get("folder_name", "")
+            if folder_name:
+                print(folder_name)
+            else:
+                # Fallback: construct from modality and smoothing
+                print(f"{modality_name}_smooth_auto")
+            break
+except Exception:
+    print("${MODALITY}_smooth_auto")
+PYEOF
+)
+fi
+
+# Set results directory
 if [[ -z "$OUTPUT_DIR" ]]; then
     OUTPUT_DIR="$STATS_DIR/results/${MODALITY}/${ANALYSIS_NAME}"
 else
@@ -524,40 +684,38 @@ trap "rm -rf '$TEMP_DIR'" EXIT
 # Banner
 # ============================================================================
 
-cat << EOF
+cat << 'EOF'
 
-${BOLD}${CYAN}╔════════════════════════════════════════════════════════════════════════╗
+╔════════════════════════════════════════════════════════════════════════╗
 ║              CAT12 Longitudinal Analysis Pipeline                      ║
-╚════════════════════════════════════════════════════════════════════════╝${NC}
+╚════════════════════════════════════════════════════════════════════════╝
 
 EOF
 
-echo -e "${BOLD}${BLUE}Configuration:${NC}"
-echo -e "  Config file:        ${YELLOW}$CONFIG_FILE${NC}"
-echo -e "  CAT12 directory:    $CAT12_DIR"
-echo -e "  Participants file:  $PARTICIPANTS_FILE"
-echo -e "  Modality:           $MODALITY"
-echo -e "  Smoothing:          ${SMOOTHING}mm"
-echo -e "  Analysis name:      $ANALYSIS_NAME"
-echo -e "  Results directory:  $OUTPUT_DIR"
+echo "Configuration:"
+echo "  CAT12 directory:    $CAT12_DIR"
+echo "  Participants file:  $PARTICIPANTS_FILE"
+echo "  Modality:           $MODALITY"
+echo "  Smoothing:          ${SMOOTHING}mm"
+echo "  Analysis name:      $ANALYSIS_NAME"
+echo "  Results directory:  $OUTPUT_DIR"
 echo ""
-echo -e "${BOLD}${BLUE}Design:${NC}"
-echo -e "  Group column:       ${GROUP_COL:-auto-detect}"
-echo -e "  Session column:     $SESSION_COL"
-echo -e "  Sessions:           $SESSIONS"
-echo -e "  Covariates:         ${COVARIATES:-none}"
+echo "Design:"
+echo "  Group column:       ${GROUP_COL:-auto-detect}"
+echo "  Session column:     $SESSION_COL"
+echo "  Sessions:           $SESSIONS"
+echo "  Covariates:         ${COVARIATES:-none}"
 echo ""
-echo -e "${BOLD}${BLUE}TFCE:${NC}"
-echo -e "  Permutations:       $N_PERM"
-echo -e "  Pilot mode:         $PILOT_MODE"
-echo -e "  Skip screening:     $SKIP_SCREENING"
-echo -e "  Parallel jobs:      $N_JOBS"
+echo "TFCE:"
+echo "  Permutations:       $N_PERM"
+echo "  Pilot mode:         $PILOT_MODE"
+echo "  Skip screening:     $SKIP_SCREENING"
+echo "  Parallel jobs:      $N_JOBS"
 echo ""
-echo -e "${BOLD}${BLUE}Options:${NC}"
-echo -e "  Force clean:        $FORCE"
-echo -e "  Dry run:            $DRY_RUN"
+echo "Options:"
+echo "  Force clean:        $FORCE"
 echo ""
-echo -e "${BOLD}${CYAN}════════════════════════════════════════════════════════════════════════${NC}"
+echo "════════════════════════════════════════════════════════════════════════"
 echo ""
 
 # ============================================================================
@@ -565,19 +723,11 @@ echo ""
 # Run configure_spm_path once early so subsequent MATLAB calls don't re-run the
 # interactive/config detection tool and clutter the logs.
 # ============================================================================
-echo -e "${BOLD}Checking SPM configuration (one-time)...${NC}"
+echo "Checking SPM configuration (one-time)..."
 MATLAB_SPM_LOG="$LOG_DIR/matlab_configure_spm.log"
-if [[ "$DRY_RUN" == "true" ]]; then
-    echo "Dry-run: skipping SPM configuration."
-else
-    if [[ "$USE_STANDALONE" == "false" ]]; then
-        run_matlab "$UTILS_PATH_CMD try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end;" 2>&1 | tee -a "$MATLAB_SPM_LOG" || {
-            echo -e "${RED}Warning: one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later MATLAB calls may need SPM path set.${NC}"
-        }
-    else
-        echo "Skipping SPM configuration (Standalone mode)."
-    fi
-fi
+"$MATLAB_EXE" $MATLAB_FLAGS "addpath('$UTILS_DIR'); try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end; exit;" 2>&1 | tee -a "$MATLAB_SPM_LOG" | external_prefix || {
+    log_warning "one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later MATLAB calls may need SPM path set."
+}
 echo ""
 
 # ============================================================================
@@ -595,18 +745,19 @@ if [[ "$FORCE" == true ]]; then
         # Safety: allow full rm -rf only for expected results locations
         case "$OUTPUT_DIR" in
             "$STATS_DIR"/results/*)
-                echo -e "${YELLOW}Removing entire results directory: $OUTPUT_DIR${NC}"
+                log_info "Removing entire results directory: $OUTPUT_DIR"
                 rm -rf "$OUTPUT_DIR"
-                echo -e "${GREEN}✓ Removed $OUTPUT_DIR${NC}"
+                log_success "Removed $OUTPUT_DIR"
                 ;;
             *)
-                echo -e "${RED}Warning: OUTPUT_DIR ($OUTPUT_DIR) is outside expected results path.${NC}"
-                echo "Skipping automatic cleanup to prevent accidental data loss."
-                echo "Please manually clean the output directory if needed."
+                log_warning "OUTPUT_DIR ($OUTPUT_DIR) is outside expected results path."
+                log_warning "Removing contents of $OUTPUT_DIR instead of the whole directory."
+                rm -rf "$OUTPUT_DIR"/*
+                log_success "Cleaned contents of $OUTPUT_DIR"
                 ;;
         esac
     else
-        echo "No existing results directory to remove: $OUTPUT_DIR"
+        log_info "No existing results directory to remove: $OUTPUT_DIR"
     fi
 
     # Remove any stale temporary directories for this analysis
@@ -614,10 +765,8 @@ if [[ "$FORCE" == true ]]; then
     shopt -s nullglob
     tmpdirs=( $TMP_PATTERN )
     for d in "${tmpdirs[@]:-}"; do
-        if [[ "$d" != "$TEMP_DIR" ]]; then
-            echo -e "${YELLOW}Removing stale temp directory: $d${NC}"
-            rm -rf "$d"
-        fi
+        log_info "Removing temp directory: $d"
+        rm -rf "$d"
     done
     shopt -u nullglob
 
@@ -628,32 +777,33 @@ fi
 # Step 1: Parse Participants & Design
 # ============================================================================
 
-echo -e "${BOLD}${MAGENTA}┌────────────────────────────────────────────────────────────────────────┐"
-echo -e "│ STEP 0: PREFLIGHT CHECKS (Python packages, CAT12 files, participants)  │"
-echo -e "└────────────────────────────────────────────────────────────────────────┘${NC}"
+echo "┌────────────────────────────────────────────────────────────────────────┐"
+echo "│ STEP 0: PREFLIGHT CHECKS (Python packages, CAT12 files, participants)  │"
+echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
 if [[ -n "$CAT12_DIR" ]] && [[ -n "$PARTICIPANTS_FILE" ]]; then
-    PREFLIGHT_ARGS=""
-    if [[ "$USE_STANDALONE" == "true" ]]; then
-        PREFLIGHT_ARGS="--standalone"
+    PRECHECK_MASK=$(get_json_value "analysis.mask" "")
+    PRECHECK_MASK_ARG=""
+    if [[ -n "$PRECHECK_MASK" ]]; then
+        PRECHECK_MASK_ARG="--mask $PRECHECK_MASK"
     fi
-    python3 "$STATS_DIR/utils/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" --modality "$MODALITY" $PREFLIGHT_ARGS || {
-        echo -e "${RED}Error: Preflight checks failed. Fix issues above and re-run.${NC}"
+    python3 "$UTILS_DIR/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" --modality "$MODALITY" $PRECHECK_MASK_ARG || {
+        log_error "Preflight checks failed. Fix issues above and re-run."
         exit 1
     }
 else
-    echo "Skipping preflight checks (CAT12_DIR or PARTICIPANTS_FILE not provided)."
+    log_info "Skipping preflight checks (CAT12_DIR or PARTICIPANTS_FILE not provided)."
 fi
 
 
-echo -e "${BOLD}${MAGENTA}┌────────────────────────────────────────────────────────────────────────┐"
-echo -e "│ STEP 1: Parsing Participants File                                     │"
-echo -e "└────────────────────────────────────────────────────────────────────────┘${NC}"
+echo "┌────────────────────────────────────────────────────────────────────────┐"
+echo "│ STEP 1: Parsing Participants File                                     │"
+echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
 if [[ -n "$DESIGN_FILE" ]]; then
-    echo -e "Using provided design file: ${YELLOW}$DESIGN_FILE${NC}"
+    log_info "Using provided design file: $DESIGN_FILE"
     cp "$DESIGN_FILE" "$TEMP_DIR/design.json"
 else
     # If modality is thickness, drop TIV as a covariate even if the user
@@ -667,13 +817,13 @@ print(','.join(parts))
 PY
 )
         if [[ -z "$COVARIATES" ]]; then
-            echo -e "${YELLOW}Thickness modality: removed TIV from covariates; no covariates remain.${NC}"
+            log_info "Thickness modality: removed TIV from covariates; no covariates remain."
         else
-            echo -e "${YELLOW}Thickness modality: removed TIV from covariates. Using: $COVARIATES${NC}"
+            log_info "Thickness modality: removed TIV from covariates. Using: $COVARIATES"
         fi
     fi
 
-    python3 "$STATS_DIR/utils/parse_participants.py" \
+    python3 "$UTILS_DIR/parse_participants.py" \
         --cat12-dir "$CAT12_DIR" \
         --participants "$PARTICIPANTS_FILE" \
         --modality "$MODALITY" \
@@ -684,7 +834,7 @@ PY
         --sessions "$SESSIONS" \
         ${COVARIATES:+--covariates "$COVARIATES"} \
         ${STANDARDIZE_CONTINUOUS:+--standardize-continuous} || {
-            echo -e "${RED}Error: Failed to parse participants file${NC}"
+            log_error "Failed to parse participants file"
             exit 1
         }
 fi
@@ -696,11 +846,12 @@ echo ""
 if [[ -f "$TEMP_DIR/design.json" ]]; then
     mkdir -p "$OUTPUT_DIR"
     cp "$TEMP_DIR/design.json" "$OUTPUT_DIR/design.json"
-    echo -e "Design JSON copied to: ${GREEN}$OUTPUT_DIR/design.json${NC}"
+    echo "Design JSON copied to: $OUTPUT_DIR/design.json"
 fi
 
 # If covariates were resolved in the design, append them to the analysis name
 # so output folders reflect covariate usage (e.g., vbm_smooth_auto_tiv)
+# UNLESS the analysis name from config (folder_name) already includes them
 if [[ -f "$TEMP_DIR/design.json" ]]; then
     COV_LIST=$(python3 - <<PY
 import json
@@ -712,11 +863,10 @@ PY
     if [[ -n "$COV_LIST" ]]; then
         # convert comma-separated to underscore-separated suffix
         COV_SUFFIX=$(echo "$COV_LIST" | sed 's/,/_/g')
-        NEW_ANALYSIS_NAME="${ANALYSIS_NAME}_${COV_SUFFIX}"
-        
-        # Only rename output directory if it matches the default structure
-        # (i.e. if the user did NOT provide a custom path outside the default tree)
-        if [[ "$OUTPUT_DIR" == "$STATS_DIR/results/"* ]]; then
+        # Check if the suffix is already in the ANALYSIS_NAME (from config folder_name)
+        if [[ "$ANALYSIS_NAME" != *"$COV_SUFFIX"* ]]; then
+            # Only append if not already present
+            NEW_ANALYSIS_NAME="${ANALYSIS_NAME}_${COV_SUFFIX}"
             NEW_OUTPUT_DIR="$STATS_DIR/results/${MODALITY}/${NEW_ANALYSIS_NAME}"
             if [[ "$NEW_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
                 # Ensure parent exists
@@ -724,38 +874,28 @@ PY
                 # Move current output dir to new name (keep existing logs/files)
                 mv "$OUTPUT_DIR" "$NEW_OUTPUT_DIR" 2>/dev/null || true
                 OUTPUT_DIR="$NEW_OUTPUT_DIR"
+                ANALYSIS_NAME="$NEW_ANALYSIS_NAME"
                 LOG_DIR="$OUTPUT_DIR/logs"
                 LOG_FILE="$LOG_DIR/pipeline.log"
-                echo "Renamed results folder to include covariates: $OUTPUT_DIR"
+                log_info "Renamed results folder to include covariates: $OUTPUT_DIR"
             fi
         else
-            echo "Custom output directory detected. Keeping: $OUTPUT_DIR"
+            log_info "Analysis name already includes covariates: $ANALYSIS_NAME"
         fi
-        
-        # Always update analysis name to reflect covariates
-        ANALYSIS_NAME="$NEW_ANALYSIS_NAME"
     fi
 fi
 
     # Generate an ASCII preview of the design matrix and save it to results
     if [[ -f "$OUTPUT_DIR/design.json" ]]; then
-        echo "Generating ASCII design-matrix preview (text)..."
-        python3 "$STATS_DIR/utils/print_design_ascii.py" "$OUTPUT_DIR/design.json" --output "$OUTPUT_DIR/design_ascii.txt" --rows 20 || {
-            echo "⚠️  Warning: ASCII design preview generation failed"
+        log_info "Generating ASCII design-matrix preview (text)..."
+        python3 "$UTILS_DIR/print_design_ascii.py" "$OUTPUT_DIR/design.json" --output "$OUTPUT_DIR/design_ascii.txt" --rows 20 || {
+            log_warning "ASCII design preview generation failed"
         }
         if [[ -f "$OUTPUT_DIR/design_ascii.txt" ]]; then
             echo "--- Design ASCII preview (first lines) ---"
             head -n 30 "$OUTPUT_DIR/design_ascii.txt" || true
             echo "-----------------------------------------"
         fi
-    fi
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-        echo ""
-        echo "[DRY RUN] Completed preflight + design generation."
-        echo "[DRY RUN] Exiting before MATLAB/SPM/TFCE execution."
-        echo "[DRY RUN] Design JSON: $OUTPUT_DIR/design.json"
-        exit 0
     fi
 
 # ============================================================================
@@ -771,7 +911,10 @@ if [[ "$MODALITY" != "thickness" ]]; then
     # For non-thickness modalities we prefer the repo-level canonical CAT12
     # tight brainmask located at templates/brainmask_GMtight.nii (or an
     # override from config.ini) to keep masking consistent across analyses.
-    GM_MASK_CONFIG=$(get_ini_value "MASKING" "gm_mask" "")
+    GM_MASK_CONFIG=$(get_json_value "analysis.mask" "")
+    if [[ -z "$GM_MASK_CONFIG" ]]; then
+        GM_MASK_CONFIG=$(get_ini_value "MASKING" "gm_mask" "")
+    fi
     if [[ -n "$GM_MASK_CONFIG" ]]; then
         if [[ "$GM_MASK_CONFIG" = /* ]]; then
             TEMPLATE_MASK="$GM_MASK_CONFIG"
@@ -790,7 +933,7 @@ if [[ "$MODALITY" != "thickness" ]]; then
         MASK_FILE=""
     fi
 else
-    echo "Thickness modality detected – running without an explicit GM mask"
+    log_info "Thickness modality detected – running without an explicit GM mask"
 fi
 
 
@@ -808,19 +951,19 @@ if [[ -n "$MASK_FILE" ]]; then
     MASK_ARG="--mask-file $MASK_FILE"
 fi
 
-python3 "$STATS_DIR/utils/generate_spm_batch.py" \
+python3 "$UTILS_DIR/generate_spm_batch.py" \
     --design-file "$TEMP_DIR/design.json" \
     --output-dir "$OUTPUT_DIR" \
     --modality "$MODALITY" \
     --output "$TEMP_DIR/spm_batch.m" \
     $MASK_ARG || {
-        echo "Error: Failed to generate SPM batch"
+        log_error "Failed to generate SPM batch"
         exit 1
     }
 
 # Copy batch file to output directory for reproducibility
 cp "$TEMP_DIR/spm_batch.m" "$OUTPUT_DIR/spm_batch.m"
-echo "✓ SPM batch file generated and saved to: $OUTPUT_DIR/spm_batch.m"
+log_success "SPM batch file generated and saved to: $OUTPUT_DIR/spm_batch.m"
 echo ""
 
 # ============================================================================
@@ -836,7 +979,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # Delete any existing SPM.mat and derived files to ensure a clean estimation
 if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
-    echo "Removing existing model and derived files to ensure consistency..."
+    log_info "Removing existing model and derived files to ensure consistency..."
     rm -f "$OUTPUT_DIR"/SPM.mat
     rm -f "$OUTPUT_DIR"/beta_*.nii
     rm -f "$OUTPUT_DIR"/con_*.nii
@@ -850,7 +993,7 @@ if [[ -f "$OUTPUT_DIR/SPM.mat" ]]; then
     rm -f "$OUTPUT_DIR"/*_log_pfwe*.nii
     rm -f "$OUTPUT_DIR"/report.html
     rm -rf "$OUTPUT_DIR"/report
-    echo "✓ Cleaned old results"
+    log_success "Cleaned old results"
 fi
 
 # Ensure logs directory exists
@@ -861,31 +1004,18 @@ EST_METHOD="matlabbatch{1}.spm.stats.fmri_est.method.Classical = 1;"
 echo "Using Classical Estimation (ReML)"
 
 MATLAB_MODEL_LOG="$LOG_DIR/matlab_model_estimation.log"
-if [[ "$USE_STANDALONE" == "true" ]]; then
-    # Standalone fix: 'run' command fails on scripts in temp dirs.
-    # We add the temp dir to path and call the script by name (spm_batch).
-    # However, compiled MATLAB is very picky about adding paths and running scripts dynamically.
-    # The most robust way is to READ the batch file content and EVAL it.
-    # Note: We must ensure the file path is absolute and accessible.
-    run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); $UTILS_PATH_CMD spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); fid=fopen('$TEMP_DIR/spm_batch.m'); if fid==-1, error('Cannot open batch file: $TEMP_DIR/spm_batch.m'); end; txt=fread(fid,'*char')'; fclose(fid); eval(txt); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n');" 2>&1 | tee -a "$MATLAB_MODEL_LOG" || {
+"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n'); exit;" 2>&1 | tee -a "$MATLAB_MODEL_LOG" | external_prefix || {
         echo "Error: Model estimation failed"
-        echo "Check MATLAB log: $MATLAB_MODEL_LOG"
+        echo "Check MATLAB log: $LOG_DIR/matlab_model_estimation.log"
         exit 1
     }
-else
-    run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); $UTILS_PATH_CMD spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n');" 2>&1 | tee -a "$MATLAB_MODEL_LOG" || {
-        echo "Error: Model estimation failed"
-        echo "Check MATLAB log: $MATLAB_MODEL_LOG"
-        exit 1
-    }
-fi
 
 echo "✓ Model estimation complete"
 echo ""
 
 # Export design matrix to CSV for inspection (Priority Request)
 echo "Exporting design matrix to CSV..."
-run_matlab "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); X = SPM.xX.X; csvwrite('$OUTPUT_DIR/design_matrix.csv', X);" || {
+"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); X = SPM.xX.X; writematrix(X, '$OUTPUT_DIR/design_matrix.csv'); exit;" 2>&1 | external_prefix || {
     echo "Warning: Failed to export design matrix to CSV"
 }
 if [[ -f "$OUTPUT_DIR/design_matrix.csv" ]]; then
@@ -903,32 +1033,26 @@ echo "Running missing-voxel diagnostics (this is fast)"
 # Read optional failure threshold from config.ini (empty disables failure)
 MISSING_FAIL_PCT=$(get_ini_value "TFCE" "missing_fail_pct" "")
 
-# Thickness is surface-based; skip volumetric missing-voxel diagnostics.
-if [[ "$MODALITY" == "thickness" ]]; then
-    echo "Skipping volumetric missing-voxel diagnostic for thickness modality"
+# Surface modalities (thickness, depth, gyrification) are surface-based; skip volumetric missing-voxel diagnostics.
+if [[ "$MODALITY" == "thickness" || "$MODALITY" == "depth" || "$MODALITY" == "gyrification" || "$MODALITY" == "fractal" ]]; then
+    echo "Skipping volumetric missing-voxel diagnostic for surface modality ($MODALITY)"
 else
     GM_MASK_ARG=""
     if [[ -n "$MASK_FILE" ]]; then
         GM_MASK_ARG="--gm-mask $MASK_FILE"
     fi
     if [[ -n "$MISSING_FAIL_PCT" && "$MISSING_FAIL_PCT" != "false" ]]; then
-        python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 --fail-if-pct-excluded "$MISSING_FAIL_PCT" || {
-            echo "❌ Missing-voxel fraction exceeded ${MISSING_FAIL_PCT}% — aborting pipeline."
+        python3 "$UTILS_DIR/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 --fail-if-pct-excluded "$MISSING_FAIL_PCT" || {
+            log_error "Missing-voxel fraction exceeded ${MISSING_FAIL_PCT}% — aborting pipeline."
             exit 1
         }
     else
-        python3 "$STATS_DIR/utils/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 $GM_MASK_ARG || {
-            echo "⚠️  Warning: missing-voxel diagnostic failed (see script output above). Continuing analysis."
+        python3 "$UTILS_DIR/check_missing_voxels.py" --spm "$OUTPUT_DIR/SPM.mat" --output-dir "$OUTPUT_DIR" --threshold 0.05 $GM_MASK_ARG || {
+            log_warning "missing-voxel diagnostic failed (see script output above). Continuing analysis."
         }
     fi
 fi
 
-# Diagnostic: Print SPM column names to debug contrast generation
-echo "Diagnostic: Checking SPM design matrix column names..."
-run_matlab "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); fprintf('SPM Design Matrix Columns:\n'); for i=1:length(SPM.xX.name), fprintf('%d: %s\n', i, SPM.xX.name{i}); end;" || {
-    echo "Warning: Failed to inspect SPM.mat"
-}
-echo ""
 
 # ============================================================================
 # Step 4: Add Contrasts
@@ -943,10 +1067,7 @@ echo ""
 mkdir -p "$LOG_DIR"
 
 MATLAB_CONTRAST_LOG="$LOG_DIR/matlab_contrasts.log"
-# Remove inner try-catch so exceptions propagate to the wrapper script
-# Standalone fix: Read and eval the contrast script to bypass path/function restrictions
-CONTRAST_SCRIPT="$STATS_DIR/utils/add_contrasts_longitudinal.m"
-run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); $UTILS_PATH_CMD spm('defaults', 'FMRI'); spm_jobman('initcfg'); stats_dir='$OUTPUT_DIR'; fid=fopen('$CONTRAST_SCRIPT'); if fid==-1, error('Cannot open contrast script: $CONTRAST_SCRIPT'); end; txt=fread(fid,'*char')'; fclose(fid); txt=regexprep(txt,'^function[^\n]*\n',''); txt=regexprep(txt,'\nend\s*$',''); eval(txt);" 2>&1 | tee -a "$MATLAB_CONTRAST_LOG" || {
+"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); try, add_contrasts_longitudinal('$OUTPUT_DIR'); catch e, fprintf('ERROR in add_contrasts_longitudinal:\n%s\n', e.message); end; exit;" 2>&1 | tee -a "$MATLAB_CONTRAST_LOG" | external_prefix || {
         echo "Error: Adding contrasts failed"
         echo "Check MATLAB log: $LOG_DIR/matlab_contrasts.log"
         if [[ -f "$LOG_DIR/matlab_contrasts.log" ]]; then
@@ -986,7 +1107,11 @@ shopt -u nullglob
 
 # Generate design matrix visualization
 echo "Generating design matrix image..."
-run_matlab "warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); beep off; load('$OUTPUT_DIR/SPM.mat'); imagesc(SPM.xX.X); colormap(gray); axis image; xlabel('Parameters'); ylabel('Scans'); title('Design Matrix'); saveas(gcf, '$OUTPUT_DIR/design_matrix.png');" || {
+"$MATLAB_EXE" $MATLAB_FLAGS "\
+    % Suppress warnings and GUI creation\n    warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); beep off; \
+    addpath('$STATS_DIR/scripts/utils'); \
+    generate_design_matrix_image('$OUTPUT_DIR/SPM.mat', '$OUTPUT_DIR/design_matrix.png'); \
+    exit;" 2>&1 | external_prefix || {
         echo "⚠️  Warning: Design matrix image generation failed"
     }
 
@@ -1002,9 +1127,7 @@ if [[ "$SKIP_SCREENING" == false ]]; then
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
     
-    # Standalone fix: Read and eval screen_contrasts
-    SCREEN_SCRIPT="$STATS_DIR/utils/screen_contrasts.m"
-    run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); $UTILS_PATH_CMD spm('defaults','FMRI'); spm_jobman('initcfg'); stats_folder='$OUTPUT_DIR'; varargin={'p_thresh',$UNCORRECTED_P,'cluster_size',$CLUSTER_SIZE}; fid=fopen('$SCREEN_SCRIPT'); if fid==-1, error('Cannot open screen script'); end; txt=fread(fid,'*char')'; fclose(fid); txt=regexprep(txt,'^function[^\n]*\n',''); txt=regexprep(txt,'\nend\s*$',''); try, eval(txt); fprintf('\\n✓ Screening complete with %d significant contrasts\\n\\n', length(significant_contrasts)); fid=fopen(fullfile('$OUTPUT_DIR','logs','significant_contrasts.txt'),'w'); if fid>0, for ii=1:numel(significant_contrasts), fprintf(fid,'%d\\n',significant_contrasts(ii)); end; fclose(fid); end; catch e, fprintf('MATLAB_ERROR:%s\\n', e.message); end;" || {
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults','FMRI'); spm_jobman('initcfg'); try, significant_contrasts = screen_contrasts('$OUTPUT_DIR','p_thresh',$UNCORRECTED_P,'cluster_size',$CLUSTER_SIZE); fprintf('\\n✓ Screening complete with %d significant contrasts\\n\\n', length(significant_contrasts)); fid=fopen(fullfile('$OUTPUT_DIR','logs','significant_contrasts.txt'),'w'); if fid>0, for ii=1:numel(significant_contrasts), fprintf(fid,'%d\\n',significant_contrasts(ii)); end; fclose(fid); end; catch e, fprintf('MATLAB_ERROR:%s\\n', e.message); end; exit;" 2>&1 | external_prefix || {
         echo "Error: Screening failed"
         exit 1
     }
@@ -1092,38 +1215,50 @@ if [[ "$PILOT_MODE" != true && "$SKIP_SCREENING" == false && -f "$SIGNIF_FILE" ]
     fi
 fi
 
-if [[ "$SKIP_TFCE" == "true" ]]; then
+if [[ "$SKIP_TFCE" == true ]]; then
     echo "Skipping TFCE step because no screened contrasts were significant."
 else
-    if [[ "$PILOT_MODE" == "true" ]]; then
-        # In pilot mode run the quick TFCE directly (keep behavior simple)
-        echo "Pilot mode: running single short TFCE run (${N_PERM} perms)"
-        # Standalone fix: Read and eval run_tfce_correction
-        TFCE_SCRIPT="$STATS_DIR/utils/run_tfce_correction.m"
-        run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); $UTILS_PATH_CMD spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); stats_folder='$OUTPUT_DIR'; varargin={'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'pilot', true, 'config_file', '$CONFIG_FILE'}; fid=fopen('$TFCE_SCRIPT'); if fid==-1, error('Cannot open TFCE script'); end; txt=fread(fid,'*char')'; fclose(fid); txt=regexprep(txt,'^function[^\n]*\n',''); txt=regexprep(txt,'\nend\s*$',''); eval(txt);" 2>&1 | tee -a "$TFCE_LOG" || {
-            echo "Error: TFCE correction (pilot) failed"
-            exit 1
-        }
+if [[ "$PILOT_MODE" == true ]]; then
+    # In pilot mode run the quick TFCE directly (keep behavior simple)
+    echo "Pilot mode: running single short TFCE run (${N_PERM} perms)"
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'pilot', true); exit;" 2>&1 | tee -a "$TFCE_LOG" | external_prefix || {
+        log_error "TFCE correction (pilot) failed"
+        exit 1
+    }
+else
+    # Standard TFCE run (single stage, no probe)
+    echo "Running TFCE correction (${N_PERM} permutations)"
+    
+    # Convert SKIP_SCREENING (bash string) to MATLAB boolean
+    if [[ "$SKIP_SCREENING" == "true" ]]; then
+        USE_SCREENING="false"
     else
-        # Standard TFCE run (single stage, no probe)
-        echo "Running TFCE correction (${N_PERM} permutations)"
-        
-        # Convert SKIP_SCREENING (bash string) to MATLAB boolean
-        if [[ "$SKIP_SCREENING" == "true" ]]; then
-            USE_SCREENING="false"
-        else
-            USE_SCREENING="true"
-        fi
-
-        # Standalone fix: Read and eval run_tfce_correction
-        TFCE_SCRIPT="$STATS_DIR/utils/run_tfce_correction.m"
-        run_matlab "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); $UTILS_PATH_CMD spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); stats_folder='$OUTPUT_DIR'; varargin={'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'use_screening', $USE_SCREENING, 'config_file', '$CONFIG_FILE'}; fid=fopen('$TFCE_SCRIPT'); if fid==-1, error('Cannot open TFCE script'); end; txt=fread(fid,'*char')'; fclose(fid); txt=regexprep(txt,'^function[^\n]*\n',''); txt=regexprep(txt,'\nend\s*$',''); eval(txt);" 2>&1 | tee -a "$TFCE_LOG" || {
-            echo "Error: TFCE correction failed"
-            exit 1
-        }
+        USE_SCREENING="true"
     fi
+
+    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'use_screening', $USE_SCREENING); exit;" 2>&1 | tee -a "$TFCE_LOG" | external_prefix || {
+        log_error "TFCE correction failed"
+        exit 1
+    }
 fi
 
+log_success "TFCE correction complete"
+echo ""
+
+# ============================================================================
+# Step 6b: Generate TFCE Summary
+# ============================================================================
+
+echo "Generating TFCE results summary..."
+python3 "$UTILS_DIR/generate_tfce_images.py" \
+    --output-dir "$OUTPUT_DIR" \
+    --fwe-threshold 0.05 \
+    --start-time "$PIPELINE_START_TIME" || {
+        log_warning "TFCE summary generation failed"
+    }
+
+echo ""
+fi
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
 echo "│ STEP 7: Generating HTML Report                                        │"
@@ -1144,7 +1279,7 @@ fi
 # is safe to pass as a single argument to Python.
 SAFE_CMDLINE="$(printf '%q ' "$0" "${ORIGINAL_ARGS[@]}")"
 
-python3 "$STATS_DIR/utils/generate_html_report.py" \
+python3 "$UTILS_DIR/generate_html_report.py" \
     --design-json "$TEMP_DIR/design.json" \
     --output "$OUTPUT_DIR/report.html" \
     --analysis-name "$ANALYSIS_NAME" \
@@ -1155,7 +1290,7 @@ python3 "$STATS_DIR/utils/generate_html_report.py" \
     --cluster-size "$CLUSTER_SIZE" \
     --uncorrected-p "$UNCORRECTED_P" \
     --start-time "$PIPELINE_START_TIME" || {
-        echo "⚠️  Warning: HTML report generation failed"
+        log_warning "HTML report generation failed"
     }
 
 echo ""
