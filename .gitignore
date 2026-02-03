@@ -13,11 +13,18 @@ demo/
 external/*
 archive/
 .pip-cache/
-# Project configs (ignore all except demo)
+# Project configs (ignore all except demo inputs)
 projects/*
 !projects/.gitignore
 !projects/demo/
-!projects/demo/**
+!projects/demo/bids/
+!projects/demo/bids/**
+!projects/demo/project_config.json
+!projects/demo/participants*.tsv
+# Ignore generated demo outputs
+projects/demo/derivatives/
+projects/demo/*.html
+projects/demo/*.log
 
 # NIfTI / imaging outputs (if you want to keep them, remove these)
 *.nii
@@ -29,8 +36,10 @@ projects/*
 check_repo/
 .tools/
 .env
+external_backup*/
 node_modules
-
+.uv-cache/
+.ruff_cache/
 # Documentation builds
 docs/_build/
 
@@ -40,3 +49,4 @@ docs/_build/
 # Background process outputs
 nohup.out
 participants.tsv
+install_log.txt

@@ -9,7 +9,7 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$SCRIPT_DIR"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 EXTERNAL_DIR="$REPO_ROOT/external"
 VENV_DIR="$REPO_ROOT/.venv"
 
@@ -126,10 +126,13 @@ echo -e "${YELLOW}Extracting CAT12:${NC}"
 if [ "$OS_NAME" = "Linux" ]; then
     CAT12_DIR="$EXTERNAL_DIR/cat12"
     if [ ! -d "$CAT12_DIR" ]; then
-        echo "  Extracting to: $CAT12_DIR"
+        echo "  Extracting to: $EXTERNAL_DIR"
         unzip -q "$CAT12_ZIP" -d "$EXTERNAL_DIR"
-        # Rename to simple name
-        mv "$EXTERNAL_DIR"/cat12_* "$CAT12_DIR" 2>/dev/null || true
+        # Find and rename extracted directory to 'cat12'
+        EXTRACTED_DIR=$(ls -d "$EXTERNAL_DIR"/CAT12* 2>/dev/null | head -1)
+        if [ -n "$EXTRACTED_DIR" ] && [ -d "$EXTRACTED_DIR" ]; then
+            mv "$EXTRACTED_DIR" "$CAT12_DIR"
+        fi
         echo -e "${GREEN}✓ Extracted${NC}"
     else
         echo -e "${GREEN}✓ Already extracted${NC}"
@@ -185,15 +188,30 @@ else
 fi
 
 # =============================================================================
-# STEP 6: Python Environment
+# STEP 6: Python Environment (with UV)
 # =============================================================================
 
 echo ""
-echo -e "${YELLOW}Setting up Python environment:${NC}"
+echo -e "${YELLOW}Setting up Python environment with UV:${NC}"
 
+# Check for UV and install if needed
+if ! command -v uv >/dev/null 2>&1; then
+    echo -e "${YELLOW}UV not found. Installing UV...${NC}"
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
+    echo -e "${GREEN}✓ UV installed${NC}"
+else
+    echo -e "${GREEN}✓ UV found: $(command -v uv)${NC}"
+fi
+
+# Create venv using UV (or standard if UV unavailable)
 if [ ! -d "$VENV_DIR" ]; then
-    echo "  Creating virtual environment..."
-    if command -v python3 &> /dev/null; then
+    if command -v uv >/dev/null 2>&1; then
+        echo "  Creating virtual environment with UV..."
+        uv venv "$VENV_DIR"
+        echo -e "${GREEN}✓ Virtual environment created with UV${NC}"
+    elif command -v python3 &> /dev/null; then
+        echo "  Creating virtual environment with Python..."
         python3 -m venv "$VENV_DIR"
         echo -e "${GREEN}✓ Virtual environment created${NC}"
     else
@@ -201,7 +219,29 @@ if [ ! -d "$VENV_DIR" ]; then
         exit 1
     fi
 else
-    echo -e "${GREEN}✓ Virtual environment exists${NC}"
+    echo -e "${GREEN}✓ Virtual environment exists at $VENV_DIR${NC}"
+fi
+
+# =============================================================================
+# STEP 6b: Install Python packages with UV
+# =============================================================================
+
+echo ""
+echo -e "${YELLOW}Installing Python packages with UV:${NC}"
+
+if [ -f "$REPO_ROOT/requirements.txt" ]; then
+    if command -v uv >/dev/null 2>&1; then
+        export PATH="$HOME/.local/bin:$PATH"
+        echo "  Installing packages from requirements.txt with UV..."
+        uv pip install -r "$REPO_ROOT/requirements.txt"
+        echo -e "${GREEN}✓ Python packages installed${NC}"
+    else
+        echo -e "${YELLOW}⚠ UV not available, skipping package installation${NC}"
+        echo "   You can install packages later with:"
+        echo "   source $VENV_DIR/bin/activate && pip install -r requirements.txt"
+    fi
+else
+    echo -e "${YELLOW}⚠ requirements.txt not found, skipping package installation${NC}"
 fi
 
 # =============================================================================
