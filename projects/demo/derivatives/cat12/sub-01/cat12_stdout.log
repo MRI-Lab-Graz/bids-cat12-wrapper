@@ -1,4 +1,0 @@
-------------------------------------------
-Setting up environment variables
----
-DYLD_LIBRARY_PATH is .:/Applications/MATLAB/MATLAB_Runtime/R2023b/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2023b/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2023b/sys/os/maca64
