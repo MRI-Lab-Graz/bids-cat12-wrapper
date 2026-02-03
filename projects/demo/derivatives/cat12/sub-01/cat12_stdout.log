@@ -1,36 +1,4 @@
-[?1h=
-                                       < M A T L A B (R) >
-                             Copyright 1984-2025 The MathWorks, Inc.
-                         R2025b Update 2 (25.2.0.3055257) 64-bit (maca64)
-                                         October 16, 2025
-
- 
-To get started, type doc.
-For product information, visit www.mathworks.com.
- 
-Initializing SPM and CAT12...
-Processing subject: 01
-Input files:
-  1: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/sub-01_ses-retest_T1w.nii
-  2: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/sub-01_ses-test_T1w.nii
-Configuration:
-  Longitudinal mode: true
-  Surface processing: true
-  Volume processing: true
-  Quality check: true
-Setting up longitudinal processing...
-Starting CAT12 processing...
-Item 'Subject', field 'val': Value must be either empty, a cellstr or a cfg_dep object.
-Item opts: No field(s) named
-biasstr
-accstr
-regstr
-regmethod
-Item output: No field(s) named
-ROImenu
-GM
-WM
-CSF
-Error information saved to: /Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/processing_error.mat
-MATLAB Error: No executable modules, but still unresolved dependencies or incomplete module inputs.
-[?1l>
+------------------------------------------
+Setting up environment variables
+---
+DYLD_LIBRARY_PATH is .:/Applications/MATLAB/MATLAB_Runtime/R2023b/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2023b/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2023b/sys/os/maca64

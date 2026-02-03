@@ -1,13 +1,10 @@
 {
-  "processing_date": "2026-02-02T21:19:07.164963",
-  "total_subjects": 4,
+  "processing_date": "2026-02-03T12:39:19.160924",
+  "total_subjects": 1,
   "successful_subjects": 0,
-  "failed_subjects": 4,
+  "failed_subjects": 1,
   "success_rate": 0.0,
   "results": {
-    "01": false,
-    "02": false,
-    "03": false,
-    "04": false
+    "01": false
   }
 }

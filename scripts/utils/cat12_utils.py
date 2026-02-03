@@ -284,7 +284,10 @@ class CAT12Processor:
 
             if self.use_standalone:
                 # Prepare command
-                cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
+                # Try standalone directory first, then root
+                cat12_cmd = os.path.join(self.cat12_root, "standalone", "cat_standalone.sh")
+                if not os.path.exists(cat12_cmd):
+                    cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
 
                 # Build command with files FIRST (as per cat_standalone.sh usage)
                 cmd = [cat12_cmd]
@@ -505,8 +508,14 @@ class CAT12Processor:
             logger.info(f"Smoothing {len(input_files)} volume files with FWHM={fwhm}mm")
 
             # Prepare command
-            cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
-            smooth_script = os.path.join(self.cat12_root, "cat_standalone_smooth.m")
+            # Try standalone directory first, then root
+            cat12_cmd = os.path.join(self.cat12_root, "standalone", "cat_standalone.sh")
+            if not os.path.exists(cat12_cmd):
+                cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
+            
+            smooth_script = os.path.join(self.cat12_root, "standalone", "cat_standalone_smooth.m")
+            if not os.path.exists(smooth_script):
+                smooth_script = os.path.join(self.cat12_root, "cat_standalone_smooth.m")
 
             # Format FWHM as MATLAB array: [6 6 6]
             fwhm_str = f"[{' '.join(str(f) for f in fwhm)}]"

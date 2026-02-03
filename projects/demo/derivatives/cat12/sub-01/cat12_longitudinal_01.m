@@ -29,8 +29,7 @@ fprintf('Processing subject: %s\n', subject_id);
 
 %% Input Files
 files = {
-    '/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/sub-01_ses-retest_T1w.nii'
-    '/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01/sub-01_ses-test_T1w.nii'
+    'projects/demo/derivatives/cat12/sub-01/sub-01_ses-test_T1w.nii'
 };
 fprintf('Input files:\n');
 for i = 1:length(files)
@@ -38,14 +37,14 @@ for i = 1:length(files)
 end
 
 %% Output Directory
-output_dir = '/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12/sub-01';
+output_dir = 'projects/demo/derivatives/cat12/sub-01';
 if ~exist(output_dir, 'dir')
     fprintf('Creating output directory: %s\n', output_dir);
     mkdir(output_dir);
 end
 
 %% Processing Configuration
-longitudinal_mode = true;
+longitudinal_mode = false;
 surface_processing = true;
 volume_processing = true;
 quality_check = true;

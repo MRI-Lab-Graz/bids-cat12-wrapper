@@ -1,0 +1,32 @@
+2026-02-03 11:57:25,551 - INFO - [35m============================================================[0m
+2026-02-03 11:57:25,552 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-03 11:57:25,552 - INFO - [35m============================================================[0m
+2026-02-03 11:57:25,552 - INFO - [36m▶ Command: /Users/karl/work/github/bids-cat12-wrapper/.venv/bin/python /Users/karl/work/github/bids-cat12-wrapper/scripts/preprocessing/bids_cat12_processor.py openneuro/ds000114 projects/demo/derivatives/cat12 participant --preproc --participant-label 01 --session-label test --smooth-volume 6 --smooth-surface 12 --qa --tiv --no-validate[0m
+2026-02-03 11:57:25,552 - INFO - [36m📁 BIDS directory: openneuro/ds000114[0m
+2026-02-03 11:57:25,552 - INFO - [36m📂 Output directory: projects/demo/derivatives/cat12[0m
+2026-02-03 11:57:25,552 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-03 11:57:25,552 - INFO - [36m📝 Log file: projects/demo/derivatives/cat12/logs/cat12_processing_20260203_115725.log[0m
+2026-02-03 11:57:25,552 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-03 11:57:25,552 - INFO - [36m🔍 Initializing BIDS layout for: openneuro/ds000114[0m
+2026-02-03 11:57:25,552 - INFO - [36m📊 Using BIDS database: projects/demo/derivatives/cat12/.bids_cache/bidsdb_6002275189018379680.db[0m
+2026-02-03 11:57:25,624 - INFO - [32m👥 Found 4 subjects[0m
+2026-02-03 11:57:25,624 - INFO - CAT12 execution mode: MATLAB
+2026-02-03 11:57:25,624 - INFO - Processing participants: sub-01
+2026-02-03 11:57:25,624 - INFO - [36m📅 Requested sessions: test[0m
+2026-02-03 11:57:25,631 - INFO - Subject 01: LONGITUDINAL with 2 sessions (retest, test)
+2026-02-03 11:57:25,631 - INFO - Dataset summary: 1 longitudinal, 0 cross-sectional subjects
+2026-02-03 11:57:25,631 - INFO - [36m📋 Filtered to 1 subjects with requested sessions[0m
+2026-02-03 11:57:25,631 - INFO - Running preprocessing stage...
+2026-02-03 11:57:25,638 - INFO - Processing subject 01 with sessions: test
+2026-02-03 11:57:25,643 - INFO - Using 1 uncompressed NIfTI files for processing
+2026-02-03 11:57:25,643 - INFO - Generated CAT12 script: projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-03 11:57:25,643 - INFO - [36m📊 Using generated CAT12 batch script (cross-sectional)[0m
+2026-02-03 11:57:25,643 - INFO - Using CAT12 batch script: projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-03 11:57:25,644 - INFO - Executing CAT12 script: projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-03 11:57:25,644 - INFO - Using MATLAB at matlab
+2026-02-03 11:57:25,644 - INFO - Script path: /Users/karl/work/github/bids-cat12-wrapper/projects/demo/derivatives/cat12/sub-01/cat12_longitudinal_01.m
+2026-02-03 11:57:25,644 - INFO - [33m⏳ CAT12 processing started (this may take 10-30 minutes)...[0m
+2026-02-03 11:57:25,648 - ERROR - Error executing CAT12 script: [Errno 2] No such file or directory: 'matlab'
+2026-02-03 11:57:25,648 - ERROR - Failed to process subject 01
+2026-02-03 11:57:25,649 - INFO - Processing complete: 0/1 subjects successful
+2026-02-03 11:57:25,665 - ERROR - [31m❌ No subjects were successfully processed![0m

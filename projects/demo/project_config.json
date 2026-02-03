@@ -5,7 +5,7 @@
   "study": {
     "name": "Demo Study",
     "description": "Public demo: OpenNeuro ds000114 (4 subjects, test-retest) with multi-modality CAT12",
-    "project_folder": "/Volumes/Thunder/129_PK01/cat12/stats/projects/demo"
+    "project_folder": "/Users/karl/work/github/bids-cat12-wrapper/projects/demo"
   },
 
   "software": {
@@ -15,8 +15,8 @@
       "_comment": "macOS: /Applications/MATLAB_R*.app/bin/matlab | Linux: /usr/local/MATLAB/R*/bin/matlab"
     },
     "spm": {
-      "path": "/Volumes/Evo/software/spm25",
-      "_comment": "Optional - auto-detected if not specified"
+      "path": "/Users/karl/work/github/bids-cat12-wrapper/external/spm12",
+      "_comment": "Cloned from https://github.com/spm/spm.git"
     },
     "python": {
       "executable": "python3",

@@ -5,7 +5,8 @@ set -euo pipefail
 # Install Python dependencies for CAT12 longitudinal analysis pipeline
 # Uses UV for fast package installation
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VENV_DIR="$REPO_ROOT/.venv"
 REQ_FILE="$REPO_ROOT/requirements.txt"
 

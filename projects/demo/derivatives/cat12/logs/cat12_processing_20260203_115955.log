@@ -1,0 +1,13 @@
+2026-02-03 11:59:55,035 - INFO - [35m============================================================[0m
+2026-02-03 11:59:55,035 - INFO - [35m🧠 CAT12 BIDS App - Structural MRI Processing[0m
+2026-02-03 11:59:55,035 - INFO - [35m============================================================[0m
+2026-02-03 11:59:55,035 - INFO - [36m▶ Command: /Users/karl/work/github/bids-cat12-wrapper/.venv/bin/python /Users/karl/work/github/bids-cat12-wrapper/scripts/preprocessing/bids_cat12_processor.py openneuro/ds000114 projects/demo/derivatives/cat12 participant --preproc --participant-label 01 --session-label test --smooth-volume 6 --smooth-surface 12 --qa --tiv --no-validate[0m
+2026-02-03 11:59:55,035 - INFO - [36m📁 BIDS directory: openneuro/ds000114[0m
+2026-02-03 11:59:55,035 - INFO - [36m📂 Output directory: projects/demo/derivatives/cat12[0m
+2026-02-03 11:59:55,035 - INFO - [36m🔬 Analysis level: participant[0m
+2026-02-03 11:59:55,035 - INFO - [36m📝 Log file: projects/demo/derivatives/cat12/logs/cat12_processing_20260203_115955.log[0m
+2026-02-03 11:59:55,035 - INFO - [35m🛠️  Processing stages: Preprocessing(with surface), Volume smoothing (6mm), Surface smoothing (12mm), Quality assessment, TIV estimation[0m
+2026-02-03 11:59:55,035 - INFO - [36m🔍 Initializing BIDS layout for: openneuro/ds000114[0m
+2026-02-03 11:59:55,036 - INFO - [36m📊 Using BIDS database: projects/demo/derivatives/cat12/.bids_cache/bidsdb_-5109864922705406314.db[0m
+2026-02-03 11:59:55,107 - INFO - [32m👥 Found 4 subjects[0m
+2026-02-03 11:59:55,107 - INFO - CAT12 execution mode: MATLAB

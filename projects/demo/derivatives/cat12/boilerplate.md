@@ -1,11 +1,11 @@
 # CAT12 BIDS Processing Boilerplate
 
-**Date:** 2026-02-02T21:19:07.172758
-**Host:** iMac-von-Karl.local
-**OS:** macOS-26.2-arm64-arm-64bit-Mach-O
-**Python:** 3.14.2
+**Date:** 2026-02-03T12:39:19.163292
+**Host:** PSLG063094.UNI-GRAZ.AT
+**OS:** macOS-26.2-arm64-arm-64bit
+**Python:** 3.10.18
 **CPU:** arm
-**RAM:** 16.0 GB
+**RAM:** 18.0 GB
 
 ---
 
@@ -16,180 +16,12 @@
 
 **CLI Arguments:**
 ```
-scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_config.json
+/Users/karl/work/github/bids-cat12-wrapper/scripts/preprocessing/bids_cat12_processor.py openneuro/ds000114 projects/demo/derivatives/cat12 participant --preproc --participant-label 01 --session-label test --smooth-volume 6 --smooth-surface 12 --qa --tiv --no-validate
 ```
 
-**Config File:** `projects/demo/project_config.json`
+**Config File:** `default config`
 ```json
-{
-  "_comment": "Demo project config - OpenNeuro ds000114 (VBM + surfaces)",
-  "_updated": "2026-02-02",
-  "study": {
-    "name": "Demo Study",
-    "description": "Public demo: OpenNeuro ds000114 (4 subjects, test-retest) with multi-modality CAT12",
-    "project_folder": "/Volumes/Thunder/129_PK01/cat12/stats/projects/demo"
-  },
-  "software": {
-    "matlab": {
-      "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
-      "allow_graphics": false,
-      "_comment": "macOS: /Applications/MATLAB_R*.app/bin/matlab | Linux: /usr/local/MATLAB/R*/bin/matlab"
-    },
-    "spm": {
-      "path": "/Volumes/Evo/software/spm25",
-      "_comment": "Optional - auto-detected if not specified"
-    },
-    "python": {
-      "executable": "python3",
-      "_comment": "Usually 'python3' or full path if not in PATH"
-    }
-  },
-  "paths": {
-    "_comment": "All paths are relative to study.project_folder",
-    "bids_raw": "bids_raw",
-    "preproc_dir": "derivatives/cat12",
-    "stats_dir": "results",
-    "logs_dir": "logs"
-  },
-  "preprocessing": {
-    "description": "CAT12 preprocessing with surface extraction and smoothing",
-    "enabled": true,
-    "bids": {
-      "source": "OpenNeuro ds000114",
-      "bids_dir": "bids_raw",
-      "_bids_comment": "Location of raw BIDS data (will be downloaded from OpenNeuro if using openneuro=true)",
-      "analysis_level": "participant",
-      "participant_label": [
-        "01",
-        "02",
-        "03",
-        "04"
-      ],
-      "session_label": [
-        "test",
-        "retest"
-      ],
-      "openneuro": false,
-      "openneuro_dataset": "ds000114",
-      "openneuro_download_all": false,
-      "openneuro_tag": null
-    },
-    "processing": {
-      "preproc": true,
-      "no_surface": false,
-      "qa": true,
-      "tiv": true,
-      "roi": false
-    },
-    "smoothing": {
-      "smooth_volume": [
-        6
-      ],
-      "smooth_surface": [
-        12
-      ]
-    },
-    "execution": {
-      "output_dir": "derivatives/cat12",
-      "work_dir": "work",
-      "log_dir": "logs/preproc",
-      "n_jobs": "auto",
-      "skip_existing": true,
-      "cross": false,
-      "pilot": false
-    },
-    "validation": {
-      "no_validate": false,
-      "dry_run": false,
-      "_dry_run_comment": "Set to true to validate without actually processing"
-    }
-  },
-  "statistics": {
-    "description": "Statistical analysis (factorial design, TFCE permutation testing)",
-    "enabled": true,
-    "input": {
-      "cat12_dir": "derivatives/cat12",
-      "participants_file": "participants_demo.tsv",
-      "group_column": "group",
-      "session_column": "session",
-      "sessions": [
-        "test",
-        "retest"
-      ],
-      "_sessions_options": "Use ['all'] or specific list"
-    },
-    "design": {
-      "standardize_continuous": true,
-      "modalities": [
-        {
-          "name": "vbm",
-          "enabled": true,
-          "smoothing_kernel": 6,
-          "covariates": [],
-          "mask": "templates/brainmask_GMtight.nii",
-          "_note": "Volume-based morphometry"
-        },
-        {
-          "name": "thickness",
-          "enabled": true,
-          "smoothing_kernel": 12,
-          "covariates": [],
-          "_note": "Surface thickness"
-        },
-        {
-          "name": "depth",
-          "enabled": true,
-          "smoothing_kernel": 12,
-          "covariates": [],
-          "_note": "Sulcal depth"
-        },
-        {
-          "name": "gyrification",
-          "enabled": true,
-          "smoothing_kernel": 12,
-          "covariates": [],
-          "_note": "Cortical gyrification"
-        }
-      ],
-      "multi_modality": true
-    },
-    "inference": {
-      "screening": {
-        "uncorrected_p": 0.001,
-        "cluster_size_voxels": 10,
-        "skip_screening": false
-      },
-      "tfce": {
-        "n_permutations": 100,
-        "pilot_mode": false,
-        "_pilot_permutations": "100 for testing, 5000 for publication"
-      }
-    },
-    "reporting": {
-      "thresholds": [
-        {
-          "p_value": 0.01,
-          "label": "Significant (p < 0.01)"
-        },
-        {
-          "p_value": 0.05,
-          "label": "Significant (p < 0.05)"
-        },
-        {
-          "p_value": 0.1,
-          "label": "Trend (p < 0.1)"
-        }
-      ]
-    },
-    "execution": {
-      "output_dir": "results",
-      "analysis_name": "demo_analysis",
-      "parallel_jobs": 1,
-      "memory_limit_gb": 16,
-      "force_clean": false
-    }
-  }
-}
+{}
 ```
 
 **Environment Variables:**
@@ -197,13 +29,13 @@ scripts/preprocessing/bids_cat12_processor.py --config projects/demo/project_con
 LD_LIBRARY_PATH=not set
 SPM12_PATH=not set
 CAT12_PATH=not set
-SPMROOT=/Volumes/Evo/software/spm25
+SPMROOT=/Users/karl/work/github/bids-cat12-wrapper/external/CAT12.9_R2023b_MCR_MAC_arm64
 ```
 
-**Input Directory:** `ds000114`
-**Output Directory:** `/Volumes/Thunder/129_PK01/cat12/stats/projects/demo/derivatives/cat12`
-**Subjects:** 01,02,03,04
-**Sessions:** retest,test,retest,test,retest,test,retest,test
+**Input Directory:** `openneuro/ds000114`
+**Output Directory:** `projects/demo/derivatives/cat12`
+**Subjects:** 01
+**Sessions:** test
 
 ---
 

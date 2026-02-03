@@ -9,6 +9,7 @@ __pycache__/
 *.pyc
 tmp/
 .tmp_* 
+external/*
 
 # Project configs (ignore all except demo)
 projects/*
