@@ -8,9 +8,11 @@ logs/
 __pycache__/
 *.pyc
 tmp/
+demo/
 .tmp_* 
 external/*
-
+archive/
+.pip-cache/
 # Project configs (ignore all except demo)
 projects/*
 !projects/.gitignore
@@ -25,5 +27,16 @@ projects/*
 .Spotlight-V100
 .Trashes
 check_repo/
+.tools/
 .env
 node_modules
+
+# Documentation builds
+docs/_build/
+
+# SPM outputs
+*.ps
+
+# Background process outputs
+nohup.out
+participants.tsv
