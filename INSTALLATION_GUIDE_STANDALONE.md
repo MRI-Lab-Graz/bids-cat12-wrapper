@@ -114,11 +114,13 @@ python -c "import pybids; print('✓ pybids installed')"
 
 ### Run Preprocessing
 
+**Single subject (one session):**
+
 ```bash
 # Activate environment
 source .venv/bin/activate
 
-# Run CAT12 preprocessing on one subject
+# Run CAT12 preprocessing on one subject, one session
 ./cat12_prepro openneuro/ds000114 projects/demo/derivatives/cat12 participant \
   --preproc \
   --participant-label 01 \
@@ -129,6 +131,24 @@ source .venv/bin/activate
   --tiv \
   --no-validate
 ```
+
+**Multiple subjects and sessions:**
+
+```bash
+# Process all 4 subjects, both sessions
+# Note: Repeat --participant-label and --session-label for each value
+./cat12_prepro openneuro/ds000114 projects/demo/derivatives/cat12 participant \
+  --preproc \
+  --participant-label 01 --participant-label 02 --participant-label 03 --participant-label 04 \
+  --session-label test --session-label retest \
+  --smooth-volume 6 \
+  --smooth-surface 12 \
+  --qa \
+  --tiv \
+  --no-validate
+```
+
+This will process all 8 images (4 subjects × 2 sessions) - approximately 2-4 hours total on a modern CPU.
 
 ### Run Statistics
 

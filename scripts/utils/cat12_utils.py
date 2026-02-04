@@ -26,6 +26,12 @@ class CAT12ScriptGenerator:
     def __init__(self, config: Dict):
         self.config = config
         self.template_dir = Path(__file__).parent.parent / "templates"
+        self.use_standalone = os.environ.get("USE_STANDALONE", "false").lower() == "true"
+        
+        # Always get CAT12 root (needed for both standalone and MATLAB modes to find templates)
+        self.cat12_root = os.environ.get("CAT12_STANDALONE") or os.environ.get("CAT12_ROOT")
+        if not self.cat12_root:
+            raise ValueError("CAT12_STANDALONE or CAT12_ROOT environment variable must be set")
 
     def load_segmentation_config(self, config_path: Path) -> Dict:
         """
@@ -62,6 +68,43 @@ class CAT12ScriptGenerator:
         Returns:
             Path to generated MATLAB script
         """
+        # For standalone, use simpler batch structure
+        if self.use_standalone:
+            return self._generate_standalone_batch(subject, t1w_files, output_dir)
+        else:
+            return self._generate_matlab_batch(subject, t1w_files, output_dir)
+    
+    def _generate_standalone_batch(
+        self, subject: str, t1w_files: List[str], output_dir: Path
+    ) -> Path:
+        """Get the appropriate CAT12 standalone template path.
+        
+        For standalone mode, we use the official CAT12 templates directly.
+        The cat_standalone.sh script handles the <UNDEFINED> placeholder replacement.
+        """
+        t1w_files = sorted(t1w_files)
+        
+        # Determine which official template to use
+        cat12_standalone_dir = os.path.join(self.cat12_root, "standalone")
+        
+        if len(t1w_files) > 1:
+            # Longitudinal processing - use official template
+            template_path = os.path.join(cat12_standalone_dir, "cat_standalone_segment_long.m")
+        else:
+            # Single session - use official segment template
+            template_path = os.path.join(cat12_standalone_dir, "cat_standalone_segment.m")
+        
+        if not os.path.exists(template_path):
+            raise FileNotFoundError(f"CAT12 standalone template not found: {template_path}")
+        
+        logger.info(f"Using CAT12 standalone template: {template_path}")
+        # Return the official template path, not a generated one
+        return Path(template_path)
+    
+    def _generate_matlab_batch(
+        self, subject: str, t1w_files: List[str], output_dir: Path
+    ) -> Path:
+        """Generate batch script for MATLAB mode (original method)."""
         script_content = self._get_longitudinal_template()
 
         # Sort files to ensure consistent processing order
@@ -96,6 +139,129 @@ class CAT12ScriptGenerator:
 
         logger.info(f"Generated CAT12 script: {script_path}")
         return script_path
+
+    def _get_standalone_longitudinal_template(self) -> str:
+        """Get CAT12 standalone longitudinal template.
+        
+        Based on official cat_standalone_segment_long.m from CAT12.9
+        Keep <UNDEFINED> for cat_standalone.sh to replace.
+        """
+        return """% Batch file for CAT12 longitudinal segmentation for SPM12/CAT12 standalone installation
+%_______________________________________________________________________
+% $Id$
+
+% first undefined data field, that will be dynamically replaced by cat_standalone.sh
+% The different definitions of the subjects-field are necessary to be compatible 
+% with CAT12 longitudinal batch (using "{}") and cat_standalone where the
+% UNDEFINED field is necessary. The clear command prevents error due to different
+% datatypes and the comented out part for cat_standalone will be removed in the
+% shell script and the last definition of subjects is finally used.
+matlabbatch{1}.spm.tools.cat.long.datalong.subjects = {};
+clear matlabbatch
+%matlabbatch{1}.spm.tools.cat.long.datalong.subjects = '<UNDEFINED>';
+
+% use priors for longitudinal data
+matlabbatch{1}.spm.tools.cat.long.enablepriors = 1;
+
+% additional bounding box
+matlabbatch{1}.spm.tools.cat.long.extopts.registration.bb = 12;
+
+% Affine regularisation
+matlabbatch{1}.spm.tools.cat.long.opts.affreg = 'mni';
+matlabbatch{1}.spm.tools.cat.long.opts.biasstr = 0.5;
+matlabbatch{1}.spm.tools.cat.long.opts.accstr = 0.5;
+
+% surface options
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtres = 0.5;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtmethod = 'pbt2x';
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.SRP = 22;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.reduce_mesh = 1;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.vdist = 1.33333333333333;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.scale_cortex = 0.7;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.add_parahipp = 0.1;
+matlabbatch{1}.spm.tools.cat.long.extopts.surface.close_parahipp = 0;
+
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.experimental = 0;
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.new_release = 0;
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.lazy = 0;
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.ignoreErrors = 1;
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.verb = 2;
+matlabbatch{1}.spm.tools.cat.long.extopts.admin.print = 2;
+
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.NCstr = -Inf;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.cleanupstr = 0.5;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.BVCstr = 0.5;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.WMHC = 2;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.SLC = 0;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.mrf = 1;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.APP = 1070;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.LASstr = 0.5;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.gcutstr = 2;
+matlabbatch{1}.spm.tools.cat.long.extopts.registration.vox = 1.5;
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.restypes.optimal = [1 0.3];
+matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.setCOM = 1;
+
+% surface and thickness creation
+matlabbatch{1}.spm.tools.cat.long.output.surface = 1;
+
+% BIDS output
+matlabbatch{1}.spm.tools.cat.long.output.BIDS.BIDSno = 1;
+
+% define here volume atlases
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.neuromorphometrics = 1;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.lpba40 = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.cobra = 1;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.hammers = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.ibsr = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.aal3 = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.mori = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.thalamus = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.anatomy3 = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.julichbrain = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.Schaefer2018_100Parcels_17Networks_order = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.Schaefer2018_200Parcels_17Networks_order = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.Schaefer2018_400Parcels_17Networks_order = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.Schaefer2018_600Parcels_17Networks_order = 0;
+matlabbatch{1}.spm.tools.cat.long.ROImenu.atlases.ownatlas = {''};
+
+% create and use longitudinal TPM
+matlabbatch{1}.spm.tools.cat.long.longTPM = 1;
+
+% apply modulation
+matlabbatch{1}.spm.tools.cat.long.modulate = 1;
+
+% save dartel export
+matlabbatch{1}.spm.tools.cat.long.dartel = 0;
+
+% delete temporary files
+matlabbatch{1}.spm.tools.cat.long.delete_temp = 1;
+"""
+
+    def _get_standalone_segment_template(self) -> str:
+        """Get CAT12 standalone single segment template."""
+        return """% Batch file for CAT12 segmentation for SPM12/CAT12 standalone installation
+% $Id$
+
+% first undefined data field, that will be dynamically replaced by cat_standalone.sh
+matlabbatch{1}.spm.tools.cat.estwrite.data = '<UNDEFINED>';
+
+% standard defaults
+matlabbatch{1}.spm.tools.cat.estwrite.opts.tpm = {fullfile(spm('dir'),'tpm','TPM.nii')};
+matlabbatch{1}.spm.tools.cat.estwrite.opts.affreg = 'mni';
+matlabbatch{1}.spm.tools.cat.estwrite.opts.biasstr = 0.5;
+
+% output options
+matlabbatch{1}.spm.tools.cat.estwrite.output.surface = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.native = 0;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.mod = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.dartel = 0;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.native = 0;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.mod = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.dartel = 0;
+
+% Run the job
+spm_jobman('run', matlabbatch);
+"""
 
     def _get_longitudinal_template(self) -> str:
         """Get the longitudinal processing template."""
@@ -289,16 +455,14 @@ class CAT12Processor:
                 if not os.path.exists(cat12_cmd):
                     cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
 
-                # Build command with files FIRST (as per cat_standalone.sh usage)
-                cmd = [cat12_cmd]
+                # Build command with correct argument order for cat_standalone.sh:
+                # cat_standalone.sh -m MCR_ROOT -b BATCH_SCRIPT FILES... [-a1 param1]
+                cmd = [cat12_cmd, "-m", self.mcr_root, "-b", str(script_path)]
 
-                # Add input files first if provided
+                # Add input files AFTER the -b option
                 if input_files:
                     cmd.extend(input_files)
                     logger.info(f"Processing {len(input_files)} input files")
-
-                # Then add options
-                cmd.extend(["-m", self.mcr_root, "-b", str(script_path)])
             else:
                 # MATLAB mode
                 abs_script_path = script_path.resolve()
@@ -350,7 +514,7 @@ class CAT12Processor:
                 env["CAT12_DISABLE_CUDA"] = "1"
             else:
                 env["CAT12_DISABLE_CUDA"] = "0"
-            logger.debug("CAT12 command: %s", " ".join(cmd))
+            logger.info("CAT12 command: %s", " ".join(cmd))
             logger.debug(
                 "CAT12 environment overrides -> OMP_NUM_THREADS=%s, CAT12_DISABLE_CUDA=%s, timeout=%s",
                 env.get("OMP_NUM_THREADS", "not set"),

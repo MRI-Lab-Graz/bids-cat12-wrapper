@@ -551,12 +551,19 @@ class BIDSLongitudinalProcessor:
             )
 
             logger.info(
-                f"{Fore.CYAN}📊 Using generated CAT12 batch script ({'longitudinal' if len(t1w_files_uncompressed) >= 2 else 'cross-sectional'}){Style.RESET_ALL}"
+                f"{Fore.CYAN}📊 Using CAT12 standalone template ({'longitudinal' if len(t1w_files_uncompressed) >= 2 else 'cross-sectional'}){Style.RESET_ALL}"
             )
             logger.info(f"Using CAT12 batch script: {generated_script}")
 
-            # Execute CAT12 processing (script already contains the file list)
-            success = bool(self.cat12_processor.execute_script(generated_script))
+            # Execute CAT12 processing
+            # For standalone mode, pass input files as arguments (cat_standalone.sh needs them)
+            # For MATLAB mode, files are already in the script
+            success = bool(
+                self.cat12_processor.execute_script(
+                    generated_script, 
+                    input_files=t1w_files_uncompressed
+                )
+            )
 
             if success:
                 logger.info(f"Successfully processed subject {subject}")
