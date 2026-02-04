@@ -18,6 +18,7 @@ pybids>=0.16.0
 click>=8.1.0
 colorama>=0.4.6
 tqdm>=4.65.0
+openneuro-py>=2024.2.0
 pyyaml>=6.0
 defusedxml>=0.7.1
 psutil>=5.9.0

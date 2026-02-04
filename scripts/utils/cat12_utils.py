@@ -456,13 +456,17 @@ class CAT12Processor:
                     cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
 
                 # Build command with correct argument order for cat_standalone.sh:
-                # cat_standalone.sh -m MCR_ROOT -b BATCH_SCRIPT FILES... [-a1 param1]
-                cmd = [cat12_cmd, "-m", self.mcr_root, "-b", str(script_path)]
+                # cat_standalone.sh FILES... -m MCR_ROOT -b BATCH_SCRIPT [-a1 param1]
+                # Note: Input files MUST come first!
+                cmd = [cat12_cmd]
 
-                # Add input files AFTER the -b option
+                # Add input files FIRST (as per v1.0.0 working version)
                 if input_files:
                     cmd.extend(input_files)
                     logger.info(f"Processing {len(input_files)} input files")
+                
+                # Then add options
+                cmd.extend(["-m", self.mcr_root, "-b", str(script_path)])
             else:
                 # MATLAB mode
                 abs_script_path = script_path.resolve()
