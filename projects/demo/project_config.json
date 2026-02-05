@@ -41,7 +41,7 @@
       "_bids_comment": "Location of raw BIDS data (will be downloaded from OpenNeuro if using openneuro=true)",
       "analysis_level": "participant",
       "participant_label": ["01", "02", "03", "04"],
-      "session_label": ["test", "retest"],
+      "session_label": ["test"],
       "openneuro": false,
       "openneuro_dataset": "ds000114",
       "openneuro_download_all": false,
@@ -82,7 +82,7 @@
       "participants_file": "participants_demo.tsv",
       "group_column": "group",
       "session_column": "session",
-      "sessions": ["test", "retest"],
+      "sessions": ["test"],
       "_sessions_options": "Use ['all'] or specific list"
     },
     "design": {
