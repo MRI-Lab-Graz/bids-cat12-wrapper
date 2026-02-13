@@ -11,26 +11,49 @@ cd "$REPO_ROOT"
 source .venv/bin/activate
 source .env
 
+# Disable progress bars for non-interactive mode to prevent BrokenPipeError
+export TQDM_DISABLE=1
+export TQDM_MININTERVAL=9999999
+
 echo "=========================================="
 echo "🚀 CAT12 Full Pipeline Started"
 echo "=========================================="
 echo "Time: $(date)"
 echo ""
 
+# Phase 0: Cleanup existing demo data
+echo "📊 PHASE 0: Cleaning up existing demo data"
+echo "---"
+
+if [ -d "projects/demo/derivatives" ]; then
+    echo "Removing existing derivatives folder..."
+    rm -rf projects/demo/derivatives
+fi
+
+if [ -d "projects/demo/work" ]; then
+    echo "Removing existing work folder..."
+    rm -rf projects/demo/work
+fi
+
+if [ -d "projects/demo/results" ]; then
+    echo "Removing existing results folder..."
+    rm -rf projects/demo/results
+fi
+
+if [ -d "openneuro/ds004937" ]; then
+    echo "Removing existing OpenNeuro download..."
+    rm -rf openneuro/ds004937
+fi
+
+echo "✅ Cleanup complete!"
+echo ""
+
 # Phase 1: Full Preprocessing
-echo "📊 PHASE 1: Preprocessing all subjects (4 subjects × 2 sessions = 8 images)"
+echo "📊 PHASE 1: Preprocessing all subjects (4 subjects × 4 sessions = 16 images)"
 echo "Expected duration: 2-4 hours"
 echo "---"
 
-./cat12_prepro \
-  openneuro/ds000114 \
-  projects/demo/derivatives/cat12 \
-  participant \
-  --preproc \
-  --participant-label 01 --participant-label 02 --participant-label 03 --participant-label 04 \
-  --session-label test --session-label retest \
-  --smooth-volume 6 --smooth-surface 12 \
-  --qa --tiv --no-validate
+./cat12_prepro --config projects/demo/run_demo.json
 
 echo ""
 echo "✅ Preprocessing complete!"
@@ -42,10 +65,10 @@ echo "📊 PHASE 2: Verifying preprocessing outputs"
 echo "---"
 
 OUTPUT_COUNT=$(find projects/demo/derivatives/cat12 -name "mwp1*.nii*" 2>/dev/null | wc -l)
-echo "Found $OUTPUT_COUNT modulated segmentations (expect 8)"
+echo "Found $OUTPUT_COUNT modulated segmentations (expect 16)"
 
-if [ "$OUTPUT_COUNT" -lt 8 ]; then
-    echo "⚠️  Warning: Expected 8 outputs, found $OUTPUT_COUNT"
+if [ "$OUTPUT_COUNT" -lt 16 ]; then
+  echo "⚠️  Warning: Expected 16 outputs, found $OUTPUT_COUNT"
 fi
 
 echo ""
@@ -55,8 +78,9 @@ echo "📊 PHASE 3: Extracting covariates from CAT12 outputs"
 echo "---"
 
 python scripts/utils/extract_covariates_from_xml.py \
-  projects/demo/derivatives/cat12 \
-  projects/demo/participants_demo.tsv
+  --cat12 projects/demo/derivatives/cat12 \
+  --participants openneuro/ds004937/participants.tsv \
+  --out projects/demo/participants_ds004937.tsv
 
 echo "✅ Covariates extracted!"
 echo ""
@@ -67,9 +91,9 @@ echo "Expected duration: 30-60 minutes"
 echo "---"
 
 bash scripts/analysis/cat12_multi_modality.sh \
-  --config projects/demo/project_config.json \
+  --config projects/demo/run_demo.json \
   --cat12-dir projects/demo/derivatives/cat12 \
-  --participants projects/demo/participants_demo.tsv
+  --participants projects/demo/participants_ds004937.tsv
 
 echo "✅ Statistics complete!"
 echo "Completion time: $(date)"

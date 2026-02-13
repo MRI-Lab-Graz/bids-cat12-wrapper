@@ -204,6 +204,12 @@ PYTHON_EXE=$(get_ini_value "PYTHON" "exe" "python3")
 # Allow graphics windows in MATLAB? If true we omit -nodisplay. If false we add -nodisplay
 MATLAB_ALLOW_GRAPHICS=$(get_ini_value "MATLAB" "allow_graphics" "true")
 
+# Standalone mode variables (will be populated from config.json after validation)
+SOFTWARE_MODE=""
+MCR_ROOT=""
+CAT12_STANDALONE_PATH=""
+SPM_STANDALONE_EXE=""
+
 # Initialize variables that will be populated from config.json AFTER argument parsing
 # (see "Read configuration from config.json" section after CONFIG_JSON validation)
 MODALITY=""
@@ -228,34 +234,13 @@ PARTICIPANTS_FILE=""
 MATLAB_EXE=""
 NO_TFCE=false
 
-# Auto-detect MATLAB if empty in config
-if [[ -z "$MATLAB_EXE" ]] || [[ "$MATLAB_EXE" == "false" ]]; then
-    FOUND_MATLAB=$(find /Applications -name "MATLAB_R*.app" -maxdepth 1 2>/dev/null | sort -r | head -1)
-    if [[ -n "$FOUND_MATLAB" ]]; then
-        MATLAB_EXE="$FOUND_MATLAB/bin/matlab"
-    else
-        MATLAB_EXE="matlab"
-    fi
-fi
+# Note: MATLAB detection moved to after config.json is read so we can check mode first
 
 # Check for Python 3
 if ! command -v "$PYTHON_EXE" &> /dev/null; then
     log_error "Python executable '$PYTHON_EXE' not found."
     echo "Please install Python 3 or update [PYTHON] exe in config.ini."
     exit 1
-fi
-
-# Build MATLAB flags depending on whether graphics are allowed
-if [[ "$MATLAB_ALLOW_GRAPHICS" == "false" ]] || [[ "$MATLAB_ALLOW_GRAPHICS" == "0" ]]; then
-    MATLAB_FLAGS="-nodesktop -nodisplay -nosplash -batch"
-else
-    # Allow graphics (still run non-interactively via -batch). Omitting -nodisplay
-    # allows figure creation on systems with a display (or XQuartz on macOS).
-    MATLAB_FLAGS="-nodesktop -nosplash -batch"
-fi
-
-# ============================================================================
-# Default Parameters (for values not in config)
 # ============================================================================
 
 CAT12_DIR=""
@@ -463,6 +448,66 @@ fi
 # ============================================================================
 # Read configuration from config.json (now that it's validated)
 # ============================================================================
+
+# Software configuration - check for standalone mode
+SOFTWARE_MODE=$(get_json_value "software.mode" "matlab")
+if [[ "$SOFTWARE_MODE" == "standalone" ]]; then
+    MCR_ROOT=$(get_json_value "software.cat12_standalone.mcr_root" "")
+    CAT12_STANDALONE_PATH=$(get_json_value "software.cat12_standalone.path" "")
+    
+    # Auto-detect standalone SPM executable (prefer spm25 over spm12)
+    if [[ -n "$CAT12_STANDALONE_PATH" ]]; then
+        if [[ -f "$CAT12_STANDALONE_PATH/run_spm25.sh" ]]; then
+            SPM_STANDALONE_EXE="$CAT12_STANDALONE_PATH/run_spm25.sh"
+        elif [[ -f "$CAT12_STANDALONE_PATH/run_spm12.sh" ]]; then
+            SPM_STANDALONE_EXE="$CAT12_STANDALONE_PATH/run_spm12.sh"
+        else
+            log_error "Standalone SPM executable not found in $CAT12_STANDALONE_PATH"
+            exit 1
+        fi
+    fi
+    
+    if [[ -z "$MCR_ROOT" ]]; then
+        log_error "MCR path not specified in config.json (software.cat12_standalone.mcr_root)"
+        exit 1
+    fi
+    
+    if [[ ! -d "$MCR_ROOT" ]]; then
+        log_error "MCR directory not found: $MCR_ROOT"
+        exit 1
+    fi
+    
+    log_info "Using standalone mode with MCR: $MCR_ROOT"
+    log_info "Standalone SPM executable: $SPM_STANDALONE_EXE"
+else
+    # MATLAB mode - detect MATLAB if not specified
+    if [[ -z "$MATLAB_EXE" ]] || [[ "$MATLAB_EXE" == "false" ]]; then
+        FOUND_MATLAB=$(find /Applications -name "MATLAB_R*.app" -maxdepth 1 2>/dev/null | sort -r | head -1)
+        if [[ -n "$FOUND_MATLAB" ]]; then
+            MATLAB_EXE="$FOUND_MATLAB/bin/matlab"
+        else
+            MATLAB_EXE="matlab"
+        fi
+    fi
+    
+    # Check that MATLAB is available
+    if ! command -v "$MATLAB_EXE" &> /dev/null; then
+        log_error "MATLAB not found: $MATLAB_EXE"
+        echo "Please install MATLAB or set correct path in config.json"
+        exit 1
+    fi
+    
+    # Build MATLAB flags depending on whether graphics are allowed
+    if [[ "$MATLAB_ALLOW_GRAPHICS" == "false" ]] || [[ "$MATLAB_ALLOW_GRAPHICS" == "0" ]]; then
+        MATLAB_FLAGS="-nodesktop -nodisplay -nosplash -batch"
+    else
+        # Allow graphics (still run non-interactively via -batch). Omitting -nodisplay
+        # allows figure creation on systems with a display (or XQuartz on macOS).
+        MATLAB_FLAGS="-nodesktop -nosplash -batch"
+    fi
+    
+    log_info "Using MATLAB mode with MATLAB: $MATLAB_EXE"
+fi
 
 # Modality and analysis settings
 if [[ -z "$MODALITY" ]]; then
@@ -681,6 +726,24 @@ TEMP_DIR=$(mktemp -d "$STATS_DIR/.tmp_${ANALYSIS_NAME}_XXXXXX")
 trap "rm -rf '$TEMP_DIR'" EXIT
 
 # ============================================================================
+# Helper function to run MATLAB or standalone SPM
+# ============================================================================
+
+run_spm_command() {
+    local matlab_code="$1"
+    local log_file="$2"
+    
+    if [[ "$SOFTWARE_MODE" == "standalone" ]]; then
+        # Standalone mode: use run_spm.sh with MCR
+        # SPM standalone expects: run_spm.sh <MCR_ROOT> <command>
+        "$SPM_STANDALONE_EXE" "$MCR_ROOT" "$matlab_code" 2>&1 | tee -a "$log_file" | external_prefix
+    else
+        # MATLAB mode: use MATLAB executable
+        "$MATLAB_EXE" $MATLAB_FLAGS "$matlab_code" 2>&1 | tee -a "$log_file" | external_prefix
+    fi
+}
+
+# ============================================================================
 # Banner
 # ============================================================================
 
@@ -720,15 +783,18 @@ echo ""
 
 # ============================================================================
 # One-time SPM configuration step
-# Run configure_spm_path once early so subsequent MATLAB calls don't re-run the
+# Run configure_spm_path once early so subsequent SPM calls don't re-run the
 # interactive/config detection tool and clutter the logs.
+# (Skip for standalone mode as it doesn't need SPM path configuration)
 # ============================================================================
-echo "Checking SPM configuration (one-time)..."
-MATLAB_SPM_LOG="$LOG_DIR/matlab_configure_spm.log"
-"$MATLAB_EXE" $MATLAB_FLAGS "addpath('$UTILS_DIR'); try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end; exit;" 2>&1 | tee -a "$MATLAB_SPM_LOG" | external_prefix || {
-    log_warning "one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later MATLAB calls may need SPM path set."
-}
-echo ""
+if [[ "$SOFTWARE_MODE" != "standalone" ]]; then
+    echo "Checking SPM configuration (one-time)..."
+    MATLAB_SPM_LOG="$LOG_DIR/matlab_configure_spm.log"
+    run_spm_command "addpath('$UTILS_DIR'); try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end; exit;" "$MATLAB_SPM_LOG" || {
+        log_warning "one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later SPM calls may need SPM path set."
+    }
+    echo ""
+fi
 
 # ============================================================================
 # Step 0: Clean existing results if --force
@@ -1004,9 +1070,9 @@ EST_METHOD="matlabbatch{1}.spm.stats.fmri_est.method.Classical = 1;"
 echo "Using Classical Estimation (ReML)"
 
 MATLAB_MODEL_LOG="$LOG_DIR/matlab_model_estimation.log"
-"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n'); exit;" 2>&1 | tee -a "$MATLAB_MODEL_LOG" | external_prefix || {
+run_spm_command "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('═══════════════════════════════════════════════════════\n'); fprintf('Running Factorial Design Specification\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); run('$TEMP_DIR/spm_batch.m'); try, spm_jobman('run', matlabbatch); catch e, fprintf('Warning: Design reporting failed (expected in headless mode):\n%s\n', e.message); end; clear matlabbatch; fprintf('\n═══════════════════════════════════════════════════════\n'); fprintf('Running Model Estimation\n'); fprintf('═══════════════════════════════════════════════════════\n\n'); matlabbatch{1}.spm.stats.fmri_est.spmmat = {'$OUTPUT_DIR/SPM.mat'}; matlabbatch{1}.spm.stats.fmri_est.write_residuals = 0; $EST_METHOD spm_jobman('run', matlabbatch); fprintf('\n✓ Model estimation complete\n\n'); exit;" "$MATLAB_MODEL_LOG" || {
         echo "Error: Model estimation failed"
-        echo "Check MATLAB log: $LOG_DIR/matlab_model_estimation.log"
+        echo "Check log: $MATLAB_MODEL_LOG"
         exit 1
     }
 
@@ -1015,7 +1081,7 @@ echo ""
 
 # Export design matrix to CSV for inspection (Priority Request)
 echo "Exporting design matrix to CSV..."
-"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); X = SPM.xX.X; writematrix(X, '$OUTPUT_DIR/design_matrix.csv'); exit;" 2>&1 | external_prefix || {
+run_spm_command "warning('off','all'); load('$OUTPUT_DIR/SPM.mat'); X = SPM.xX.X; writematrix(X, '$OUTPUT_DIR/design_matrix.csv'); exit;" "$LOG_DIR/matlab_export_design.log" || {
     echo "Warning: Failed to export design matrix to CSV"
 }
 if [[ -f "$OUTPUT_DIR/design_matrix.csv" ]]; then
@@ -1067,13 +1133,13 @@ echo ""
 mkdir -p "$LOG_DIR"
 
 MATLAB_CONTRAST_LOG="$LOG_DIR/matlab_contrasts.log"
-"$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); try, add_contrasts_longitudinal('$OUTPUT_DIR'); catch e, fprintf('ERROR in add_contrasts_longitudinal:\n%s\n', e.message); end; exit;" 2>&1 | tee -a "$MATLAB_CONTRAST_LOG" | external_prefix || {
+run_spm_command "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); try, add_contrasts_longitudinal('$OUTPUT_DIR'); catch e, fprintf('ERROR in add_contrasts_longitudinal:\n%s\n', e.message); end; exit;" "$MATLAB_CONTRAST_LOG" || {
         echo "Error: Adding contrasts failed"
-        echo "Check MATLAB log: $LOG_DIR/matlab_contrasts.log"
-        if [[ -f "$LOG_DIR/matlab_contrasts.log" ]]; then
+        echo "Check log: $MATLAB_CONTRAST_LOG"
+        if [[ -f "$MATLAB_CONTRAST_LOG" ]]; then
             echo ""
-            echo "Last lines of MATLAB log:"
-            tail -20 "$LOG_DIR/matlab_contrasts.log"
+            echo "Last lines of log:"
+            tail -20 "$MATLAB_CONTRAST_LOG"
         fi
         exit 1
     }
@@ -1127,7 +1193,7 @@ if [[ "$SKIP_SCREENING" == false ]]; then
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
     
-    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults','FMRI'); spm_jobman('initcfg'); try, significant_contrasts = screen_contrasts('$OUTPUT_DIR','p_thresh',$UNCORRECTED_P,'cluster_size',$CLUSTER_SIZE); fprintf('\\n✓ Screening complete with %d significant contrasts\\n\\n', length(significant_contrasts)); fid=fopen(fullfile('$OUTPUT_DIR','logs','significant_contrasts.txt'),'w'); if fid>0, for ii=1:numel(significant_contrasts), fprintf(fid,'%d\\n',significant_contrasts(ii)); end; fclose(fid); end; catch e, fprintf('MATLAB_ERROR:%s\\n', e.message); end; exit;" 2>&1 | external_prefix || {
+    run_spm_command "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults','FMRI'); spm_jobman('initcfg'); try, significant_contrasts = screen_contrasts('$OUTPUT_DIR','p_thresh',$UNCORRECTED_P,'cluster_size',$CLUSTER_SIZE); fprintf('\\n✓ Screening complete with %d significant contrasts\\n\\n', length(significant_contrasts)); fid=fopen(fullfile('$OUTPUT_DIR','logs','significant_contrasts.txt'),'w'); if fid>0, for ii=1:numel(significant_contrasts), fprintf(fid,'%d\\n',significant_contrasts(ii)); end; fclose(fid); end; catch e, fprintf('MATLAB_ERROR:%s\\n', e.message); end; exit;" "$LOG_DIR/matlab_screening.log" || {
         echo "Error: Screening failed"
         exit 1
     }
@@ -1221,7 +1287,7 @@ else
 if [[ "$PILOT_MODE" == true ]]; then
     # In pilot mode run the quick TFCE directly (keep behavior simple)
     echo "Pilot mode: running single short TFCE run (${N_PERM} perms)"
-    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'pilot', true); exit;" 2>&1 | tee -a "$TFCE_LOG" | external_prefix || {
+    run_spm_command "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting pilot TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'pilot', true); exit;" "$TFCE_LOG" || {
         log_error "TFCE correction (pilot) failed"
         exit 1
     }
@@ -1236,7 +1302,7 @@ else
         USE_SCREENING="true"
     fi
 
-    "$MATLAB_EXE" $MATLAB_FLAGS "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'use_screening', $USE_SCREENING); exit;" 2>&1 | tee -a "$TFCE_LOG" | external_prefix || {
+    run_spm_command "warning('off','MATLAB:dispatcher:nameConflict'); warning('off','all'); set(0,'DefaultFigureVisible','off'); set(0,'DefaultFigureCreateFcn',@(h,ev)[]); addpath('$STATS_DIR/scripts/utils'); spm('defaults', 'FMRI'); spm_jobman('initcfg'); fprintf('Starting TFCE with %d permutations\n', $N_PERM); run_tfce_correction('$OUTPUT_DIR', 'n_perm', $N_PERM, 'n_jobs', $N_JOBS, 'use_screening', $USE_SCREENING); exit;" "$TFCE_LOG" || {
         log_error "TFCE correction failed"
         exit 1
     }
@@ -1258,7 +1324,7 @@ python3 "$UTILS_DIR/generate_tfce_images.py" \
     }
 
 echo ""
-fi
+fi  # Close the if [[ "$SKIP_TFCE" == true ]] statement
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
 echo "│ STEP 7: Generating HTML Report                                        │"

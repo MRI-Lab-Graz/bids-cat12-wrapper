@@ -1,5 +1,12 @@
 # Ignore analysis results, temporary folders and environment
 results/
+.cache/
+.mypy_cache/
+.ruff_cache/
+-flake8/
+.tools
+.uv-cache/
+.venv/
 report_latest.html
 *.log
 logs/

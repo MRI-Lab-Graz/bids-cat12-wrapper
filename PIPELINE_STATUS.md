@@ -114,7 +114,7 @@ bash monitor_and_run_stats.sh
 
 ### Full Pipeline (manual)
 ```bash
-bash run_full_pipeline.sh
+bash run_demo.sh
 # Comprehensive pipeline: preproc → covariate extraction → stats → report
 ```
 

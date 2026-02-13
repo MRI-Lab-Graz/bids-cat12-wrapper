@@ -1933,10 +1933,21 @@ def main(
                 cfg_data = json.load(f)
             if isinstance(cfg_data, dict):
                 software = cfg_data.get("software", {})
-                spm_path = software.get("spm", {}).get("path")
-                if spm_path:
-                    os.environ.setdefault("SPMROOT", spm_path)
-                    os.environ.setdefault("SPM_ROOT", spm_path)
+                mode = software.get("mode", "matlab")
+                
+                # In standalone mode, use cat12_standalone path as SPMROOT
+                # In MATLAB mode, use spm path
+                if mode == "standalone":
+                    cat12_path = software.get("cat12_standalone", {}).get("path")
+                    if cat12_path:
+                        os.environ.setdefault("SPMROOT", cat12_path)
+                        os.environ.setdefault("SPM_ROOT", cat12_path)
+                else:
+                    spm_path = software.get("spm", {}).get("path")
+                    if spm_path:
+                        os.environ.setdefault("SPMROOT", spm_path)
+                        os.environ.setdefault("SPM_ROOT", spm_path)
+                
                 matlab_exe = software.get("matlab", {}).get("executable")
                 if matlab_exe:
                     os.environ.setdefault("MATLAB_EXE", matlab_exe)

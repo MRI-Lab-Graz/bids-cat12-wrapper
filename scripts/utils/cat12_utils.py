@@ -77,29 +77,34 @@ class CAT12ScriptGenerator:
     def _generate_standalone_batch(
         self, subject: str, t1w_files: List[str], output_dir: Path
     ) -> Path:
-        """Get the appropriate CAT12 standalone template path.
-        
-        For standalone mode, we use the official CAT12 templates directly.
-        The cat_standalone.sh script handles the <UNDEFINED> placeholder replacement.
+        """Generate a standalone batch script that honors config options.
+
+        The CAT12 official templates always enable surface output. We generate
+        a per-subject batch to disable surface processing when configured.
         """
         t1w_files = sorted(t1w_files)
-        
-        # Determine which official template to use
-        cat12_standalone_dir = os.path.join(self.cat12_root, "standalone")
-        
+
+        # Select template content
         if len(t1w_files) > 1:
-            # Longitudinal processing - use official template
-            template_path = os.path.join(cat12_standalone_dir, "cat_standalone_segment_long.m")
+            script_content = self._get_standalone_longitudinal_template()
         else:
-            # Single session - use official segment template
-            template_path = os.path.join(cat12_standalone_dir, "cat_standalone_segment.m")
-        
-        if not os.path.exists(template_path):
-            raise FileNotFoundError(f"CAT12 standalone template not found: {template_path}")
-        
-        logger.info(f"Using CAT12 standalone template: {template_path}")
-        # Return the official template path, not a generated one
-        return Path(template_path)
+            script_content = self._get_standalone_segment_template()
+
+        replacements = {
+            "SURFACE_PROCESSING": str(
+                self.config["cat12"]["surface_processing"]
+            ).lower(),
+        }
+
+        for key, value in replacements.items():
+            script_content = script_content.replace(f"{{{key}}}", str(value))
+
+        script_path = output_dir / f"cat12_standalone_{subject}.m"
+        with open(script_path, "w") as f:
+            f.write(script_content)
+
+        logger.info(f"Generated CAT12 standalone script: {script_path}")
+        return script_path
     
     def _generate_matlab_batch(
         self, subject: str, t1w_files: List[str], output_dir: Path
@@ -172,14 +177,18 @@ matlabbatch{1}.spm.tools.cat.long.opts.biasstr = 0.5;
 matlabbatch{1}.spm.tools.cat.long.opts.accstr = 0.5;
 
 % surface options
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtres = 0.5;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtmethod = 'pbt2x';
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.SRP = 22;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.reduce_mesh = 1;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.vdist = 1.33333333333333;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.scale_cortex = 0.7;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.add_parahipp = 0.1;
-matlabbatch{1}.spm.tools.cat.long.extopts.surface.close_parahipp = 0;
+if {SURFACE_PROCESSING}
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtres = 0.5;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.pbtmethod = 'pbt2x';
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.SRP = 22;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.reduce_mesh = 1;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.vdist = 1.33333333333333;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.scale_cortex = 0.7;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.add_parahipp = 0.1;
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface.close_parahipp = 0;
+else
+    matlabbatch{1}.spm.tools.cat.long.extopts.surface = struct();
+end
 
 matlabbatch{1}.spm.tools.cat.long.extopts.admin.experimental = 0;
 matlabbatch{1}.spm.tools.cat.long.extopts.admin.new_release = 0;
@@ -202,7 +211,7 @@ matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.restypes.optimal = [1 0.3
 matlabbatch{1}.spm.tools.cat.long.extopts.segmentation.setCOM = 1;
 
 % surface and thickness creation
-matlabbatch{1}.spm.tools.cat.long.output.surface = 1;
+matlabbatch{1}.spm.tools.cat.long.output.surface = {SURFACE_PROCESSING};
 
 % BIDS output
 matlabbatch{1}.spm.tools.cat.long.output.BIDS.BIDSno = 1;
@@ -251,7 +260,7 @@ matlabbatch{1}.spm.tools.cat.estwrite.opts.affreg = 'mni';
 matlabbatch{1}.spm.tools.cat.estwrite.opts.biasstr = 0.5;
 
 % output options
-matlabbatch{1}.spm.tools.cat.estwrite.output.surface = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.surface = {SURFACE_PROCESSING};
 matlabbatch{1}.spm.tools.cat.estwrite.output.GM.native = 0;
 matlabbatch{1}.spm.tools.cat.estwrite.output.GM.mod = 1;
 matlabbatch{1}.spm.tools.cat.estwrite.output.GM.dartel = 0;
@@ -327,7 +336,7 @@ if {LONGITUDINAL}
 
     % Volume processing
     if {VOLUME_PROCESSING}
-        matlabbatch{1}.spm.tools.cat.long.output.surface = 1;
+        matlabbatch{1}.spm.tools.cat.long.output.surface = {SURFACE_PROCESSING};
         matlabbatch{1}.spm.tools.cat.long.output.ROI = 1;
         matlabbatch{1}.spm.tools.cat.long.output.GM.native = 0;
         matlabbatch{1}.spm.tools.cat.long.output.GM.mod = 1;
@@ -450,10 +459,13 @@ class CAT12Processor:
 
             if self.use_standalone:
                 # Prepare command
-                # Try standalone directory first, then root
-                cat12_cmd = os.path.join(self.cat12_root, "standalone", "cat_standalone.sh")
+                # Use wrapper script that sets up MCR environment properly
+                cat12_cmd = "/data/local/software/cat-12/run_cat12_standalone.sh"
                 if not os.path.exists(cat12_cmd):
-                    cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
+                    # Fallback to direct script
+                    cat12_cmd = os.path.join(self.cat12_root, "standalone", "cat_standalone.sh")
+                    if not os.path.exists(cat12_cmd):
+                        cat12_cmd = os.path.join(self.cat12_root, "cat_standalone.sh")
 
                 # Build command with correct argument order for cat_standalone.sh:
                 # cat_standalone.sh FILES... -m MCR_ROOT -b BATCH_SCRIPT [-a1 param1]
