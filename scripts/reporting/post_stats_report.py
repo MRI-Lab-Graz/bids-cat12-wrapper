@@ -14,6 +14,7 @@ Usage:
     python post_stats_report.py ./results/vbm/analysis
     python post_stats_report.py ./results/vbm/analysis ./report.html
     python post_stats_report.py ./results/vbm/analysis ./report.html --filter tfce
+    python post_stats_report.py ./results/vbm/analysis ./report.html --filter no_tfce
     python post_stats_report.py ./results/vbm/analysis ./report.html --quality low
     python post_stats_report.py ./results/vbm/analysis ./report.html --spm-path /path/to/spm12
 """
@@ -365,11 +366,15 @@ def plot_surface_to_base64(
         return None
 
 
-def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, scale=1.0):
+def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, scale=1.0, stat_img=None):
     """Identify clusters and generate ortho plots for the peaks."""
     try:
         data = img.get_fdata()
         affine = img.affine
+        
+        # Use stat_img for visualization if available, otherwise use img
+        plot_img = stat_img if stat_img is not None else img
+        plot_threshold = 2.0 if stat_img is not None else threshold
 
         # Threshold the data (use absolute for both directions)
         mask = np.abs(data) >= threshold
@@ -433,11 +438,12 @@ def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, sca
             # Plot
             fig = plt.figure(figsize=(12 * scale, 3 * scale))
             plotting.plot_stat_map(
-                img,
+                plot_img,
                 cut_coords=peak_mni,
                 display_mode="ortho",
                 colorbar=True,
-                threshold=threshold,
+                threshold=plot_threshold,
+                cmap='cold_hot',
                 figure=fig,
                 title=None,
                 draw_cross=True,
@@ -483,7 +489,7 @@ def generate_report(
 ):
     print(f"Generating post-stats report for: {results_dir}")
     filter_mode = (filter_mode or "all").lower()
-    if filter_mode not in {"all", "tfce", "spmt", "double_threshold"}:
+    if filter_mode not in {"all", "tfce", "spmt", "double_threshold", "no_tfce"}:
         print(f"Warning: Unknown filter_mode '{filter_mode}', defaulting to 'all'.")
         filter_mode = "all"
     print(f"Filter mode: {filter_mode}")
@@ -493,6 +499,20 @@ def generate_report(
     if not os.path.isdir(results_dir):
         print(f"Error: {results_dir} is not a directory.")
         return
+    
+    # Detect orientation convention
+    radiological_convention = False
+    sample_files = glob.glob(os.path.join(results_dir, "spm*.nii*"))
+    if sample_files:
+        try:
+            sample_img = nib.load(sample_files[0])
+            det = np.linalg.det(sample_img.affine[:3, :3])
+            if det < 0:
+                radiological_convention = True
+                print("\n⚠️  WARNING: Images use RADIOLOGICAL convention (Left↔Right flipped in storage)")
+                print("    Atlas labels may show opposite hemisphere. Verify results with MNI coordinates.\n")
+        except Exception as e:
+            print(f"Warning: Could not detect image convention: {e}")
 
     # Detect if surface data
     is_surface = len(glob.glob(os.path.join(results_dir, "*.gii"))) > 0
@@ -775,6 +795,8 @@ def generate_report(
             continue
         if filter_mode == "spmt" and corr_name not in ["FWE (Voxel)", "FDR (Voxel)"]:
             continue
+        if filter_mode == "no_tfce" and corr_name in ["FWE (TFCE)", "FDR (TFCE)"]:
+            continue
 
         files = []
         for s_dir in search_dirs:
@@ -976,8 +998,8 @@ def generate_report(
                 mask = (~np.isnan(abs_data)) & (abs_data >= current_log_p_thresh)
                 sig_elements = np.sum(mask)
 
-                # Include all double-threshold results, even if empty, to show they were processed
-                if sig_elements > 0 or display_corr == "Double Threshold":
+                # Only include results with significant voxels
+                if sig_elements > 0:
                     region_mappings = {}
                     if sig_elements > 0:
                         # Find peak based on absolute magnitude
@@ -1068,6 +1090,7 @@ def generate_report(
                             n_clusters=5,
                             dpi=quality_settings["dpi_cluster"],
                             scale=quality_settings["scale"],
+                            stat_img=stat_img,
                         )
 
                     if display_corr == "Double Threshold" and is_bidirectional:
@@ -1222,6 +1245,13 @@ def generate_report(
     {% if not has_tfce %}
     <div class="warning-banner">
         [!] No TFCE results found. Showing standard statistic maps if available.
+    </div>
+    {% endif %}
+    
+    {% if radiological_convention %}
+    <div class="warning-banner" style="background-color: #fff3cd; border-color: #ffc107;">
+        ⚠️ <strong>Orientation Notice:</strong> These images use RADIOLOGICAL convention (stored Left↔Right flipped).
+        Atlas labels may show opposite hemisphere. Please verify critical findings using MNI coordinates.
     </div>
     {% endif %}
     
@@ -1499,6 +1529,7 @@ def generate_report(
         mode="Surface" if is_surface else "Volume",
         is_surface=is_surface,
         has_tfce=has_tfce,
+        radiological_convention=radiological_convention,
         contrast_names=contrast_names,
         report_data=report_data,
         plots_json=json.dumps(plots),
@@ -1532,6 +1563,7 @@ Filter Modes:
   tfce             - Only include TFCE results
   spmt             - Only include standard SPM T-maps
   double_threshold - Only include double-threshold results
+  no_tfce          - Exclude TFCE results (show voxel-wise, double threshold, effect size)
         """,
     )
 
@@ -1547,7 +1579,7 @@ Filter Modes:
     parser.add_argument(
         "--filter",
         "-f",
-        choices=["all", "tfce", "spmt", "double_threshold"],
+        choices=["all", "tfce", "spmt", "double_threshold", "no_tfce"],
         default="all",
         help="Filter the types of results included (default: all)",
     )

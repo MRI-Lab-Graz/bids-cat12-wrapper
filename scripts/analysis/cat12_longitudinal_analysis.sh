@@ -241,6 +241,8 @@ if ! command -v "$PYTHON_EXE" &> /dev/null; then
     log_error "Python executable '$PYTHON_EXE' not found."
     echo "Please install Python 3 or update [PYTHON] exe in config.ini."
     exit 1
+fi
+
 # ============================================================================
 
 CAT12_DIR=""
@@ -786,14 +788,17 @@ echo ""
 # Run configure_spm_path once early so subsequent SPM calls don't re-run the
 # interactive/config detection tool and clutter the logs.
 # (Skip for standalone mode as it doesn't need SPM path configuration)
+# DISABLED: This can hang on some systems. SPM path should be set via config.json or environment variables instead.
 # ============================================================================
-if [[ "$SOFTWARE_MODE" != "standalone" ]]; then
-    echo "Checking SPM configuration (one-time)..."
-    MATLAB_SPM_LOG="$LOG_DIR/matlab_configure_spm.log"
-    run_spm_command "addpath('$UTILS_DIR'); try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end; exit;" "$MATLAB_SPM_LOG" || {
-        log_warning "one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later SPM calls may need SPM path set."
-    }
-    echo ""
+if false; then  # Disabled - skip SPM config check to avoid hangs
+    if [[ "$SOFTWARE_MODE" != "standalone" ]]; then
+        echo "Checking SPM configuration (one-time)..."
+        MATLAB_SPM_LOG="$LOG_DIR/matlab_configure_spm.log"
+        run_spm_command "addpath('$UTILS_DIR'); try, configure_spm_path; catch e, fprintf('Warning: configure_spm_path failed: %s\n', e.message); end; exit;" "$MATLAB_SPM_LOG" || {
+            log_warning "one-time SPM configuration step failed (see $MATLAB_SPM_LOG). Continuing, but later SPM calls may need SPM path set."
+        }
+        echo ""
+    fi
 fi
 
 # ============================================================================

@@ -1,0 +1,82 @@
+{
+  "_comment": "CAT12 Statistics Pipeline Configuration - Study Specific",
+  "_updated": "2026-02-01",
+  
+  "study": {
+    "name": "Default Study",
+    "description": "CAT12 statistical analysis configuration"
+  },
+
+  "software": {
+    "mode": "matlab",
+    "_mode_options": "matlab or standalone"
+  },
+
+  "matlab": {
+    "executable": "/Applications/MATLAB_R2025b.app/bin/matlab",
+    "allow_graphics": false,
+    "_comment_exe": "macOS: /Applications/MATLAB_R*.app/bin/matlab | Linux: /usr/local/MATLAB/R*/bin/matlab | Leave empty for auto-detect"
+  },
+
+  "spm": {
+    "path": "/Volumes/Evo/software/spm25/",
+    "_comment": "Optional - auto-detected if not specified"
+  },
+
+  "python": {
+    "executable": "python3",
+    "_comment": "Usually 'python3' or full path if not in PATH"
+  },
+
+  "analysis": {
+    "participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/orig_participants.tsv",
+    "group_column": "group",
+    "session_column": "session",
+    "sessions": ["1", "2"],
+    "_sessions_options": "Use ['all'] or specific list like ['1', '2', '3']",
+    "standardize_continuous": true,
+    "_comment": "Define modalities below; each can have different smoothing, covariates, masks",
+    
+    "modalities": [
+      { 
+        "name": "vbm",
+        "folder_name": "vbm_9mm_3G_tiv_sex_age",
+        "smoothing_kernel": null,
+        "_smoothing_comment": "null for auto-detect (must be single kernel)",
+        "covariates": ["tiv", "sex", "age"],
+        "mask": "/Volumes/Thunder/129_PK01/cat12/stats/templates/brainmask_GMtight.nii"
+      }
+    ]
+  },
+
+  "screening": {
+    "uncorrected_p": 0.001,
+    "cluster_size_voxels": 10,
+    "skip_screening": false
+  },
+
+  "tfce": {
+    "n_permutations": 1000,
+    "pilot_mode": true,
+    "_pilot_permutations": "Use 100 for quick testing"
+  },
+
+  "reporting": {
+    "thresholds": [
+      {"p_value": 0.01, "label": "Significant (p < 0.01)"},
+      {"p_value": 0.05, "label": "Significant (p < 0.05)"},
+      {"p_value": 0.1, "label": "Trend (p < 0.1)"}
+    ],
+    "_thresholds_note": "Specify p-value thresholds; log_p is computed internally as -log10(p)"
+  },
+
+  "performance": {
+    "parallel_jobs": 1,
+    "memory_limit_gb": 8
+  },
+
+  "output": {
+    "analysis_name": "3groups_2sessions",
+    "force_clean": false
+  }
+}
