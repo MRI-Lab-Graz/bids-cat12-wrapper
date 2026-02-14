@@ -233,6 +233,7 @@ FORCE=""
 PARTICIPANTS_FILE=""
 MATLAB_EXE=""
 NO_TFCE=false
+TFCE_ENABLED="true"
 
 # Note: MATLAB detection moved to after config.json is read so we can check mode first
 
@@ -584,6 +585,11 @@ fi
 # TFCE settings
 N_PERM=$(get_json_value "tfce.n_permutations" "5000")
 PILOT_MODE=$(get_json_value "tfce.pilot_mode" "false")
+TFCE_ENABLED=$(get_json_value "tfce.enabled" "true")
+
+if [[ "$TFCE_ENABLED" == "false" ]]; then
+    NO_TFCE=true
+fi
 
 # Debug: show what was read
 echo "DEBUG: PILOT_MODE from config = '$PILOT_MODE'"
@@ -1214,7 +1220,11 @@ fi
 
 if [[ "$NO_TFCE" == true ]]; then
     echo "┌────────────────────────────────────────────────────────────────────────┐"
-    echo "│ STEP 6: Skipped (TFCE disabled by --no-tfce)                          │"
+    if [[ "$TFCE_ENABLED" == "false" ]]; then
+        echo "│ STEP 6: Skipped (TFCE disabled in config)                            │"
+    else
+        echo "│ STEP 6: Skipped (TFCE disabled by --no-tfce)                          │"
+    fi
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
     echo "Pipeline stopping early as requested."
@@ -1332,37 +1342,34 @@ echo ""
 fi  # Close the if [[ "$SKIP_TFCE" == true ]] statement
 
 echo "┌────────────────────────────────────────────────────────────────────────┐"
-echo "│ STEP 7: Generating HTML Report                                        │"
+echo "│ STEP 7: Generating Interactive Post-Stats Report                     │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
-# Provide number of contrasts to the report generator (count con_*.nii)
-# Provide number of contrasts to the report generator, using extension
-# appropriate for modality (.nii for VBM, .gii for surface modalities).
-if [[ "$MODALITY" == "vbm" ]]; then
-    N_CONTRASTS=$(ls -1 "$OUTPUT_DIR"/con_*.nii 2>/dev/null | wc -l)
-else
-    N_CONTRASTS=$(ls -1 "$OUTPUT_DIR"/con_*.gii 2>/dev/null | wc -l)
-fi
+# Generate interactive HTML report using the new post_stats_report.py script
+# This creates a modern, interactive report with grouped clusters and filtering
+REPORT_HTML="$OUTPUT_DIR/report_$(date +%Y-%m-%d_%H%M%S).html"
 
-# Build a safely-quoted command-line string from the original args. Use
-# printf '%q' so special characters and quotes are escaped and the result
-# is safe to pass as a single argument to Python.
-SAFE_CMDLINE="$(printf '%q ' "$0" "${ORIGINAL_ARGS[@]}")"
-
-python3 "$UTILS_DIR/generate_html_report.py" \
-    --design-json "$TEMP_DIR/design.json" \
-    --output "$OUTPUT_DIR/report.html" \
-    --analysis-name "$ANALYSIS_NAME" \
-    --output-dir "$OUTPUT_DIR" \
-    --command-line "$SAFE_CMDLINE" \
-    --n-contrasts "$N_CONTRASTS" \
-    --n-perm "$N_PERM" \
-    --cluster-size "$CLUSTER_SIZE" \
-    --uncorrected-p "$UNCORRECTED_P" \
-    --start-time "$PIPELINE_START_TIME" || {
-        log_warning "HTML report generation failed"
+python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
+    "$OUTPUT_DIR" \
+    "$REPORT_HTML" \
+    --quality low \
+    --filter no_tfce \
+    --config "$CONFIG_JSON" || {
+        log_warning "Interactive HTML report generation failed, trying fallback..."
+        # Fallback: try with a default config location
+        python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
+            "$OUTPUT_DIR" \
+            "$REPORT_HTML" \
+            --quality low \
+            --filter no_tfce || {
+                log_warning "Report generation failed completely"
+            }
     }
+
+if [[ -f "$REPORT_HTML" ]]; then
+    echo "✓ Interactive report generated: $REPORT_HTML"
+fi
 
 echo ""
 

@@ -25,6 +25,7 @@ import subprocess
 import sys
 import json
 from pathlib import Path
+from datetime import datetime
 
 
 def get_config_defaults(config_file=None):
@@ -205,13 +206,14 @@ Examples:
     print("\n[4/4] Generating interactive HTML report...")
     print("-" * 80)
 
-    report_script = Path(__file__).parent / "post_stats_report.py"
-    report_html = os.path.join(results_dir, "post_stats_sweep_report.html")
+    # Use the correct post_stats_report.py from the reporting directory
+    report_script = Path(__file__).parent.parent / "reporting" / "post_stats_report.py"
+    report_html = os.path.join(results_dir, f"report_{datetime.now().strftime('%Y-%m-%d_%H%M%S')}.html")
 
     if report_script.exists():
         print(f"--- Generating HTML Report: {report_html} ---")
 
-        report_cmd = [sys.executable, str(report_script), results_dir, report_html]
+        report_cmd = [sys.executable, str(report_script), results_dir, report_html, "--quality", "low", "--filter", "no_tfce"]
         if args.spm_path:
             report_cmd.extend(["--spm-path", args.spm_path])
 

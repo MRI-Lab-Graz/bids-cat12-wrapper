@@ -361,22 +361,38 @@ for k = 1:numel(contrasts)
 end
 
 % Save contrast list to JSON for reporting
+% IMPORTANT: contrasts.json should reflect the ACTUAL indices in SPM.xCon after appending
+% Since we use delete=0, existing contrasts are preserved and new ones are appended.
+% We need to reload SPM.mat to get the correct indices.
 json_file = fullfile(stats_dir, 'contrasts.json');
-fid = fopen(json_file, 'w');
-if fid > 0
-    fprintf(fid, '[\n');
-    for k = 1:numel(contrasts)
-        % Escape quotes in name
-        safe_name = strrep(contrasts{k}.name, '"', '\"');
-        if k < numel(contrasts)
-            fprintf(fid, '  {"index": %d, "name": "%s"},\n', k, safe_name);
-        else
-            fprintf(fid, '  {"index": %d, "name": "%s"}\n', k, safe_name);
+
+% Reload SPM.mat to get the final xCon with correct indices
+try
+    load(spm_file, 'SPM');
+    if isfield(SPM, 'xCon') && ~isempty(SPM.xCon)
+        % Write ALL contrasts from SPM.xCon, not just the ones we added
+        fid = fopen(json_file, 'w');
+        if fid > 0
+            fprintf(fid, '[\n');
+            n_contrasts = length(SPM.xCon);
+            for k = 1:n_contrasts
+                % Escape quotes in name
+                safe_name = strrep(SPM.xCon(k).name, '"', '\"');
+                if k < n_contrasts
+                    fprintf(fid, '  {"index": %d, "name": "%s"},\n', k, safe_name);
+                else
+                    fprintf(fid, '  {"index": %d, "name": "%s"}\n', k, safe_name);
+                end
+            end
+            fprintf(fid, ']\n');
+            fclose(fid);
+            fprintf('Saved contrast list to: %s (%d total contrasts from SPM.xCon)\n', json_file, n_contrasts);
         end
+    else
+        fprintf('Warning: Could not write contrasts.json - SPM.xCon not found\n');
     end
-    fprintf(fid, ']\n');
-    fclose(fid);
-    fprintf('Saved contrast list to: %s\n', json_file);
+catch ME
+    fprintf('Warning: Could not write contrasts.json: %s\n', ME.message);
 end
 
 % IMPORTANT: spm_jobman may update and save SPM.mat as part of the job.

@@ -568,30 +568,60 @@ def generate_report(
         except Exception as e:
             print(f"Warning: Could not read SPM.mat: {e}")
 
-    # Load contrasts.json if it exists
+    # Load contrasts.json if it exists (but only for missing contrasts)
+    # SPM.mat is the authoritative source - contrasts.json should only supplement it
     contrasts_json_path = os.path.join(results_dir, "contrasts.json")
     if os.path.exists(contrasts_json_path):
         try:
             with open(contrasts_json_path, "r") as f:
                 c_data = json.load(f)
+                contrasts_from_json = {}
                 if isinstance(c_data, dict):
                     for k, v in c_data.items():
                         try:
-                            contrast_names[int(k)] = v
+                            contrasts_from_json[int(k)] = v
                         except ValueError:
-                            contrast_names[k] = v
+                            contrasts_from_json[k] = v
                 elif isinstance(c_data, list):
                     for i, item in enumerate(c_data):
                         if isinstance(item, dict) and "name" in item:
                             idx = item.get("index", i + 1)
-                            contrast_names[idx] = item["name"]
+                            contrasts_from_json[idx] = item["name"]
                         else:
-                            contrast_names[i + 1] = item
+                            contrasts_from_json[i + 1] = item
+                
+                # Only use contrasts.json for indices NOT in SPM.mat
+                # This prevents contrasts.json from overwriting correct SPM.mat names
+                for idx, name in contrasts_from_json.items():
+                    if idx not in contrast_names:
+                        contrast_names[idx] = name
+                    else:
+                        # Warn if there's a mismatch
+                        if contrast_names[idx] != name:
+                            print(f"Warning: contrasts.json index {idx} ('{name}') differs from SPM.mat ('{contrast_names[idx]}'). Using SPM.mat name.")
         except Exception as e:
             print(f"Warning: Could not read contrasts.json: {e}")
 
-    # Define Atlases
+    # Apply group labels from config if available
     config = load_pipeline_config()
+    if isinstance(config, dict):
+        group_labels = config.get("analysis", {}).get("group_labels", {})
+        if group_labels:
+            # Replace G1, G2, G3, etc. with readable labels in contrast names
+            for con_idx, con_name in contrast_names.items():
+                updated_name = con_name
+                for group_code, group_label in group_labels.items():
+                    # Replace patterns like "G1", "G2", "G3" with labels
+                    # Handle both standalone (G1:) and within text (G1 vs G2)
+                    updated_name = re.sub(
+                        rf'\bG{group_code}\b',
+                        group_label,
+                        updated_name
+                    )
+                if updated_name != con_name:
+                    contrast_names[con_idx] = updated_name
+
+    # Define Atlases
     config_spm_path = None
     if isinstance(config, dict):
         config_spm_path = config.get("spm", {}).get("path")
@@ -1162,7 +1192,7 @@ def generate_report(
                     title=f"Con {con_num}: {corr_name} (p < {10**-log_p_thresh:.2f})",
                     figure=fig,
                     threshold=log_p_thresh,
-                    plot_abs=False,
+                    plot_abs=True,  # Use absolute values for thresholding but show direction
                 )
                 tmpfile = BytesIO()
                 fig.savefig(
@@ -1237,6 +1267,9 @@ def generate_report(
         .coords { font-family: monospace; color: #666; font-size: 0.85em; }
         .region { font-weight: 500; color: #2c3e50; }
         .hidden { display: none; }
+        .cluster-subrow { background-color: #f8f9fa; }
+        .cluster-subrow:hover { background-color: #e9ecef; }
+        .cluster-subrow.selected { background-color: #d6e9ff; }
     </style>
 </head>
 <body>
@@ -1353,7 +1386,7 @@ def generate_report(
         </thead>
         <tbody>
             {% for row in report_data %}
-            <tr class="result-row sig-{{ (row.p_thresh * 100) | int }}" 
+            <tr class="result-row {% if not row.is_first_cluster %}cluster-subrow{% endif %} sig-{{ (row.p_thresh * 100) | int }}" 
                 data-p="{{ row.p_thresh }}" 
                 data-corr="{{ row.correction }}"
                 data-con="{{ row.con_num }}"
@@ -1361,16 +1394,18 @@ def generate_report(
                 data-regions='{{ row.regions | tojson | safe }}'
                 data-gallery='{{ row.cluster_gallery | tojson | safe }}'
                 onclick="selectRow(this)">
-                <td>{{ row.con_num }}</td>
-                <td>{{ row.con_name }}</td>
-                <td>
+                {% if row.is_first_cluster %}
+                <td rowspan="{{ row.total_clusters }}">{{ row.con_num }}</td>
+                <td rowspan="{{ row.total_clusters }}">{{ row.con_name }}</td>
+                <td rowspan="{{ row.total_clusters }}">
                     <span class="badge badge-{{ row.correction.lower()[:3] }}">{{ row.correction }}</span>
                     {% if row.cluster_size %}<br><small>k > {{ row.cluster_size }}</small>{% endif %}
                     {% if row.forming_threshold %}<br><small>Forming: {{ row.forming_threshold }}</small>{% endif %}
                 </td>
-                <td>{{ row.p_label }}</td>
-                <td class="dir-{{ row.direction.lower()[:3] }}">{{ row.direction }}</td>
-                <td>{{ row.sig_voxels }}</td>
+                <td rowspan="{{ row.total_clusters }}">{{ row.p_label }}</td>
+                <td rowspan="{{ row.total_clusters }}" class="dir-{{ row.direction.lower()[:3] }}">{{ row.direction }}</td>
+                {% endif %}
+                <td>{% if row.total_clusters > 1 %}<small style="color: #6c757d;">Peak {{ row.cluster_num }}: </small>{% endif %}{{ row.sig_voxels }}</td>
                 <td>{{ "%.2f"|format(row.peak_stat) }}</td>
                 <td>{{ "%.2f"|format(row.max_logp) }}</td>
                 <td class="coords">{{ row.peak_mni }}</td>
@@ -1522,6 +1557,23 @@ def generate_report(
 </body>
 </html>"""
 
+    # Group report data by contrast to show clusters as sub-rows
+    from collections import defaultdict
+    grouped_data = defaultdict(list)
+    for row in report_data:
+        key = (row["con_num"], row["correction"], row["p_thresh"])
+        grouped_data[key].append(row)
+    
+    # Mark first cluster in each group and add cluster numbering
+    report_data_grouped = []
+    for key in sorted(grouped_data.keys()):
+        clusters = grouped_data[key]
+        for idx, cluster in enumerate(clusters):
+            cluster["is_first_cluster"] = (idx == 0)
+            cluster["cluster_num"] = idx + 1
+            cluster["total_clusters"] = len(clusters)
+            report_data_grouped.append(cluster)
+
     template = Template(html_template)
     html_content = template.render(
         results_dir=results_dir,
@@ -1531,7 +1583,7 @@ def generate_report(
         has_tfce=has_tfce,
         radiological_convention=radiological_convention,
         contrast_names=contrast_names,
-        report_data=report_data,
+        report_data=report_data_grouped,
         plots_json=json.dumps(plots),
         design_matrix_plot=design_matrix_plot,
         contrast_plots_json=json.dumps(contrast_plots),

@@ -30,17 +30,24 @@
 
   "analysis": {
     "participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/orig_participants.tsv",
+    "_participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/participants_intervention_control.tsv",
     "group_column": "group",
     "session_column": "session",
     "sessions": ["1", "2"],
     "_sessions_options": "Use ['all'] or specific list like ['1', '2', '3']",
+    "group_labels": {
+      "1": "Solo running training",
+      "2": "Group running training",
+      "3": "Control group"
+    },
+    "_group_labels_comment": "Human-readable labels for groups; keys match values in group_column",
     "standardize_continuous": true,
     "_comment": "Define modalities below; each can have different smoothing, covariates, masks",
     
     "modalities": [
       { 
         "name": "vbm",
-        "folder_name": "vbm_9mm_3G_tiv_sex_age",
+        "folder_name": "vbm_9mm_3G_2TP_tiv_sex_age",
         "smoothing_kernel": null,
         "_smoothing_comment": "null for auto-detect (must be single kernel)",
         "covariates": ["tiv", "sex", "age"],
@@ -56,12 +63,22 @@
   },
 
   "tfce": {
+    "enabled": false,
     "n_permutations": 1000,
-    "pilot_mode": true,
+    "pilot_mode": false,
     "_pilot_permutations": "Use 100 for quick testing"
   },
 
   "reporting": {
+    "enabled": true,
+    "auto_generate": true,
+    "_auto_generate_comment": "Automatically generate HTML report after statistics",
+    "quality": "low",
+    "_quality_options": "low (fast), standard (balanced), publication (high-res)",
+    "filter": "no_tfce",
+    "_filter_options": "all, tfce, no_tfce, spmt, double_threshold",
+    "output_filename": "report_{date}.html",
+    "_output_comment": "Use {date} for YYYY-MM-DD, {modality} for modality name, {analysis} for analysis_name",
     "thresholds": [
       {"p_value": 0.01, "label": "Significant (p < 0.01)"},
       {"p_value": 0.05, "label": "Significant (p < 0.05)"},
