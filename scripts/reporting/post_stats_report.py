@@ -602,8 +602,19 @@ def generate_report(
         except Exception as e:
             print(f"Warning: Could not read contrasts.json: {e}")
 
+    # Load config early for labels/paths
+    config = {}
+    if config_file and os.path.exists(config_file):
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+                print(f"Loaded config from: {config_file}")
+        except Exception as e:
+            print(f"Warning: Could not load config from {config_file}: {e}")
+    else:
+        config = load_pipeline_config()
+
     # Apply group labels from config if available
-    config = load_pipeline_config()
     if isinstance(config, dict):
         group_labels = config.get("analysis", {}).get("group_labels", {})
         if group_labels:
@@ -728,17 +739,6 @@ def generate_report(
         {"p_value": 0.1, "label": "Trend (p < 0.1)"},
     ]
     
-    config = {}
-    if config_file and os.path.exists(config_file):
-        try:
-            with open(config_file, "r") as f:
-                config = json.load(f)
-                print(f"Loaded config from: {config_file}")
-        except Exception as e:
-            print(f"Warning: Could not load config from {config_file}: {e}")
-    else:
-        config = load_pipeline_config()
-    
     # Use config thresholds or fall back to defaults
     config_thresholds = default_thresholds
     if isinstance(config, dict) and "reporting" in config:
@@ -773,6 +773,8 @@ def generate_report(
             f"*log_p*{ext_pattern}",
         ],
         "Effect Size": [f"Cohen_d_*{ext_pattern}", f"d_map_*{ext_pattern}"],
+        "Raw SPM T-maps": [f"spmT_*{ext_pattern}"],
+        "Raw SPM F-maps": [f"spmF_*{ext_pattern}"],
     }
 
     report_data = []
@@ -826,6 +828,16 @@ def generate_report(
         if filter_mode == "spmt" and corr_name not in ["FWE (Voxel)", "FDR (Voxel)"]:
             continue
         if filter_mode == "no_tfce" and corr_name in ["FWE (TFCE)", "FDR (TFCE)"]:
+            continue
+        # For no_tfce: prioritize double threshold, then raw SPM, then effect size
+        if filter_mode == "no_tfce":
+            # Include: Double Threshold, Raw SPM maps, Effect Size
+            if corr_name not in ["Double Threshold", "Raw SPM T-maps", "Raw SPM F-maps", "Effect Size"]:
+                continue
+        # For other modes: always include raw SPM and double threshold
+        elif filter_mode == "all" and corr_name in ["Raw SPM T-maps", "Raw SPM F-maps"]:
+            pass  # Keep them in "all" mode
+        elif filter_mode != "all" and corr_name in ["Raw SPM T-maps", "Raw SPM F-maps"]:
             continue
 
         files = []
@@ -909,8 +921,18 @@ def generate_report(
 
             con_num = None
 
+            # Handle pkFWE files (double-threshold): pkFWE5_k10_0005.nii
+            if "PK" in base_upper and "FWE" in base_upper:
+                try:
+                    # Extract the trailing number (contrast index)
+                    match = re.search(r"_(\d{4,})\.nii", basename, re.IGNORECASE)
+                    if match:
+                        con_num = int(match.group(1))
+                except ValueError:
+                    pass
+            
             # Try to parse con_num from TFCE_log_p..._0001.nii or spmT_0001.nii
-            if any(
+            if con_num is None and any(
                 x in base_upper
                 for x in ["TFCE", "SPMT", "SPMF", "T_LOG", "F_LOG", "COHEN", "D_MAP"]
             ):
@@ -1013,6 +1035,16 @@ def generate_report(
             elif corr_name == "Effect Size":
                 # For effect size, we only want one "threshold" (all results)
                 current_thresholds_list = [(1.0, 0.2, "Cohen's d")]
+            elif corr_name in ["Raw SPM T-maps", "Raw SPM F-maps"]:
+                # For raw SPM maps, use T/F value thresholds instead of log-p
+                # T > 2.0 is roughly equivalent to p < 0.05 uncorrected (varies with df)
+                # T > 2.5 is roughly p < 0.02
+                # T > 3.0 is roughly p < 0.005
+                current_thresholds_list = [
+                    (0.05, 2.0, "Uncorrected (p < 0.05)"),
+                    (0.01, 2.5, "Uncorrected (p < 0.01)"),
+                    (0.001, 3.0, "Uncorrected (p < 0.001)"),
+                ]
 
             # For each threshold
             for p_val, log_p_thresh, p_label in current_thresholds_list:

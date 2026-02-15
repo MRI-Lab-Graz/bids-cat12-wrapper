@@ -69,13 +69,21 @@
     "_pilot_permutations": "Use 100 for quick testing"
   },
 
+  "double_threshold": {
+    "enabled": true,
+    "intensity_p_uncorrected": 0.001,
+    "cluster_size_voxels": 10,
+    "fwe_level": 0.05,
+    "_comment": "Double threshold: intensity p-value (uncorrected), min cluster size voxels, and FWE correction level for multiple comparisons"
+  },
+
   "reporting": {
     "enabled": true,
     "auto_generate": true,
     "_auto_generate_comment": "Automatically generate HTML report after statistics",
     "quality": "low",
     "_quality_options": "low (fast), standard (balanced), publication (high-res)",
-    "filter": "no_tfce",
+    "filter": "double_threshold",
     "_filter_options": "all, tfce, no_tfce, spmt, double_threshold",
     "output_filename": "report_{date}.html",
     "_output_comment": "Use {date} for YYYY-MM-DD, {modality} for modality name, {analysis} for analysis_name",

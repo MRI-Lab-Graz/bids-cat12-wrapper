@@ -591,8 +591,14 @@ if [[ "$TFCE_ENABLED" == "false" ]]; then
     NO_TFCE=true
 fi
 
+# Reporting settings
+REPORT_AUTO_GENERATE=$(get_json_value "reporting.auto_generate" "true")
+REPORT_QUALITY=$(get_json_value "reporting.quality" "low")
+REPORT_FILTER=$(get_json_value "reporting.filter" "no_tfce")
+
 # Debug: show what was read
 echo "DEBUG: PILOT_MODE from config = '$PILOT_MODE'"
+echo "DEBUG: REPORT_AUTO_GENERATE from config = '$REPORT_AUTO_GENERATE'"
 
 # If pilot mode is enabled, override N_PERM to 100
 if [[ "$PILOT_MODE" == "true" ]]; then
@@ -1227,14 +1233,14 @@ if [[ "$NO_TFCE" == true ]]; then
     fi
     echo "└────────────────────────────────────────────────────────────────────────┘"
     echo ""
-    echo "Pipeline stopping early as requested."
-    echo "Results saved to: $OUTPUT_DIR"
-    exit 0
+    # Don't exit early - continue to report generation
 fi
 
 # ============================================================================
-# Step 6: TFCE Correction
+# Step 6: TFCE Correction (only if TFCE is enabled)
 # ============================================================================
+
+if [[ "$NO_TFCE" != true ]]; then
 
 mkdir -p "$LOG_DIR"
 
@@ -1341,34 +1347,74 @@ python3 "$UTILS_DIR/generate_tfce_images.py" \
 echo ""
 fi  # Close the if [[ "$SKIP_TFCE" == true ]] statement
 
+fi  # Close the if [[ "$NO_TFCE" != true ]] statement
+
+# ============================================================================
+# Step 6c: Generate Double-Threshold Maps
+# ============================================================================
+
+echo "┌────────────────────────────────────────────────────────────────────────┐"
+echo "│ STEP 6c: Generating Double-Threshold Maps                             │"
+echo "└────────────────────────────────────────────────────────────────────────┘"
+echo ""
+
+# Generate double-threshold maps using configured parameters
+DOUBLE_THRESHOLD_ENABLED=$(get_json_value "double_threshold.enabled" "true")
+
+if [[ "$DOUBLE_THRESHOLD_ENABLED" == "true" ]]; then
+    log_info "Generating double-threshold maps (intensity p-value + cluster size)..."
+    python3 "$ROOT_DIR/scripts/analysis/generate_double_threshold.py" \
+        "$OUTPUT_DIR" \
+        --config "$CONFIG_JSON" \
+        --run || {
+            log_warning "Double-threshold generation failed, continuing with report generation..."
+        }
+    echo ""
+    log_success "Double-threshold maps generated"
+else
+    log_info "Double-threshold generation is disabled in configuration"
+fi
+
+echo ""
+
 echo "┌────────────────────────────────────────────────────────────────────────┐"
 echo "│ STEP 7: Generating Interactive Post-Stats Report                     │"
 echo "└────────────────────────────────────────────────────────────────────────┘"
 echo ""
 
-# Generate interactive HTML report using the new post_stats_report.py script
-# This creates a modern, interactive report with grouped clusters and filtering
-REPORT_HTML="$OUTPUT_DIR/report_$(date +%Y-%m-%d_%H%M%S).html"
+# Generate interactive HTML report if auto_generate is enabled
+if [[ "$REPORT_AUTO_GENERATE" == "true" ]]; then
+    # Generate interactive HTML report using the new post_stats_report.py script
+    # This creates a modern, interactive report with grouped clusters and filtering
+    REPORT_DATE=$(date +%Y-%m-%d_%H%M%S)
+    REPORT_FILENAME_TEMPLATE=$(get_json_value "reporting.output_filename" "report_{date}.html")
+    REPORT_FILENAME="${REPORT_FILENAME_TEMPLATE//\{date\}/$REPORT_DATE}"
+    REPORT_FILENAME="${REPORT_FILENAME//\{modality\}/$MODALITY}"
+    REPORT_FILENAME="${REPORT_FILENAME//\{analysis\}/$ANALYSIS_NAME}"
+    REPORT_HTML="$OUTPUT_DIR/$REPORT_FILENAME"
 
-python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
-    "$OUTPUT_DIR" \
-    "$REPORT_HTML" \
-    --quality low \
-    --filter no_tfce \
-    --config "$CONFIG_JSON" || {
-        log_warning "Interactive HTML report generation failed, trying fallback..."
-        # Fallback: try with a default config location
-        python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
-            "$OUTPUT_DIR" \
-            "$REPORT_HTML" \
-            --quality low \
-            --filter no_tfce || {
-                log_warning "Report generation failed completely"
-            }
-    }
+    python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
+        "$OUTPUT_DIR" \
+        "$REPORT_HTML" \
+        --quality "$REPORT_QUALITY" \
+        --filter "$REPORT_FILTER" \
+        --config "$CONFIG_JSON" || {
+            log_warning "Interactive HTML report generation failed, trying fallback..."
+            # Fallback: try with a default config location
+            python3 "$ROOT_DIR/scripts/reporting/post_stats_report.py" \
+                "$OUTPUT_DIR" \
+                "$REPORT_HTML" \
+                --quality "$REPORT_QUALITY" \
+                --filter "$REPORT_FILTER" || {
+                    log_warning "Report generation failed completely"
+                }
+        }
 
-if [[ -f "$REPORT_HTML" ]]; then
-    echo "✓ Interactive report generated: $REPORT_HTML"
+    if [[ -f "$REPORT_HTML" ]]; then
+        echo "✓ Interactive report generated: $REPORT_HTML"
+    fi
+else
+    echo "Report generation skipped (auto_generate disabled in config)"
 fi
 
 echo ""
