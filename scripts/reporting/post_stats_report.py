@@ -614,6 +614,9 @@ def generate_report(
     else:
         config = load_pipeline_config()
 
+    # Keep a copy of original contrast names for filename matching (before label replacement)
+    contrast_names_original = contrast_names.copy()
+
     # Apply group labels from config if available
     if isinstance(config, dict):
         group_labels = config.get("analysis", {}).get("group_labels", {})
@@ -957,16 +960,22 @@ def generate_report(
 
             # If not found, try to match contrast name from filename
             if con_num is None:
-                for num, name in contrast_names.items():
-                    # Try exact match with underscores
+                for num, name in contrast_names_original.items():
+                    # Try exact match with underscores for spaces: "Overall: G1 - G2" -> "Overall:_G1_-_G2"
                     cat12_style_name = name.replace(" ", "_")
                     if cat12_style_name in basename:
                         con_num = num
                         break
 
-                    # Try matching without colons
-                    no_colon_name = name.replace(":", "_").replace(" ", "_")
+                    # Try matching with colon replaced by underscore: "Overall: G1 - G2" -> "Overall_G1_-_G2"
+                    no_colon_name = name.replace(":", "").replace(" ", "_")
                     if no_colon_name in basename:
+                        con_num = num
+                        break
+
+                    # Try matching with colon AND space after colon: "Overall: G1" -> "Overall:_G1"
+                    colon_underscore_name = name.replace(": ", ":_")
+                    if colon_underscore_name in basename:
                         con_num = num
                         break
 

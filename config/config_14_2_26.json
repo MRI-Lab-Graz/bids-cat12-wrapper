@@ -29,16 +29,15 @@
   },
 
   "analysis": {
-    "participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/orig_participants.tsv",
-    "_participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/participants_intervention_control.tsv",
+    "_participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/orig_participants.tsv",
+    "participants_file": "/Volumes/Thunder/129_PK01/cat12/stats/results/data/participants_intervention_control.tsv",
     "group_column": "group",
     "session_column": "session",
-    "sessions": ["1", "2"],
+    "sessions": ["1", "2", "3"],
     "_sessions_options": "Use ['all'] or specific list like ['1', '2', '3']",
     "group_labels": {
-      "1": "Solo running training",
-      "2": "Group running training",
-      "3": "Control group"
+      "intervention": "Running group",
+      "control": "Control"
     },
     "_group_labels_comment": "Human-readable labels for groups; keys match values in group_column",
     "standardize_continuous": true,
@@ -47,7 +46,7 @@
     "modalities": [
       { 
         "name": "vbm",
-        "folder_name": "vbm_9mm_3G_2TP_tiv_sex_age",
+        "folder_name": "vbm_9mm_2G_3TP_tiv_sex_age_test",
         "smoothing_kernel": null,
         "_smoothing_comment": "null for auto-detect (must be single kernel)",
         "covariates": ["tiv", "sex", "age"],
@@ -74,6 +73,7 @@
     "intensity_p_uncorrected": 0.001,
     "cluster_size_voxels": 10,
     "fwe_level": 0.05,
+    "spm_defaults": "FMRI",
     "_comment": "Double threshold: intensity p-value (uncorrected), min cluster size voxels, and FWE correction level for multiple comparisons"
   },
 
@@ -101,7 +101,7 @@
   },
 
   "output": {
-    "analysis_name": "3groups_2sessions",
-    "force_clean": false
+    "analysis_name": "2groups_3sessions",
+    "force_clean": true
   }
 }

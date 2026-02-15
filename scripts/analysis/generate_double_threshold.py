@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Generate double-threshold maps using CAT12's thresholding tool.
+Generate double-threshold maps using CAT12's T2x thresholding tool.
 
 This script creates MATLAB batch jobs to apply CAT12's thresholding
 function to SPM T-maps, generating double-thresholded results with
-cluster-size and intensity-level correction.
+uncorrected voxel thresholding and cluster-level FWE correction.
 
 The approach:
-1. For each spmT_*.nii contrast, create a MATLAB job calling CAT12's
-   threshold SPM-maps function
-2. Run jobs via SPM batch system
-3. Output: thresholded maps with cluster mask (pkFWE files)
+1. Collect spmT_*.nii maps
+2. Build a CAT12 T2x batch (uncorrected p, cluster FWE)
+3. Run via SPM batch system
+4. Output: CAT12 thresholded maps (pkFWE files)
 
 Usage:
     python generate_double_threshold.py <stats_folder>
@@ -77,15 +77,15 @@ def generate_thresholding_batch(stats_folder, spm_path, config=None):
     stats_path = os.path.abspath(stats_folder)
     
     # Get double threshold parameters from config or use defaults
-    cluster_threshold = 10
     p_intensity_threshold = 0.001
     p_fwe_level = 0.05
+    spm_defaults = "FMRI"
     
     if config and "double_threshold" in config:
         dt_config = config["double_threshold"]
-        cluster_threshold = dt_config.get("cluster_size_voxels", cluster_threshold)
         p_intensity_threshold = dt_config.get("intensity_p_uncorrected", p_intensity_threshold)
         p_fwe_level = dt_config.get("fwe_level", p_fwe_level)
+        spm_defaults = dt_config.get("spm_defaults", spm_defaults)
     
     # Find spmT files
     spmt_files = sorted(glob.glob(os.path.join(stats_path, "spmT_*.nii")))
@@ -96,12 +96,6 @@ def generate_thresholding_batch(stats_folder, spm_path, config=None):
     
     print(f"Found {len(spmt_files)} spmT maps to threshold")
     
-    # Verify SPM.mat exists
-    spm_mat = os.path.join(stats_path, "SPM.mat")
-    if not os.path.exists(spm_mat):
-        print(f"Error: SPM.mat not found in {stats_path}")
-        return None
-    
     if not spm_path:
         spm_path = find_spm_path()
     
@@ -111,133 +105,42 @@ def generate_thresholding_batch(stats_folder, spm_path, config=None):
     
     print(f"Using SPM at: {spm_path}")
     
-    # MATLAB batch template for CAT12 Results Viewer with thresholding
-    # CAT12 provides "Threshold" function in cat12('threshold', ...)
+    # MATLAB batch template using CAT12 T2x (matches saved job)
     # For double-threshold approach:
-    # - Load SPM.mat
-    # - Set intensity threshold (from config)
-    # - Set cluster threshold (from config)
-    # - This creates thresholded maps saved as pkFWE files
-    
+    # - Uncorrected voxel threshold (p < 0.001)
+    # - Cluster-level FWE (p < 0.05)
+    spmt_list = "\n".join([f"                                                   '{p},1'" for p in spmt_files])
+    uncorrected_key = "thresh001" if abs(p_intensity_threshold - 0.001) < 1e-9 else "thresh001"
+    fwe_key = "thresh05" if abs(p_fwe_level - 0.05) < 1e-9 else "thresh05"
+
+    if abs(p_intensity_threshold - 0.001) >= 1e-9:
+        print("Warning: CAT12 batch expects uncorrected 0.001 (thresh001). Using thresh001 field with configured value.")
+    if abs(p_fwe_level - 0.05) >= 1e-9:
+        print("Warning: CAT12 batch expects FWE 0.05 (thresh05). Using thresh05 field with configured value.")
+
     batch_content = f'''% CAT12 Double Threshold Batch
 % Generated for: {stats_path}
-% Purpose: Apply intensity + cluster thresholding to spmT maps
-% Config: intensity_p_uncorrected={p_intensity_threshold}, cluster_size_voxels={cluster_threshold}, fwe_level={p_fwe_level}
+% Purpose: Apply uncorrected voxel threshold and cluster-level FWE
+% Config: intensity_p_uncorrected={p_intensity_threshold}, fwe_level={p_fwe_level}, spm_defaults={spm_defaults}
 
-spm('defaults', 'FMRI');
+spm('defaults', '{spm_defaults}');
 spm_jobman('initcfg');
 
 % Add SPM path
 addpath('{spm_path}');
 addpath(fullfile('{spm_path}', 'toolbox', 'cat12'));
 
-% Load SPM structure
-SPM_file = '{spm_mat}';
-load(SPM_file, 'SPM');
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.data_T2x = {{
+{spmt_list}
+                                                   }};
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.conversion.sel = 2;
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.conversion.threshdesc.uncorr.{uncorrected_key} = {p_intensity_threshold};
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.conversion.inverse = 0;
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.{fwe_key} = {p_fwe_level};
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.conversion.cluster.fwe2.noniso = 1;
+matlabbatch{{1}}.spm.tools.cat.tools.T2x.atlas = 'None';
 
-fprintf('\\n%s\\n', repmat('=', 1, 80));
-fprintf('CAT12 DOUBLE THRESHOLD FOR SPM T-MAPS\\n');
-fprintf('%s\\n\\n', repmat('=', 1, 80));
-
-% Thresholding parameters (from config)
-cluster_threshold = {cluster_threshold};  % minimum cluster size in voxels
-p_intensity_threshold = {p_intensity_threshold};  % p-value for intensity (uncorrected)
-p_fwe_level = {p_fwe_level};  % FWE correction level (for naming)
-
-fprintf('Intensity threshold: p < %.4f (uncorrected)\\n', p_intensity_threshold);
-fprintf('Cluster threshold: k > %d voxels\\n', cluster_threshold);
-fprintf('FWE level: p < %.2f\\n\\n', p_fwe_level);
-
-% Use CAT12's thresholding functionality
-% This is typically accessed via interactive SPM Results GUI
-% For batch mode, we need to loop through contrasts and apply thresholding
-
-% Get number of contrasts
-ncon = length(SPM.xCon);
-fprintf('Processing %d contrasts...\\n\\n', ncon);
-
-% Process each contrast (starting from those that are T-contrasts)
-for con_idx = 1:ncon
-    con = SPM.xCon(con_idx);
-    
-    % Only process T-contrasts (not F-contrasts)
-    if ~strcmp(con.STAT, 'T')
-        continue;
-    end
-    
-    % Expected spmT file
-    spmt_file = fullfile('{stats_path}', sprintf('spmT_%04d.nii', con_idx));
-    
-    if ~exist(spmt_file, 'file')
-        fprintf('Warning: %s not found\\n', spmt_file);
-        continue;
-    end
-    
-    fprintf('Processing: %s\\n', con.name);
-    fprintf('  spmT file: %s\\n', spmt_file);
-    
-    % Note: CAT12's interactive thresholding creates clustered binary masks
-    % For batch processing, we use SPM's cluster detection functions
-    % Then save as thresholded NIfTI
-    
-    try
-        % Load the T-map
-        V = spm_vol(spmt_file);
-        Y = spm_read_vols(V);
-        
-        % Get T-threshold from p-value using SPM's t-distribution
-        % For p=0.001, df=residual df from SPM
-        df = SPM.xX.erdf;
-        t_crit = spm_invTcdf(1 - p_intensity_threshold, df);
-        
-        fprintf('  T-critical (p<%.4f, df=%d): %.3f\\n', p_intensity_threshold, df, t_crit);
-        
-        % Apply intensity threshold
-        mask = abs(Y) >= t_crit;
-        
-        % Apply cluster threshold using connected components
-        % 3D connectivity (6, 18, or 26 neighbors)
-        CC = bwconncomp(mask, 26);
-        
-        % Keep only clusters with at least cluster_threshold voxels
-        cluster_sizes = cellfun(@numel, CC.PixelIdxList);
-        valid_clusters = find(cluster_sizes >= cluster_threshold);
-        
-        fprintf('  Found %d clusters, %d with k>%d\\n', ...
-                CC.NumObjects, length(valid_clusters), cluster_threshold);
-        
-        % Create thresholded map
-        Y_thresh = zeros(size(Y));
-        for c_id = valid_clusters
-            Y_thresh(CC.PixelIdxList{{c_id}}) = Y(CC.PixelIdxList{{c_id}});
-        end
-        
-        % Save thresholded map with CAT12 naming convention
-        % Format: pkFWE5 means FWE at p<0.05, pkFWE1 means p<0.01, etc.
-        fwe_name = sprintf('pkFWE%d', round(p_fwe_level * 100));
-        out_name = regexprep(V.fname, 'spmT_', ['', fwe_name, '_k', num2str(cluster_threshold), '_']);
-        
-        % Ensure proper output naming
-        if ~contains(out_name, 'pk')
-            [pathstr, name, ext] = fileparts(V.fname);
-            out_name = fullfile(pathstr, [name, '_', fwe_name, '_k', num2str(cluster_threshold), ext]);
-        end
-        
-        % Write output
-        V.fname = out_name;
-        spm_write_vol(V, Y_thresh);
-        
-        fprintf('  Saved thresholded map: %s\\n\\n', out_name);
-        
-    catch ME
-        fprintf('Error processing contrast %d: %s\\n\\n', con_idx, ME.message);
-        continue;
-    end
-end
-
-fprintf('\\n%s\\n', repmat('=', 1, 80));
-fprintf('DOUBLE THRESHOLDING COMPLETE\\n');
-fprintf('%s\\n', repmat('=', 1, 80));
+spm_jobman('run', matlabbatch);
 '''
     
     # Write batch file
