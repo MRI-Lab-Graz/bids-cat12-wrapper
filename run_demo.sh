@@ -48,8 +48,24 @@ fi
 echo "✅ Cleanup complete!"
 echo ""
 
+EXPECTED_OUTPUTS=$(python3 - <<'PY'
+import json
+from pathlib import Path
+
+cfg = Path("projects/demo/run_demo.json")
+if not cfg.exists():
+  print(16)
+else:
+  data = json.loads(cfg.read_text())
+  bids = data.get("preprocessing", {}).get("bids", {})
+  n_sub = len(bids.get("participant_label", []) or [])
+  n_ses = len(bids.get("session_label", []) or [])
+  print(n_sub * n_ses if n_sub and n_ses else 16)
+PY
+)
+
 # Phase 1: Full Preprocessing
-echo "📊 PHASE 1: Preprocessing all subjects (4 subjects × 4 sessions = 16 images)"
+echo "📊 PHASE 1: Preprocessing all subjects (expected ${EXPECTED_OUTPUTS} images)"
 echo "Expected duration: 2-4 hours"
 echo "---"
 
@@ -65,10 +81,10 @@ echo "📊 PHASE 2: Verifying preprocessing outputs"
 echo "---"
 
 OUTPUT_COUNT=$(find projects/demo/derivatives/cat12 -name "mwp1*.nii*" 2>/dev/null | wc -l)
-echo "Found $OUTPUT_COUNT modulated segmentations (expect 16)"
+echo "Found $OUTPUT_COUNT modulated segmentations (expect ${EXPECTED_OUTPUTS})"
 
-if [ "$OUTPUT_COUNT" -lt 16 ]; then
-  echo "⚠️  Warning: Expected 16 outputs, found $OUTPUT_COUNT"
+if [ "$OUTPUT_COUNT" -lt "$EXPECTED_OUTPUTS" ]; then
+  echo "⚠️  Warning: Expected ${EXPECTED_OUTPUTS} outputs, found $OUTPUT_COUNT"
 fi
 
 echo ""

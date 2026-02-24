@@ -320,6 +320,24 @@ def parse_participants(args):
     print(f"Found {len(df)} rows in participants file")
     print(f"Columns: {', '.join(df.columns)}")
 
+    # Normalize participant id column for compatibility with scan-level
+    # covariate tables that use 'subject' or 'subject_id'.
+    if "participant_id" not in df.columns:
+        for alias in ["subject_id", "subject"]:
+            if alias in df.columns:
+                df["participant_id"] = df[alias]
+                print(
+                    f"Note: Using '{alias}' column as 'participant_id' for compatibility"
+                )
+                break
+
+    if "participant_id" in df.columns:
+        df["participant_id"] = df["participant_id"].apply(
+            lambda x: x
+            if pd.isna(x) or str(x).startswith("sub-")
+            else f"sub-{str(x)}"
+        )
+
     # Auto-detect group column if not specified
     if not args.group_col:
         group_candidates = [
@@ -331,15 +349,24 @@ def parse_participants(args):
             args.group_col = group_candidates[0]
             print(f"Auto-detected group column: {args.group_col}")
         else:
+            args.group_col = "group"
+            df[args.group_col] = "all"
             print(
-                "Error: Could not auto-detect group column. Please specify --group-col"
+                "Note: No group column detected. Created default 'group' column with value 'all'."
             )
-            sys.exit(1)
+    elif args.group_col not in df.columns:
+        df[args.group_col] = "all"
+        print(
+            f"Note: Group column '{args.group_col}' missing. Created default single-group values ('all')."
+        )
 
     # Check required columns exist
     # BIDS-compliant format: one row per subject with nr_sessions column
     has_nr_sessions = "nr_sessions" in df.columns
-    has_session_col = args.session_col in df.columns
+    has_session_col = args.session_col in df.columns and (
+        df[args.session_col].notna()
+        & (df[args.session_col].astype(str).str.strip() != "")
+    ).any()
 
     if has_nr_sessions:
         # BIDS format: one row per subject with nr_sessions

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import json
 import os
 import shutil
 import sys
@@ -26,7 +27,7 @@ except ImportError:
         pp = None  # Handle gracefully in functions
 
 
-def check_matlab_and_spm() -> bool:
+def check_matlab_and_spm(config_file: str | None = None) -> bool:
     """Ensure MATLAB executable and SPM installation path are available."""
     script_dir = os.path.dirname(__file__)
     repo_root = os.path.dirname(os.path.dirname(script_dir))
@@ -39,7 +40,17 @@ def check_matlab_and_spm() -> bool:
         print(f"ERROR: Unable to import load_config helper: {exc}")
         return False
 
-    config = load_config()
+    config = load_config(config_file)
+
+    software_mode = (
+        str(config.get("software", {}).get("mode", "")).strip().lower()
+        if isinstance(config, dict)
+        else ""
+    )
+    if software_mode == "standalone":
+        print("✓ Standalone mode configured; MATLAB/SPM checks skipped")
+        return True
+
     matlab_exe = (get_matlab_exe(config) or "").strip()
     overall_ok = True
 
@@ -162,15 +173,17 @@ def gather_expected_sessions(
 ) -> Dict[str, List[str]]:
     df = pd.read_csv(participants_file, sep="\t")
 
-    # Support both 'participant_id' and 'subject_id' column names
+    # Support common subject id column names
     id_col = None
     if "participant_id" in df.columns:
         id_col = "participant_id"
     elif "subject_id" in df.columns:
         id_col = "subject_id"
+    elif "subject" in df.columns:
+        id_col = "subject"
     else:
         raise ValueError(
-            "participants.tsv must contain 'participant_id' or 'subject_id' column"
+            "participants.tsv must contain 'participant_id', 'subject_id', or 'subject' column"
         )
 
     expected: Dict[str, List[str]] = {}
@@ -230,6 +243,17 @@ def check_xml_reports(cat12_dir: str, participants_file: str, session_col: str) 
         print("ERROR: Unable to import parse_participants helper.")
         return False
 
+    # First, check if TIV is already in participants file - if so, XML is optional
+    try:
+        df = pd.read_csv(participants_file, sep="\t")
+        for col in df.columns:
+            if col.lower() in ("tiv", "vol_tiv"):
+                # TIV already provided, XML is optional
+                print("⚠️  TIV column found in participants file; CAT12 XML reports are optional")
+                return True
+    except Exception:
+        pass
+
     try:
         expected = gather_expected_sessions(participants_file, session_col)
     except ValueError as exc:
@@ -262,7 +286,7 @@ def check_xml_reports(cat12_dir: str, participants_file: str, session_col: str) 
         if len(missing) > 10:
             print(f"  ... and {len(missing) - 10} more")
         print(
-            "Please rerun CAT12 preprocessing or add the XML files before running the pipeline."
+            "Please rerun CAT12 preprocessing, add the XML files, or provide TIV values in participants.tsv."
         )
         return False
 
@@ -621,6 +645,11 @@ def main() -> None:
     )
     parser.add_argument("--participants", required=True, help="participants.tsv path")
     parser.add_argument(
+        "--config",
+        default=None,
+        help="Optional path to JSON config (used to detect standalone mode)",
+    )
+    parser.add_argument(
         "--covariates",
         default="",
         help='Comma-separated covariates to check (e.g., "age,sex,tiv")',
@@ -655,7 +684,7 @@ def main() -> None:
         overall_ok = False
 
     print("\n=== Preflight: MATLAB/SPM availability ===")
-    if not check_matlab_and_spm():
+    if not check_matlab_and_spm(args.config):
         overall_ok = False
 
     print("\n=== Preflight: CAT12 files ===")

@@ -96,7 +96,7 @@
     "participants_file": "projects/demo/participants_ds004937.tsv",
     "group_column": "group",
     "session_column": "session",
-    "sessions": ["1", "2", "3", "4"],
+    "sessions": ["1", "2", "3"],
     "standardize_continuous": true,
     "_comment": "Define modalities below; each can have different smoothing, covariates, masks",
     "modalities": [
