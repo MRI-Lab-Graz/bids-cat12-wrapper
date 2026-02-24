@@ -10,6 +10,12 @@ cd "$REPO_ROOT"
 # Activate environment
 source .venv/bin/activate
 source .env
+VENV_PY="$REPO_ROOT/.venv/bin/python"
+
+if [ ! -x "$VENV_PY" ]; then
+  echo "Error: Virtualenv Python not found at $VENV_PY"
+  exit 1
+fi
 
 # Disable progress bars for non-interactive mode to prevent BrokenPipeError
 export TQDM_DISABLE=1
@@ -48,7 +54,7 @@ fi
 echo "✅ Cleanup complete!"
 echo ""
 
-EXPECTED_OUTPUTS=$(python3 - <<'PY'
+EXPECTED_OUTPUTS=$($VENV_PY - <<'PY'
 import json
 from pathlib import Path
 
@@ -93,7 +99,7 @@ echo ""
 echo "📊 PHASE 3: Extracting covariates from CAT12 outputs"
 echo "---"
 
-python scripts/utils/extract_covariates_from_xml.py \
+"$VENV_PY" scripts/utils/extract_covariates_from_xml.py \
   --cat12 projects/demo/derivatives/cat12 \
   --participants openneuro/ds004937/participants.tsv \
   --out projects/demo/participants_ds004937.tsv
@@ -119,8 +125,8 @@ echo ""
 echo "📊 PHASE 5: Generating HTML report"
 echo "---"
 
-python scripts/reporting/post_stats_report.py \
-  projects/demo/results/vbm_smooth6 \
+"$VENV_PY" scripts/reporting/post_stats_report.py \
+  results/vbm/vbm_smooth6 \
   projects/demo/report_vbm.html
 
 echo "✅ Report generated: projects/demo/report_vbm.html"
@@ -133,6 +139,6 @@ echo "Completion time: $(date)"
 echo ""
 echo "Results location:"
 echo "  - Preprocessing: projects/demo/derivatives/cat12/"
-echo "  - Statistics: projects/demo/results/"
+echo "  - Statistics: results/vbm/"
 echo "  - Report: projects/demo/report_vbm.html"
 echo ""
