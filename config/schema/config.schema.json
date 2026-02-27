@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cat12.local/config.schema.json",
+  "title": "CAT12 Statistics Pipeline Config",
+  "type": "object",
+  "required": [
+    "software",
+    "matlab",
+    "spm",
+    "python",
+    "analysis",
+    "screening",
+    "tfce",
+    "double_threshold",
+    "reporting",
+    "performance",
+    "output"
+  ],
+  "properties": {
+    "_comment": {"type": "string"},
+    "_updated": {"type": "string"},
+    "study": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "description": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "software": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["matlab", "standalone"]
+        },
+        "cat12_standalone": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string"},
+            "mcr_root": {"type": "string"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "matlab": {
+      "type": "object",
+      "required": ["executable"],
+      "properties": {
+        "executable": {"type": "string", "minLength": 1},
+        "allow_graphics": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "spm": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "python": {
+      "type": "object",
+      "required": ["executable"],
+      "properties": {
+        "executable": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "analysis": {
+      "type": "object",
+      "required": [
+        "participants_file",
+        "group_column",
+        "session_column",
+        "sessions",
+        "modalities"
+      ],
+      "properties": {
+        "participants_file": {"type": "string", "minLength": 1},
+        "group_column": {"type": "string", "minLength": 1},
+        "session_column": {"type": "string", "minLength": 1},
+        "sessions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"}
+        },
+        "group_labels": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "standardize_continuous": {"type": "boolean"},
+        "modalities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "folder_name", "covariates"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "folder_name": {"type": "string", "minLength": 1},
+              "smoothing_kernel": {
+                "oneOf": [
+                  {"type": "integer", "minimum": 0},
+                  {"type": "null"}
+                ]
+              },
+              "covariates": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "mask": {"type": "string"}
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "screening": {
+      "type": "object",
+      "required": ["uncorrected_p", "cluster_size_voxels", "skip_screening"],
+      "properties": {
+        "uncorrected_p": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "cluster_size_voxels": {"type": "integer", "minimum": 0},
+        "skip_screening": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "tfce": {
+      "type": "object",
+      "required": ["enabled", "n_permutations", "pilot_mode"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "n_permutations": {"type": "integer", "minimum": 1},
+        "pilot_mode": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "double_threshold": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "intensity_p_uncorrected",
+        "cluster_size_voxels",
+        "fwe_level",
+        "spm_defaults"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "intensity_p_uncorrected": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "cluster_size_voxels": {"type": "integer", "minimum": 0},
+        "fwe_level": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "spm_defaults": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "reporting": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "auto_generate",
+        "quality",
+        "filter",
+        "output_filename",
+        "thresholds"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "auto_generate": {"type": "boolean"},
+        "quality": {
+          "type": "string",
+          "enum": ["low", "standard", "publication"]
+        },
+        "filter": {
+          "type": "string",
+          "enum": ["all", "tfce", "no_tfce", "spmt", "double_threshold"]
+        },
+        "output_filename": {"type": "string", "minLength": 1},
+        "thresholds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["p_value", "label"],
+            "properties": {
+              "p_value": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+              "label": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "performance": {
+      "type": "object",
+      "required": ["parallel_jobs", "memory_limit_gb"],
+      "properties": {
+        "parallel_jobs": {"type": "integer", "minimum": 1},
+        "memory_limit_gb": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "output": {
+      "type": "object",
+      "required": ["analysis_name", "force_clean"],
+      "properties": {
+        "analysis_name": {"type": "string", "minLength": 1},
+        "force_clean": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "pipeline": {
+      "type": "object",
+      "properties": {
+        "preproc_command": {"type": "string"},
+        "steps": {
+          "type": "object",
+          "properties": {
+            "preproc": {"type": "object", "properties": {"enabled": {"type": "boolean"}}, "additionalProperties": true},
+            "stats": {"type": "object", "properties": {"enabled": {"type": "boolean"}}, "additionalProperties": true},
+            "sweep": {"type": "object", "properties": {"enabled": {"type": "boolean"}}, "additionalProperties": true},
+            "report": {"type": "object", "properties": {"enabled": {"type": "boolean"}}, "additionalProperties": true}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

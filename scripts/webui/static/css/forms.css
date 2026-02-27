@@ -1,0 +1,34 @@
+.field-block { border-left: 3px solid #dee2e6; margin-left: 0.5rem; padding-left: 0.75rem; margin-bottom: 0.5rem; }
+.field-title { font-weight: 600; margin-top: 0.4rem; }
+.field-leaf { margin-bottom: 0.6rem; }
+.path-hint { color: #6c757d; font-size: 0.78rem; }
+
+.field-block-collapsible {
+	border-left: 3px solid #cfd4da;
+	border-radius: 4px;
+	background: #f8f9fb;
+	padding: 0.35rem 0.6rem 0.5rem;
+}
+
+.field-block-collapsible > summary {
+	cursor: pointer;
+	list-style: none;
+}
+
+.field-block-collapsible > summary::-webkit-details-marker {
+	display: none;
+}
+
+.field-block-collapsible > summary::before {
+	content: '▸';
+	margin-right: 0.4rem;
+	color: #6c757d;
+}
+
+.field-block-collapsible[open] > summary::before {
+	content: '▾';
+}
+
+.field-block-content {
+	margin-top: 0.25rem;
+}

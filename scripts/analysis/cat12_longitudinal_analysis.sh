@@ -139,8 +139,8 @@ get_ini_value() {
     fi
     
     local value=$(awk -F '=' -v section="[$section]" -v key="$key" '
-        /^\[/ { current_section = $0 }
-        current_section == section && $1 ~ /^[[:space:]]*'"$key"'[[:space:]]*$/ {
+        /^\[/ {current_section = $0}
+        current_section == section && $1 ~ "^[[:space:]]*" key "[[:space:]]*$" {
             val = $2
             gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
             print val
@@ -906,7 +906,7 @@ if [[ -n "$CAT12_DIR" ]] && [[ -n "$PARTICIPANTS_FILE" ]]; then
     if [[ -n "$PRECHECK_MASK" ]]; then
         PRECHECK_MASK_ARG="--mask $PRECHECK_MASK"
     fi
-    python3 "$UTILS_DIR/preflight_check.py" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --config "$CONFIG_JSON" --smoothing "$SMOOTHING" --modality "$MODALITY" $PRECHECK_MASK_ARG || {
+    python3 "$UTILS_DIR/preflight_check.py" --config "$CONFIG_JSON" --cat12-dir "$CAT12_DIR" --participants "$PARTICIPANTS_FILE" --smoothing "$SMOOTHING" --modality "$MODALITY" $PRECHECK_MASK_ARG || {
         log_error "Preflight checks failed. Fix issues above and re-run."
         exit 1
     }

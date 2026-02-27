@@ -9,6 +9,7 @@ import json
 import os
 import shutil
 import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import pandas as pd
@@ -50,7 +51,6 @@ def check_matlab_and_spm(config_file: str | None = None) -> bool:
     if software_mode == "standalone":
         print("✓ Standalone mode configured; MATLAB/SPM checks skipped")
         return True
-
     matlab_exe = (get_matlab_exe(config) or "").strip()
     overall_ok = True
 
@@ -639,6 +639,11 @@ def check_participants_file(participants_file: str) -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Preflight checks for CAT12 pipeline")
     parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to stats config JSON for schema validation and software paths",
+    )
+    parser.add_argument(
         "--cat12-dir",
         required=True,
         help="Path to CAT12 data folder or repository root",
@@ -678,6 +683,32 @@ def main() -> None:
     args = parser.parse_args()
 
     overall_ok = True
+
+    print("\n=== Preflight: Config schema validation ===")
+    config_candidate = args.config
+    if config_candidate is None:
+        default_config = Path(__file__).resolve().parents[2] / "config" / "config.json"
+        if default_config.exists():
+            config_candidate = str(default_config)
+
+    if config_candidate:
+        try:
+            from validate_config_json import validate_config_file  # type: ignore
+            valid, validation_errors = validate_config_file(Path(config_candidate))
+            if valid:
+                print(f"✓ Config schema valid: {config_candidate}")
+            else:
+                overall_ok = False
+                print(f"ERROR: Invalid config JSON schema: {config_candidate}")
+                for err in validation_errors[:20]:
+                    print(f"       - {err}")
+                if len(validation_errors) > 20:
+                    print(f"       ... and {len(validation_errors) - 20} more")
+        except Exception as exc:
+            overall_ok = False
+            print(f"ERROR: Could not validate config schema: {exc}")
+    else:
+        print("⚠️  No config file provided/found; schema validation skipped")
 
     print("\n=== Preflight: Python package checks ===")
     if not check_python_packages():

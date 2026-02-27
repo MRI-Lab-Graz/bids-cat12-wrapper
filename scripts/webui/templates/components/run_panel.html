@@ -1,0 +1,74 @@
+<section class="card panel-card mb-3">
+  <div class="card-header">
+    <strong><i class="fas fa-play-circle me-2"></i>Pipeline Run Options</strong>
+  </div>
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-12">
+        <label class="form-label">Only steps</label>
+        <input id="optOnly" class="form-control" placeholder="stats,report">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Skip steps</label>
+        <input id="optSkip" class="form-control" placeholder="preproc">
+      </div>
+      <div class="col-6">
+        <label class="form-label">From step</label>
+        <input id="optFromStep" class="form-control" placeholder="stats">
+      </div>
+      <div class="col-6">
+        <label class="form-label">Until step</label>
+        <input id="optUntilStep" class="form-control" placeholder="report">
+      </div>
+      <div class="col-12">
+        <label class="form-label">CAT12 dir</label>
+        <input id="optCat12Dir" class="form-control" placeholder="/path/to/derivatives/cat12">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Participants file</label>
+        <input id="optParticipants" class="form-control" placeholder="results/data/participants.tsv">
+      </div>
+      <div class="col-12 d-flex gap-2 align-items-end">
+        <div class="flex-grow-1">
+          <label class="form-label">Pick from workspace</label>
+          <select id="participantsPicker" class="form-select">
+            <option value="">Select a participants TSV...</option>
+          </select>
+        </div>
+        <button id="btnRefreshParticipants" type="button" class="btn btn-outline-secondary mb-0">
+          Refresh
+        </button>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Results dir override</label>
+        <input id="optResultsDir" class="form-control" placeholder="results/vbm/...">
+      </div>
+      <div class="col-6">
+        <label class="form-label">Modality</label>
+        <select id="optModality" class="form-select">
+          <option value="">(from config)</option>
+          <option value="vbm">vbm</option>
+          <option value="thickness">thickness</option>
+        </select>
+      </div>
+      <div class="col-12 d-flex gap-3 mt-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="optUseMatlab">
+          <label class="form-check-label" for="optUseMatlab">use_matlab</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="optForce">
+          <label class="form-check-label" for="optForce">force</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="optDryRun">
+          <label class="form-check-label" for="optDryRun">dry_run</label>
+        </div>
+      </div>
+      <div class="col-12 d-grid gap-2 mt-2">
+        <button id="btnRun" class="btn btn-primary"><i class="fas fa-play me-1"></i>Run Pipeline</button>
+        <button id="btnStop" class="btn btn-outline-danger"><i class="fas fa-stop me-1"></i>Stop</button>
+      </div>
+    </div>
+  </div>
+</section>

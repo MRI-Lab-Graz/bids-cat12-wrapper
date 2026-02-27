@@ -1,0 +1,30 @@
+<section class="card panel-card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong><i class="fas fa-sliders-h me-2"></i>Config Editor (all JSON fields)</strong>
+    <span class="badge text-bg-secondary" id="fieldCountBadge">0 fields</span>
+  </div>
+  <div class="card-body">
+    <div class="card border-0 bg-light mb-3">
+      <div class="card-body py-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-7">
+            <label class="form-label">Participants file (config)</label>
+            <select id="configParticipantsPicker" class="form-select">
+              <option value="">Select a participants TSV...</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-grid">
+            <button id="btnRefreshConfigParticipants" type="button" class="btn btn-outline-secondary">Refresh</button>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Group column (from participants)</label>
+            <select id="groupColumnPicker" class="form-select">
+              <option value="">Select group column...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="configEditor" class="config-editor"></div>
+  </div>
+</section>

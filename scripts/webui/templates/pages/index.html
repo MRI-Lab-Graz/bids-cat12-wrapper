@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}CAT12 Pipeline UI{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    {% include 'components/project_panel.html' %}
+    {% include 'components/config_panel.html' %}
+  </div>
+  <div class="col-lg-4">
+    {% include 'components/run_panel.html' %}
+    {% include 'components/console_panel.html' %}
+  </div>
+</div>
+
+<script>
+  window.__APP_DEFAULTS__ = {
+    defaultConfig: {{ default_config|tojson }},
+    defaultProject: {{ default_project|tojson }}
+  };
+</script>
+{% endblock %}

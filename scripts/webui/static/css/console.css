@@ -1,0 +1,12 @@
+.terminal-console {
+  background: #0f172a;
+  color: #d1e7ff;
+  min-height: 280px;
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}

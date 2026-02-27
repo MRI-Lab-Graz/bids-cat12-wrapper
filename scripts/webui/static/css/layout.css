@@ -1,0 +1,3 @@
+.app-main { min-height: calc(100vh - 120px); }
+.card-header { background: #fff; border-bottom: 1px solid #e9ecef; }
+.config-editor { max-height: 72vh; overflow: auto; padding-right: 0.25rem; }

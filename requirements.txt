@@ -23,3 +23,6 @@ pyyaml>=6.0
 defusedxml>=0.7.1
 psutil>=5.9.0
 openneuro-py>=0.19.0
+jsonschema>=4.0.0
+flask>=3.0.0
+waitress>=3.0.0
