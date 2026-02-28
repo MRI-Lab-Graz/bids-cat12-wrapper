@@ -11,6 +11,58 @@ function isCommentKey(key) {
   return key === '_updated' || key.startsWith('_') || key.endsWith('_comment');
 }
 
+function prettifyKey(key) {
+  if (!key) return '';
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (s) => s.toUpperCase());
+}
+
+const SECTION_META = {
+  study: { title: 'Study', subtitle: 'Project identity and description' },
+  software: { title: 'Software Mode', subtitle: 'Execution backend and standalone paths' },
+  matlab: { title: 'MATLAB', subtitle: 'MATLAB executable and rendering behavior' },
+  spm: { title: 'SPM', subtitle: 'SPM installation path' },
+  python: { title: 'Python', subtitle: 'Python executable configuration' },
+  analysis: { title: 'Analysis Setup', subtitle: 'Participants, groups, sessions, modalities' },
+  screening: { title: 'Screening', subtitle: 'Initial significance and cluster filters' },
+  tfce: { title: 'TFCE', subtitle: 'Permutation-based correction settings' },
+  double_threshold: { title: 'Double Threshold', subtitle: 'SPM intensity + cluster thresholding' },
+  reporting: { title: 'Reporting', subtitle: 'Output report and p-value labels' },
+  performance: { title: 'Performance', subtitle: 'Parallel jobs and memory limits' },
+  output: { title: 'Output', subtitle: 'Naming and cleanup behavior' },
+  pipeline: { title: 'Pipeline Steps', subtitle: 'Enable or disable major pipeline stages' },
+};
+
+const SECTION_GROUPS = [
+  {
+    title: 'Analysis Setup',
+    subtitle: 'Participants, groups, sessions, and modalities',
+    keys: ['analysis'],
+  },
+  {
+    title: 'Technical & Software',
+    subtitle: 'Runtime mode, executables, software paths, and performance',
+    keys: ['software', 'matlab', 'spm', 'python', 'performance'],
+  },
+  {
+    title: 'Statistics & Reporting',
+    subtitle: 'Inference thresholds, TFCE, double-threshold, and reports',
+    keys: ['screening', 'tfce', 'double_threshold', 'reporting'],
+  },
+  {
+    title: 'Project & Output',
+    subtitle: 'Study metadata, pipeline toggles, and output naming',
+    keys: ['study', 'pipeline', 'output'],
+  },
+];
+
+const ENUM_OPTIONS = {
+  'software.mode': ['matlab', 'standalone'],
+  'reporting.quality': ['low', 'standard', 'publication'],
+  'reporting.filter': ['all', 'tfce', 'no_tfce', 'spmt', 'double_threshold'],
+};
+
 function isModalityNamePath(tokens) {
   return (
     tokens.length === 4 &&
@@ -29,6 +81,63 @@ function isCovariatesPath(tokens) {
     typeof tokens[2] === 'number' &&
     tokens[3] === 'covariates'
   );
+}
+
+function isGroupColumnPath(tokens) {
+  return tokens.length === 2 && tokens[0] === 'analysis' && tokens[1] === 'group_column';
+}
+
+function isModalityMaskPath(tokens) {
+  return (
+    tokens.length === 4 &&
+    tokens[0] === 'analysis' &&
+    tokens[1] === 'modalities' &&
+    typeof tokens[2] === 'number' &&
+    tokens[3] === 'mask'
+  );
+}
+
+function isModalityFolderPath(tokens) {
+  return (
+    tokens.length === 4 &&
+    tokens[0] === 'analysis' &&
+    tokens[1] === 'modalities' &&
+    typeof tokens[2] === 'number' &&
+    tokens[3] === 'folder_name'
+  );
+}
+
+function normalizeFolderToken(value, fallback = 'item') {
+  const token = String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '');
+  return token || fallback;
+}
+
+function formatSmoothingToken(smoothing) {
+  if (smoothing === null || smoothing === undefined || String(smoothing).trim() === '') {
+    return 'auto';
+  }
+
+  const numeric = Number(smoothing);
+  if (!Number.isNaN(numeric)) {
+    return `${numeric}mm`;
+  }
+
+  const raw = normalizeFolderToken(String(smoothing), 'auto');
+  return raw.endsWith('mm') ? raw : `${raw}mm`;
+}
+
+function buildAutoModalityFolderName(modality) {
+  const modalityName = normalizeFolderToken(modality?.name, 'modality');
+  const covariates = Array.isArray(modality?.covariates)
+    ? modality.covariates.map((item) => normalizeFolderToken(item)).filter(Boolean)
+    : [];
+  const covToken = covariates.length ? covariates.join('-') : 'nocov';
+  const smoothingToken = formatSmoothingToken(modality?.smoothing_kernel);
+  return `${modalityName}_${covToken}_${smoothingToken}`;
 }
 
 function stripCommentKeysDeep(value) {
@@ -68,6 +177,28 @@ function parseValue(raw, original) {
   return raw;
 }
 
+function parsePrimitiveArray(raw, original) {
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  const items = trimmed
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const sample = Array.isArray(original) && original.length ? original[0] : '';
+  if (typeof sample === 'number') {
+    return items.map((item) => {
+      const parsed = Number(item);
+      return Number.isNaN(parsed) ? item : parsed;
+    });
+  }
+  if (typeof sample === 'boolean') {
+    return items.map((item) => item.toLowerCase() === 'true');
+  }
+  return items;
+}
+
 export class ConfigEditor {
   constructor(rootEl, badgeEl) {
     this.rootEl = rootEl;
@@ -87,8 +218,75 @@ export class ConfigEditor {
     this.source = stripCommentKeysDeep(configData || {});
     this.fieldCount = 0;
     this.rootEl.innerHTML = '';
-    this.renderNode(this.rootEl, this.source, []);
+
+    const topKeys = Object.keys(this.source).filter((key) => !isCommentKey(key));
+
+    const groups = this.buildSectionGroups(topKeys);
+    groups.forEach((group, index) => {
+      const section = this.createSection(group.title, group.subtitle, index === 0);
+      this.rootEl.appendChild(section.wrapper);
+
+      const singleKey = group.keys.length === 1;
+      group.keys.forEach((key) => {
+        this.renderTopLevelKey(section.content, key, singleKey);
+      });
+    });
+
     this.badgeEl.textContent = `${this.fieldCount} fields`;
+  }
+
+  buildSectionGroups(topKeys) {
+    const present = new Set(topKeys);
+    const consumed = new Set();
+    const groups = [];
+
+    SECTION_GROUPS.forEach((group) => {
+      const keys = group.keys.filter((key) => present.has(key));
+      if (!keys.length) return;
+
+      keys.forEach((key) => consumed.add(key));
+      groups.push({
+        title: group.title,
+        subtitle: group.subtitle,
+        keys,
+      });
+    });
+
+    const remaining = topKeys.filter((key) => !consumed.has(key));
+    if (remaining.length) {
+      groups.push({
+        title: 'Additional Settings',
+        subtitle: 'Other configuration fields',
+        keys: remaining,
+      });
+    }
+
+    return groups;
+  }
+
+  renderTopLevelKey(container, key, singleKeyInGroup = false) {
+    const value = this.source[key];
+    if (singleKeyInGroup) {
+      this.renderNode(container, value, [key], 0);
+      return;
+    }
+
+    const meta = SECTION_META[key] || {
+      title: prettifyKey(key),
+      subtitle: 'Configuration settings',
+    };
+
+    const block = this.createCardBlock(meta.title, true);
+    container.appendChild(block.wrapper);
+
+    if (meta.subtitle) {
+      const subtitle = document.createElement('div');
+      subtitle.className = 'ux-card-subtitle';
+      subtitle.textContent = meta.subtitle;
+      block.content.appendChild(subtitle);
+    }
+
+    this.renderNode(block.content, value, [key], 0);
   }
 
   getValueAtPath(tokens) {
@@ -102,7 +300,7 @@ export class ConfigEditor {
     this.load(updated);
   }
 
-  renderNode(container, value, tokens) {
+  renderNode(container, value, tokens, depth = 0) {
     if (isPrimitive(value)) {
       const key = typeof tokens[tokens.length - 1] === 'number' ? `[${tokens[tokens.length - 1]}]` : String(tokens[tokens.length - 1]);
       this.renderLeaf(container, key, value, tokens);
@@ -115,53 +313,107 @@ export class ConfigEditor {
         return;
       }
 
+      if (value.every(isPrimitive)) {
+        this.renderPrimitiveArrayField(container, tokens, value);
+        return;
+      }
+
+      const listWrap = document.createElement('div');
+      listWrap.className = 'ux-list-wrap';
+      container.appendChild(listWrap);
+
       value.forEach((item, index) => {
         const childTokens = [...tokens, index];
         if (isPrimitive(item)) {
-          this.renderLeaf(container, `[${index}]`, item, childTokens);
+          this.renderLeaf(listWrap, `[${index + 1}]`, item, childTokens);
         } else {
-          const block = this.createCollapsibleBlock(`[${index}]`, childTokens, tokens.length <= 1);
-          container.appendChild(block.wrapper);
-          this.renderNode(block.content, item, childTokens);
+          const groupKey = String(tokens[tokens.length - 1]);
+          if (groupKey === 'modalities') {
+            this.renderNode(listWrap, item, childTokens, depth + 1);
+          } else {
+            const itemTitle = `${prettifyKey(groupKey)} ${index + 1}`;
+            const block = this.createCardBlock(itemTitle, depth < 1);
+            listWrap.appendChild(block.wrapper);
+            this.renderNode(block.content, item, childTokens, depth + 1);
+          }
         }
       });
       return;
     }
 
     if (isPlainObject(value)) {
+      const entries = Object.entries(value).filter(([key]) => !isCommentKey(key));
+
+      if (entries.length === 0) return;
+
+      const shouldWrapAsCard = depth > 0 && typeof tokens[tokens.length - 1] !== 'number';
+      const contentRoot = shouldWrapAsCard
+        ? (() => {
+            const key = String(tokens[tokens.length - 1]);
+            const block = this.createCardBlock(prettifyKey(key), depth < 2);
+            container.appendChild(block.wrapper);
+            return block.content;
+          })()
+        : container;
+
+      const group = document.createElement('div');
+      group.className = 'ux-fields-grid';
+      contentRoot.appendChild(group);
+
       Object.entries(value).forEach(([key, childValue]) => {
         if (isCommentKey(key)) return;
         if (isPlainObject(childValue) || Array.isArray(childValue)) {
           const childTokens = [...tokens, key];
-          const block = this.createCollapsibleBlock(key, childTokens, tokens.length <= 1);
-          container.appendChild(block.wrapper);
-          this.renderNode(block.content, childValue, childTokens);
+          this.renderNode(group, childValue, childTokens, depth + 1);
         } else {
-          this.renderLeaf(container, key, childValue, [...tokens, key]);
+          this.renderLeaf(group, key, childValue, [...tokens, key]);
         }
       });
       return;
     }
   }
 
-  createCollapsibleBlock(titleText, tokens, open = false) {
+  createSection(titleText, subtitleText, open = false) {
     const wrapper = document.createElement('details');
-    wrapper.className = 'field-block field-block-collapsible';
+    wrapper.className = 'ux-section';
     wrapper.open = open;
 
     const summary = document.createElement('summary');
-    summary.className = 'field-title';
-    summary.textContent = titleText;
+    summary.className = 'ux-section-summary';
 
-    const hint = document.createElement('div');
-    hint.className = 'path-hint mb-1';
-    hint.textContent = tokens.join('.');
+    const title = document.createElement('div');
+    title.className = 'ux-section-title';
+    title.textContent = titleText;
+
+    const subtitle = document.createElement('div');
+    subtitle.className = 'ux-section-subtitle';
+    subtitle.textContent = subtitleText;
+
+    summary.appendChild(title);
+    summary.appendChild(subtitle);
 
     const content = document.createElement('div');
-    content.className = 'field-block-content';
+    content.className = 'ux-section-content';
 
     wrapper.appendChild(summary);
-    wrapper.appendChild(hint);
+    wrapper.appendChild(content);
+
+    return { wrapper, content };
+  }
+
+  createCardBlock(titleText, open = true) {
+    const wrapper = document.createElement('details');
+    wrapper.className = 'ux-card';
+    wrapper.open = open;
+
+    const summary = document.createElement('summary');
+    summary.className = 'ux-card-title';
+    summary.textContent = titleText;
+
+    const content = document.createElement('div');
+    content.className = 'ux-card-content';
+
+    wrapper.appendChild(summary);
     wrapper.appendChild(content);
 
     return { wrapper, content };
@@ -171,21 +423,77 @@ export class ConfigEditor {
     this.fieldCount += 1;
 
     const row = document.createElement('div');
-    row.className = 'field-leaf';
+    row.className = 'ux-field';
+
+    const keyName = String(tokens[tokens.length - 1]);
+    const path = tokens.join('.');
 
     const label = document.createElement('label');
-    label.className = 'form-label mb-1';
-    label.textContent = key;
-
-    const hint = document.createElement('div');
-    hint.className = 'path-hint mb-1';
-    hint.textContent = tokens.join('.');
+    label.className = 'form-label mb-1 ux-label';
+    label.textContent = prettifyKey(String(key));
 
     let input;
-    if (isModalityNamePath(tokens)) {
+    if (ENUM_OPTIONS[path]) {
       input = document.createElement('select');
       input.className = 'form-select form-select-sm';
-      ['vbm', 'thickness'].forEach((mode) => {
+      ENUM_OPTIONS[path].forEach((mode) => {
+        const opt = document.createElement('option');
+        opt.value = mode;
+        opt.textContent = mode;
+        input.appendChild(opt);
+      });
+      input.value = String(value ?? ENUM_OPTIONS[path][0]);
+    } else if (isGroupColumnPath(tokens)) {
+      input = document.createElement('select');
+      input.className = 'form-select form-select-sm';
+      const options = Array.from(new Set([...this.participantsColumns, String(value || '')].filter(Boolean)));
+      options.forEach((columnName) => {
+        const opt = document.createElement('option');
+        opt.value = columnName;
+        opt.textContent = columnName;
+        input.appendChild(opt);
+      });
+      if (!options.length) {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select participants file first';
+        input.appendChild(placeholder);
+      }
+      input.value = String(value || '');
+    } else if (isModalityMaskPath(tokens)) {
+      const group = document.createElement('div');
+      group.className = 'input-group input-group-sm';
+
+      input = document.createElement('input');
+      input.className = 'form-control';
+      input.type = 'text';
+      input.placeholder = 'No mask';
+      input.value = value === null ? '' : String(value);
+
+      const browseBtn = document.createElement('button');
+      browseBtn.type = 'button';
+      browseBtn.className = 'btn btn-outline-secondary';
+      browseBtn.textContent = 'Browse...';
+      browseBtn.dataset.maskPicker = 'true';
+      browseBtn.dataset.path = JSON.stringify(tokens);
+
+      group.appendChild(input);
+      group.appendChild(browseBtn);
+
+      input.dataset.configField = 'true';
+      input.dataset.path = JSON.stringify(tokens);
+
+      row.appendChild(label);
+      if (keyName === 'participants_file' || isModalityFolderPath(tokens)) {
+        row.classList.add('ux-hidden-field');
+      }
+      row.appendChild(group);
+      container.appendChild(row);
+      return;
+    } else if (isModalityNamePath(tokens)) {
+      input = document.createElement('select');
+      input.className = 'form-select form-select-sm';
+      Array.from(new Set(['vbm', 'thickness', 'depth', 'gyrification', String(value || '')].filter(Boolean))).forEach((mode) => {
         const opt = document.createElement('option');
         opt.value = mode;
         opt.textContent = mode;
@@ -213,7 +521,32 @@ export class ConfigEditor {
     input.dataset.path = JSON.stringify(tokens);
 
     row.appendChild(label);
-    row.appendChild(hint);
+    if (keyName === 'participants_file' || isModalityFolderPath(tokens)) {
+      row.classList.add('ux-hidden-field');
+    }
+    row.appendChild(input);
+    container.appendChild(row);
+  }
+
+  renderPrimitiveArrayField(container, tokens, values) {
+    this.fieldCount += 1;
+
+    const row = document.createElement('div');
+    row.className = 'ux-field ux-field-wide';
+
+    const label = document.createElement('label');
+    label.className = 'form-label mb-1 ux-label';
+    label.textContent = prettifyKey(String(tokens[tokens.length - 1]));
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'form-control form-control-sm';
+    input.placeholder = 'Comma-separated values';
+    input.value = values.map((v) => String(v)).join(', ');
+    input.dataset.arrayPrimitiveField = 'true';
+    input.dataset.path = JSON.stringify(tokens);
+
+    row.appendChild(label);
     row.appendChild(input);
     container.appendChild(row);
   }
@@ -222,23 +555,19 @@ export class ConfigEditor {
     this.fieldCount += 1;
 
     const row = document.createElement('div');
-    row.className = 'field-leaf';
+    row.className = 'ux-field ux-field-wide';
 
     const label = document.createElement('label');
-    label.className = 'form-label mb-1';
-    label.textContent = 'covariates';
-
-    const hint = document.createElement('div');
-    hint.className = 'path-hint mb-2';
-    hint.textContent = `${tokens.join('.')} (TIV + participants columns)`;
+    label.className = 'form-label mb-2 ux-label';
+    label.textContent = 'Covariates';
 
     const box = document.createElement('div');
-    box.className = 'd-flex flex-wrap gap-2';
+    box.className = 'ux-checklist';
     box.dataset.covariatesField = 'true';
     box.dataset.path = JSON.stringify(tokens);
 
     const options = Array.from(
-      new Set(['tiv', ...this.participantsColumns, ...currentValues].filter(Boolean))
+      new Set(['tiv', ...this.participantsColumns, ...currentValues.filter((v) => v === 'tiv' || this.participantsColumns.includes(v))].filter(Boolean))
     );
 
     options.forEach((item) => {
@@ -264,7 +593,6 @@ export class ConfigEditor {
     });
 
     row.appendChild(label);
-    row.appendChild(hint);
     row.appendChild(box);
     container.appendChild(row);
   }
@@ -279,12 +607,29 @@ export class ConfigEditor {
       setByPath(updated, tokens, parsed);
     });
 
+    const primitiveArrayFields = this.rootEl.querySelectorAll('[data-array-primitive-field="true"]');
+    primitiveArrayFields.forEach((el) => {
+      const tokens = JSON.parse(el.dataset.path);
+      const original = getByPath(this.source, tokens);
+      const parsed = parsePrimitiveArray(el.value, original);
+      setByPath(updated, tokens, parsed);
+    });
+
     const covariateFields = this.rootEl.querySelectorAll('[data-covariates-field="true"]');
     covariateFields.forEach((el) => {
       const tokens = JSON.parse(el.dataset.path);
       const selected = Array.from(el.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value);
       setByPath(updated, tokens, selected);
     });
+
+    const modalities = updated?.analysis?.modalities;
+    if (Array.isArray(modalities)) {
+      modalities.forEach((modality) => {
+        if (isPlainObject(modality)) {
+          modality.folder_name = buildAutoModalityFolderName(modality);
+        }
+      });
+    }
 
     return stripCommentKeysDeep(updated);
   }

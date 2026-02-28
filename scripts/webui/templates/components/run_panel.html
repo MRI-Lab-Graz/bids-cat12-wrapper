@@ -24,16 +24,16 @@
         <label class="form-label">CAT12 dir</label>
         <input id="optCat12Dir" class="form-control" placeholder="/path/to/derivatives/cat12">
       </div>
+      <div class="col-12 d-grid">
+        <button id="btnBrowseCat12Dir" type="button" class="btn btn-outline-secondary">Browse CAT12 folder...</button>
+      </div>
       <div class="col-12">
         <label class="form-label">Participants file</label>
         <input id="optParticipants" class="form-control" placeholder="results/data/participants.tsv">
       </div>
       <div class="col-12 d-flex gap-2 align-items-end">
-        <div class="flex-grow-1">
-          <label class="form-label">Pick from workspace</label>
-          <select id="participantsPicker" class="form-select">
-            <option value="">Select a participants TSV...</option>
-          </select>
+        <div class="flex-grow-1 d-grid">
+          <button id="btnBrowseParticipants" type="button" class="btn btn-outline-secondary">Browse participants TSV...</button>
         </div>
         <button id="btnRefreshParticipants" type="button" class="btn btn-outline-secondary mb-0">
           Refresh
@@ -50,6 +50,9 @@
           <option value="vbm">vbm</option>
           <option value="thickness">thickness</option>
         </select>
+      </div>
+      <div class="col-12 d-grid">
+        <button id="btnBrowseResultsDir" type="button" class="btn btn-outline-secondary">Browse results folder...</button>
       </div>
       <div class="col-12 d-flex gap-3 mt-2">
         <div class="form-check">

@@ -120,6 +120,99 @@ def list_participant_files() -> List[str]:
     return sorted(candidates)
 
 
+def list_project_files() -> List[str]:
+    candidates: set[str] = set()
+    patterns = [
+        "projects/**/*.json",
+    ]
+
+    for pattern in patterns:
+        for path in WORKSPACE_ROOT.glob(pattern):
+            if not path.is_file():
+                continue
+            try:
+                rel = path.resolve().relative_to(WORKSPACE_ROOT)
+                candidates.add(str(rel))
+            except Exception:
+                candidates.add(str(path.resolve()))
+
+    return sorted(candidates)
+
+
+def list_config_files() -> List[str]:
+    candidates: set[str] = set()
+    patterns = [
+        "config/**/*.json",
+        "projects/**/*config*.json",
+        "projects/**/*stats*.json",
+    ]
+
+    for pattern in patterns:
+        for path in WORKSPACE_ROOT.glob(pattern):
+            if not path.is_file():
+                continue
+            try:
+                rel = path.resolve().relative_to(WORKSPACE_ROOT)
+                candidates.add(str(rel))
+            except Exception:
+                candidates.add(str(path.resolve()))
+
+    return sorted(candidates)
+
+
+def list_cat12_dirs() -> List[str]:
+    candidates: set[str] = set()
+    patterns = [
+        "**/derivatives/cat12",
+        "**/derivatives/cat12/*",
+    ]
+
+    for pattern in patterns:
+        for path in WORKSPACE_ROOT.glob(pattern):
+            if not path.is_dir():
+                continue
+            try:
+                rel = path.resolve().relative_to(WORKSPACE_ROOT)
+                candidates.add(str(rel))
+            except Exception:
+                candidates.add(str(path.resolve()))
+
+    return sorted(candidates)
+
+
+def list_results_dirs() -> List[str]:
+    candidates: set[str] = set()
+    patterns = [
+        "results/*/*",
+        "results/*",
+    ]
+
+    for pattern in patterns:
+        for path in WORKSPACE_ROOT.glob(pattern):
+            if not path.is_dir():
+                continue
+            try:
+                rel = path.resolve().relative_to(WORKSPACE_ROOT)
+                candidates.add(str(rel))
+            except Exception:
+                candidates.add(str(path.resolve()))
+
+    return sorted(candidates)
+
+
+def resolve_within_workspace(raw_path: str | None) -> Path:
+    candidate = (raw_path or "").strip()
+    base = WORKSPACE_ROOT.resolve()
+    target = (base / candidate).resolve() if candidate else base
+
+    try:
+        target.relative_to(base)
+    except Exception:
+        return base
+
+    return target
+
+
 def load_json(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
@@ -300,6 +393,92 @@ def api_participants_columns() -> Response:
 def api_participants_files() -> Response:
     files = list_participant_files()
     return jsonify({"success": True, "files": files})
+
+
+@app.route("/api/project/files", methods=["GET"])
+def api_project_files() -> Response:
+    files = list_project_files()
+    return jsonify({"success": True, "files": files})
+
+
+@app.route("/api/config/files", methods=["GET"])
+def api_config_files() -> Response:
+    files = list_config_files()
+    return jsonify({"success": True, "files": files})
+
+
+@app.route("/api/cat12/dirs", methods=["GET"])
+def api_cat12_dirs() -> Response:
+    directories = list_cat12_dirs()
+    return jsonify({"success": True, "dirs": directories})
+
+
+@app.route("/api/results/dirs", methods=["GET"])
+def api_results_dirs() -> Response:
+    directories = list_results_dirs()
+    return jsonify({"success": True, "dirs": directories})
+
+
+@app.route("/api/fs/list", methods=["GET"])
+def api_fs_list() -> Response:
+    raw_path = request.args.get("path", "")
+    allow_files = (request.args.get("files", "1") == "1")
+    allow_dirs = (request.args.get("dirs", "1") == "1")
+    exts_raw = request.args.get("ext", "")
+
+    exts = [part.strip().lower() for part in exts_raw.split(",") if part.strip()]
+    if exts:
+        exts = [ext if ext.startswith(".") else f".{ext}" for ext in exts]
+
+    current = resolve_within_workspace(raw_path)
+    if current.is_file():
+        current = current.parent
+    if not current.exists() or not current.is_dir():
+        current = WORKSPACE_ROOT.resolve()
+
+    entries: List[Dict[str, Any]] = []
+    for entry in sorted(current.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())):
+        name = entry.name
+        if name.startswith("."):
+            continue
+
+        is_dir = entry.is_dir()
+        if is_dir and not allow_dirs:
+            continue
+        if (not is_dir) and not allow_files:
+            continue
+        if (not is_dir) and exts and entry.suffix.lower() not in exts:
+            if not any(name.lower().endswith(ext) for ext in exts):
+                continue
+
+        try:
+            rel = str(entry.resolve().relative_to(WORKSPACE_ROOT.resolve()))
+        except Exception:
+            continue
+
+        entries.append({"name": name, "path": rel, "is_dir": is_dir})
+
+    current_rel = str(current.relative_to(WORKSPACE_ROOT.resolve()))
+    if current_rel == ".":
+        current_rel = ""
+
+    parent_rel = ""
+    if current != WORKSPACE_ROOT.resolve():
+        try:
+            parent_rel = str(current.parent.resolve().relative_to(WORKSPACE_ROOT.resolve()))
+            if parent_rel == ".":
+                parent_rel = ""
+        except Exception:
+            parent_rel = ""
+
+    return jsonify(
+        {
+            "success": True,
+            "current": current_rel,
+            "parent": parent_rel,
+            "entries": entries,
+        }
+    )
 
 
 @app.route("/api/run/start", methods=["POST"])

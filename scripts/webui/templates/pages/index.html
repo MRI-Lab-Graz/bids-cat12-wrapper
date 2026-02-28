@@ -5,12 +5,36 @@
 {% block content %}
 <div class="row g-3">
   <div class="col-lg-8">
-    {% include 'components/project_panel.html' %}
     {% include 'components/config_panel.html' %}
   </div>
   <div class="col-lg-4">
+    {% include 'components/project_panel.html' %}
     {% include 'components/run_panel.html' %}
     {% include 'components/console_panel.html' %}
+  </div>
+</div>
+
+<div class="modal fade" id="pathPickerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pathPickerTitle">Browse</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="small text-muted" id="pathPickerCurrent">.</div>
+          <div class="d-flex gap-2">
+            <button id="pathPickerUp" type="button" class="btn btn-sm btn-outline-secondary">Up</button>
+            <button id="pathPickerSelectCurrent" type="button" class="btn btn-sm btn-primary d-none">Use this folder</button>
+          </div>
+        </div>
+        <div id="pathPickerList" class="list-group"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
 

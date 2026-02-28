@@ -1,34 +1,131 @@
-.field-block { border-left: 3px solid #dee2e6; margin-left: 0.5rem; padding-left: 0.75rem; margin-bottom: 0.5rem; }
-.field-title { font-weight: 600; margin-top: 0.4rem; }
-.field-leaf { margin-bottom: 0.6rem; }
-.path-hint { color: #6c757d; font-size: 0.78rem; }
-
-.field-block-collapsible {
-	border-left: 3px solid #cfd4da;
-	border-radius: 4px;
-	background: #f8f9fb;
-	padding: 0.35rem 0.6rem 0.5rem;
+.ux-section {
+	border: 1px solid #e5e9f0;
+	border-radius: 10px;
+	background: #ffffff;
+	margin-bottom: 0.75rem;
+	overflow: hidden;
 }
 
-.field-block-collapsible > summary {
+.ux-section-summary {
 	cursor: pointer;
 	list-style: none;
+	padding: 0.8rem 0.95rem;
+	background: #f8faff;
+	border-bottom: 1px solid #edf0f4;
 }
 
-.field-block-collapsible > summary::-webkit-details-marker {
+.ux-section-summary::-webkit-details-marker {
 	display: none;
 }
 
-.field-block-collapsible > summary::before {
+.ux-section-summary::before {
+	content: '▸';
+	margin-right: 0.45rem;
+	color: #6c757d;
+	font-size: 0.86rem;
+}
+
+.ux-section[open] > .ux-section-summary::before {
+	content: '▾';
+}
+
+.ux-section-title {
+	font-weight: 700;
+	font-size: 0.98rem;
+	color: #1f2d3d;
+	display: inline;
+}
+
+.ux-section-subtitle {
+	margin-top: 0.2rem;
+	font-size: 0.8rem;
+	color: #6c757d;
+	padding-left: 1.2rem;
+}
+
+.ux-section-content {
+	padding: 0.85rem 0.95rem;
+}
+
+.ux-fields-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+	gap: 0.7rem;
+	margin-bottom: 0.3rem;
+}
+
+.ux-field {
+	background: #ffffff;
+	border: 1px solid #e7ebf1;
+	border-radius: 8px;
+	padding: 0.55rem;
+}
+
+.ux-field-wide {
+	grid-column: 1 / -1;
+}
+
+.ux-label {
+	font-weight: 600;
+	font-size: 0.8rem;
+	text-transform: none;
+	color: #334155;
+}
+
+.ux-list-wrap {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0.65rem;
+	grid-column: 1 / -1;
+	margin-bottom: 0.2rem;
+}
+
+.ux-card {
+	border: 1px solid #e8ecf2;
+	border-radius: 8px;
+	background: #fbfcfe;
+	overflow: hidden;
+}
+
+.ux-card > summary {
+	cursor: pointer;
+	list-style: none;
+	padding: 0.55rem 0.7rem;
+	font-weight: 600;
+	font-size: 0.9rem;
+	border-bottom: 1px solid #edf0f4;
+}
+
+.ux-card > summary::-webkit-details-marker {
+	display: none;
+}
+
+.ux-card > summary::before {
 	content: '▸';
 	margin-right: 0.4rem;
 	color: #6c757d;
 }
 
-.field-block-collapsible[open] > summary::before {
+.ux-card[open] > summary::before {
 	content: '▾';
 }
 
-.field-block-content {
-	margin-top: 0.25rem;
+.ux-card-content {
+	padding: 0.65rem;
+}
+
+.ux-card-subtitle {
+	font-size: 0.78rem;
+	color: #6c757d;
+	margin-bottom: 0.55rem;
+}
+
+.ux-checklist {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 0.4rem 0.65rem;
+}
+
+.ux-hidden-field {
+	display: none;
 }
