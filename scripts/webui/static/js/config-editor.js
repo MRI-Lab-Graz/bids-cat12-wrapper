@@ -107,6 +107,33 @@ function isModalityFolderPath(tokens) {
   );
 }
 
+function isPreprocessingBidsDirPath(tokens) {
+  return (
+    tokens.length === 3 &&
+    tokens[0] === 'preprocessing' &&
+    tokens[1] === 'bids' &&
+    tokens[2] === 'bids_dir'
+  );
+}
+
+function isPreprocessingOpenNeuroDatasetPath(tokens) {
+  return (
+    tokens.length === 3 &&
+    tokens[0] === 'preprocessing' &&
+    tokens[1] === 'bids' &&
+    tokens[2] === 'openneuro_dataset'
+  );
+}
+
+function isPreprocessingOpenNeuroFlagPath(tokens) {
+  return (
+    tokens.length === 3 &&
+    tokens[0] === 'preprocessing' &&
+    tokens[1] === 'bids' &&
+    ['openneuro', 'openneuro_download', 'openneuro_download_only_anat', 'openneuro_download_all'].includes(tokens[2])
+  );
+}
+
 function normalizeFolderToken(value, fallback = 'item') {
   const token = String(value ?? '')
     .trim()
@@ -433,6 +460,49 @@ export class ConfigEditor {
     label.textContent = prettifyKey(String(key));
 
     let input;
+    if (isPreprocessingBidsDirPath(tokens)) {
+      const group = document.createElement('div');
+      group.className = 'input-group input-group-sm';
+
+      const bidsTokens = tokens.slice(0, -1);
+      const openNeuroTokens = [...bidsTokens, 'openneuro_dataset'];
+      const openNeuroEnabled = Boolean(getByPath(this.source, [...bidsTokens, 'openneuro']));
+      const openNeuroDataset = getByPath(this.source, openNeuroTokens);
+
+      input = document.createElement('input');
+      input.className = 'form-control';
+      input.type = 'text';
+      input.placeholder = openNeuroEnabled ? 'ds004937' : 'path/to/bids_folder';
+      input.value = String(openNeuroEnabled ? (openNeuroDataset || value || '') : (value || ''));
+      input.dataset.bidsSourceField = 'true';
+      input.dataset.sourceMode = openNeuroEnabled ? 'openneuro' : 'local';
+      input.dataset.path = JSON.stringify(tokens);
+
+      const localBtn = document.createElement('button');
+      localBtn.type = 'button';
+      localBtn.className = `btn ${openNeuroEnabled ? 'btn-outline-secondary' : 'btn-secondary'}`;
+      localBtn.textContent = 'Local BIDS';
+      localBtn.dataset.bidsModeLocal = 'true';
+      localBtn.dataset.path = JSON.stringify(bidsTokens);
+
+      const openNeuroBtn = document.createElement('button');
+      openNeuroBtn.type = 'button';
+      openNeuroBtn.className = `btn ${openNeuroEnabled ? 'btn-secondary' : 'btn-outline-secondary'}`;
+      openNeuroBtn.textContent = 'OpenNeuro';
+      openNeuroBtn.dataset.openneuroActivate = 'true';
+      openNeuroBtn.dataset.path = JSON.stringify(bidsTokens);
+
+      label.textContent = openNeuroEnabled ? 'OpenNeuro Dataset ID' : 'BIDS Folder';
+      group.appendChild(input);
+      group.appendChild(localBtn);
+      group.appendChild(openNeuroBtn);
+
+      row.appendChild(label);
+      row.appendChild(group);
+      container.appendChild(row);
+      return;
+    }
+
     if (ENUM_OPTIONS[path]) {
       input = document.createElement('select');
       input.className = 'form-select form-select-sm';
@@ -521,7 +591,12 @@ export class ConfigEditor {
     input.dataset.path = JSON.stringify(tokens);
 
     row.appendChild(label);
-    if (keyName === 'participants_file' || isModalityFolderPath(tokens)) {
+    if (
+      keyName === 'participants_file' ||
+      isModalityFolderPath(tokens) ||
+      isPreprocessingOpenNeuroDatasetPath(tokens) ||
+      isPreprocessingOpenNeuroFlagPath(tokens)
+    ) {
       row.classList.add('ux-hidden-field');
     }
     row.appendChild(input);
@@ -599,6 +674,32 @@ export class ConfigEditor {
 
   collect() {
     const updated = structuredClone(this.source);
+
+    const bidsSourceFields = this.rootEl.querySelectorAll('[data-bids-source-field="true"]');
+    bidsSourceFields.forEach((el) => {
+      const tokens = JSON.parse(el.dataset.path);
+      const enteredValue = String(el.value || '').trim();
+      const bidsTokens = tokens.slice(0, -1);
+      const sourceMode = el.dataset.sourceMode === 'openneuro' ? 'openneuro' : 'local';
+
+      if (sourceMode === 'openneuro') {
+        const datasetId = enteredValue.toLowerCase();
+        setByPath(updated, tokens, datasetId);
+        setByPath(updated, [...bidsTokens, 'openneuro'], true);
+        setByPath(updated, [...bidsTokens, 'openneuro_dataset'], datasetId);
+        setByPath(updated, [...bidsTokens, 'openneuro_download'], true);
+        setByPath(updated, [...bidsTokens, 'openneuro_download_only_anat'], true);
+        setByPath(updated, [...bidsTokens, 'openneuro_download_all'], false);
+        if (datasetId) {
+          setByPath(updated, [...bidsTokens, 'source'], `OpenNeuro ${datasetId}`);
+        }
+      } else {
+        setByPath(updated, tokens, enteredValue);
+        setByPath(updated, [...bidsTokens, 'openneuro'], false);
+        setByPath(updated, [...bidsTokens, 'openneuro_download'], false);
+      }
+    });
+
     const fields = this.rootEl.querySelectorAll('[data-config-field="true"]');
     fields.forEach((el) => {
       const tokens = JSON.parse(el.dataset.path);

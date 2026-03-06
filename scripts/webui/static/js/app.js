@@ -159,6 +159,65 @@ function setStatus(msg, kind = 'muted') {
   statusEl.textContent = msg;
 }
 
+function normalizeOpenNeuroDatasetId(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isValidOpenNeuroDatasetId(value) {
+  return /^ds\d{6}$/i.test(normalizeOpenNeuroDatasetId(value));
+}
+
+function validateOpenNeuroConfig(configData) {
+  const bidsCfg = configData?.preprocessing?.bids;
+  if (!bidsCfg || !bidsCfg.openneuro) {
+    return { ok: true };
+  }
+
+  const datasetId = normalizeOpenNeuroDatasetId(
+    bidsCfg.openneuro_dataset || bidsCfg.bids_dir || ''
+  );
+
+  if (!datasetId) {
+    return {
+      ok: false,
+      message: 'OpenNeuro is enabled but dataset ID is missing. Use format dsXXXXXX (e.g., ds004937).',
+    };
+  }
+
+  if (!isValidOpenNeuroDatasetId(datasetId)) {
+    return {
+      ok: false,
+      message: `Invalid OpenNeuro dataset ID "${datasetId}". Expected format: dsXXXXXX (e.g., ds004937).`,
+    };
+  }
+
+  return { ok: true, datasetId };
+}
+
+function updateOpenNeuroInputValidation(inputEl) {
+  if (!inputEl?.dataset?.bidsSourceField) return;
+
+  const sourceMode = inputEl.dataset.sourceMode || 'local';
+  if (sourceMode !== 'openneuro') {
+    inputEl.classList.remove('is-valid', 'is-invalid');
+    return;
+  }
+
+  const datasetId = normalizeOpenNeuroDatasetId(inputEl.value);
+  if (!datasetId) {
+    inputEl.classList.remove('is-valid', 'is-invalid');
+    return;
+  }
+
+  if (isValidOpenNeuroDatasetId(datasetId)) {
+    inputEl.classList.add('is-valid');
+    inputEl.classList.remove('is-invalid');
+  } else {
+    inputEl.classList.add('is-invalid');
+    inputEl.classList.remove('is-valid');
+  }
+}
+
 async function loadProject(path) {
   const result = await postJSON('/api/project/load', { project_path: path });
   const project = result.project;
@@ -201,9 +260,17 @@ async function runPipeline() {
   terminal.clear();
   setStatus('Starting pipeline...', 'info');
 
+  const configData = editor.collect();
+  const openNeuroValidation = validateOpenNeuroConfig(configData);
+  if (!openNeuroValidation.ok) {
+    setStatus(openNeuroValidation.message, 'danger');
+    terminal.append(`[error] ${openNeuroValidation.message}`);
+    return;
+  }
+
   const payload = {
     project_path: projectPathInput.value.trim(),
-    config_data: editor.collect(),
+    config_data: configData,
     run_options: getRunOptions()
   };
 
@@ -340,6 +407,11 @@ function bindEvents() {
   editor.rootEl.addEventListener('change', async (event) => {
     const target = event.target;
     if (!target?.dataset?.path) return;
+
+    if (target.dataset.bidsSourceField) {
+      updateOpenNeuroInputValidation(target);
+    }
+
     if (target.dataset.path === JSON.stringify(['analysis', 'participants_file'])) {
       try {
         const picked = editor.getValueAtPath(['analysis', 'participants_file']) || '';
@@ -353,6 +425,66 @@ function bindEvents() {
 
   editor.rootEl.addEventListener('click', async (event) => {
     const target = event.target;
+
+    if (target?.dataset?.bidsModeLocal) {
+      const bidsTokens = JSON.parse(target.dataset.path || '[]');
+      const draft = editor.collect();
+
+      let cursor = draft;
+      bidsTokens.forEach((token) => {
+        if (!cursor[token] || typeof cursor[token] !== 'object') {
+          cursor[token] = {};
+        }
+        cursor = cursor[token];
+      });
+
+      cursor.openneuro = false;
+      cursor.openneuro_download = false;
+      cursor.openneuro_download_only_anat = false;
+      cursor.bids_dir = String(cursor.bids_dir || '').trim();
+
+      editor.load(draft);
+      setStatus('Input source set to local BIDS folder', 'info');
+      return;
+    }
+
+    if (target?.dataset?.openneuroActivate) {
+      const bidsTokens = JSON.parse(target.dataset.path || '[]');
+      const draft = editor.collect();
+
+      let cursor = draft;
+      bidsTokens.forEach((token) => {
+        if (!cursor[token] || typeof cursor[token] !== 'object') {
+          cursor[token] = {};
+        }
+        cursor = cursor[token];
+      });
+
+      const datasetId = normalizeOpenNeuroDatasetId(
+        cursor.openneuro_dataset || cursor.bids_dir || ''
+      );
+      if (!datasetId) {
+        setStatus('Enter an OpenNeuro dataset ID first (e.g., ds004937)', 'warning');
+        return;
+      }
+      if (!isValidOpenNeuroDatasetId(datasetId)) {
+        setStatus(`Invalid dataset ID "${datasetId}". Use format dsXXXXXX (e.g., ds004937).`, 'warning');
+        return;
+      }
+
+      cursor.openneuro = true;
+      cursor.openneuro_dataset = datasetId;
+      cursor.bids_dir = datasetId;
+      cursor.openneuro_download = true;
+      cursor.openneuro_download_only_anat = true;
+      cursor.openneuro_download_all = false;
+      cursor.source = `OpenNeuro ${datasetId}`;
+
+      editor.load(draft);
+      setStatus(`OpenNeuro dataset configured: ${datasetId}`, 'success');
+      return;
+    }
+
     if (!target?.dataset?.maskPicker) return;
 
     const tokens = JSON.parse(target.dataset.path || '[]');
@@ -368,6 +500,12 @@ function bindEvents() {
         editor.setValueAtPath(tokens, path);
       },
     });
+  });
+
+  editor.rootEl.addEventListener('input', (event) => {
+    const target = event.target;
+    if (!target?.dataset?.bidsSourceField) return;
+    updateOpenNeuroInputValidation(target);
   });
 
   document.getElementById('btnValidate').addEventListener('click', async () => {
