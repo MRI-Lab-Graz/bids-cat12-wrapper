@@ -33,6 +33,10 @@ def get_config_defaults(config_file=None):
     defaults = {
         "matlab_exe": "/Applications/MATLAB_R2025b.app/bin/matlab",
         "spm_path": "",
+        "tfce_permutations": 5000,
+        "report_quality": "low",
+        "report_filter": "all",
+        "display_convention": "spm",
     }
 
     # Find config file
@@ -51,6 +55,14 @@ def get_config_defaults(config_file=None):
                 defaults["matlab_exe"] = config["matlab"]["executable"]
             if "spm" in config and config["spm"].get("path"):
                 defaults["spm_path"] = config["spm"]["path"]
+            if "tfce" in config and config["tfce"].get("n_permutations"):
+                defaults["tfce_permutations"] = config["tfce"]["n_permutations"]
+            if "reporting" in config and config["reporting"].get("quality"):
+                defaults["report_quality"] = config["reporting"]["quality"]
+            if "reporting" in config and config["reporting"].get("filter"):
+                defaults["report_filter"] = config["reporting"]["filter"]
+            if "reporting" in config and config["reporting"].get("display_convention"):
+                defaults["display_convention"] = config["reporting"]["display_convention"]
         except Exception as e:
             print(f"Warning: Could not read config file {config_file}: {e}")
 
@@ -135,8 +147,27 @@ Examples:
     parser.add_argument(
         "--tfce",
         type=int,
-        default=5000,
-        help="Number of TFCE permutations (default: 5000)",
+        help="Number of TFCE permutations (default: config tfce.n_permutations or 5000)",
+    )
+    parser.add_argument(
+        "--report-filter",
+        choices=["all", "tfce", "spmt", "double_threshold", "no_tfce"],
+        help="Filter mode for HTML report (default: config reporting.filter or all)",
+    )
+    parser.add_argument(
+        "--report-quality",
+        choices=["low", "standard", "publication"],
+        help="HTML report quality (default: config reporting.quality or low)",
+    )
+    parser.add_argument(
+        "--glassbrain",
+        action="store_true",
+        help="Enable glass-brain generation in HTML report (disabled by default).",
+    )
+    parser.add_argument(
+        "--display-convention",
+        choices=["spm", "auto", "radiological", "neurological"],
+        help="Plot orientation convention for volume figures (default: config reporting.display_convention or spm)",
     )
 
     args = parser.parse_args()
@@ -147,6 +178,13 @@ Examples:
         defaults["matlab_exe"] = args.matlab_exe
     if args.spm_path:
         defaults["spm_path"] = args.spm_path
+
+    tfce_permutations = args.tfce if args.tfce is not None else defaults["tfce_permutations"]
+    report_filter = args.report_filter if args.report_filter else defaults["report_filter"]
+    report_quality = args.report_quality if args.report_quality else defaults["report_quality"]
+    display_convention = (
+        args.display_convention if args.display_convention else defaults["display_convention"]
+    )
 
     results_dir = os.path.abspath(args.results_dir)
 
@@ -184,8 +222,8 @@ Examples:
     if os.path.exists(tfce_done) and not args.force:
         print("--- Skipping TFCE: Results already exist. ---")
     else:
-        print(f"--- Running TFCE Permutation Correction ({args.tfce} permutations) ---")
-        cmd = f"run_tfce_correction('{results_dir}', 'n_perm', {args.tfce})"
+        print(f"--- Running TFCE Permutation Correction ({tfce_permutations} permutations) ---")
+        cmd = f"run_tfce_correction('{results_dir}', 'n_perm', {tfce_permutations})"
         try:
             run_matlab_cmd(cmd, args)
         except Exception as e:
@@ -213,9 +251,24 @@ Examples:
     if report_script.exists():
         print(f"--- Generating HTML Report: {report_html} ---")
 
-        report_cmd = [sys.executable, str(report_script), results_dir, report_html, "--quality", "low", "--filter", "no_tfce"]
+        report_cmd = [
+            sys.executable,
+            str(report_script),
+            results_dir,
+            report_html,
+            "--quality",
+            report_quality,
+            "--filter",
+            report_filter,
+            "--display-convention",
+            display_convention,
+        ]
+        if args.glassbrain:
+            report_cmd.append("--glassbrain")
         if args.spm_path:
             report_cmd.extend(["--spm-path", args.spm_path])
+        if args.config:
+            report_cmd.extend(["--config", args.config])
 
         try:
             subprocess.check_call(report_cmd)

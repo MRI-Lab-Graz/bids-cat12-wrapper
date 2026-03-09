@@ -366,7 +366,16 @@ def plot_surface_to_base64(
         return None
 
 
-def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, scale=1.0, stat_img=None):
+def get_cluster_gallery(
+    img,
+    threshold,
+    atlases=None,
+    n_clusters=5,
+    dpi=100,
+    scale=1.0,
+    stat_img=None,
+    radiological=False,
+):
     """Identify clusters and generate ortho plots for the peaks."""
     try:
         data = img.get_fdata()
@@ -444,6 +453,7 @@ def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, sca
                 colorbar=True,
                 threshold=plot_threshold,
                 cmap='cold_hot',
+                radiological=radiological,
                 figure=fig,
                 title=None,
                 draw_cross=True,
@@ -457,6 +467,7 @@ def get_cluster_gallery(img, threshold, atlases=None, n_clusters=5, dpi=100, sca
 
             gallery.append(
                 {
+                    "rank": int(count + 1),
                     "id": int(cid),
                     "size": int(cluster_sizes[cid]),
                     "peak_mni": [float(round(c, 2)) for c in peak_mni],
@@ -485,7 +496,15 @@ def find_atlas_files(cat12_base, name, rel_nii, rel_xml):
 
 
 def generate_report(
-    results_dir, output_html, filter_mode="all", spm_path=None, quality="standard", max_plots=None, config_file=None
+    results_dir,
+    output_html,
+    filter_mode="all",
+    spm_path=None,
+    quality="standard",
+    max_plots=None,
+    config_file=None,
+    display_convention="spm",
+    include_glassbrain=False,
 ):
     print(f"Generating post-stats report for: {results_dir}")
     filter_mode = (filter_mode or "all").lower()
@@ -495,12 +514,13 @@ def generate_report(
     print(f"Filter mode: {filter_mode}")
     quality_settings = get_quality_settings(quality)
     print(f"Quality: {quality}")
+    print(f"Glass-brain: {'enabled' if include_glassbrain else 'disabled'}")
 
     if not os.path.isdir(results_dir):
         print(f"Error: {results_dir} is not a directory.")
         return
     
-    # Detect orientation convention
+    # Detect orientation convention from image affine
     radiological_convention = False
     sample_files = glob.glob(os.path.join(results_dir, "spm*.nii*"))
     if sample_files:
@@ -509,10 +529,51 @@ def generate_report(
             det = np.linalg.det(sample_img.affine[:3, :3])
             if det < 0:
                 radiological_convention = True
-                print("\n⚠️  WARNING: Images use RADIOLOGICAL convention (Left↔Right flipped in storage)")
-                print("    Atlas labels may show opposite hemisphere. Verify results with MNI coordinates.\n")
         except Exception as e:
             print(f"Warning: Could not detect image convention: {e}")
+
+    display_convention = (display_convention or "spm").lower()
+    if display_convention not in {"auto", "spm", "radiological", "neurological"}:
+        print(
+            f"Warning: Unknown display_convention '{display_convention}', defaulting to 'spm'."
+        )
+        display_convention = "spm"
+
+    if display_convention == "auto":
+        radiological_plotting = radiological_convention
+        convention_source = "auto"
+    elif display_convention == "spm":
+        # SPM's Display checks are neurological (left shown on left);
+        # storage handedness is handled separately by SPM/NIfTI metadata.
+        radiological_plotting = False
+        convention_source = "spm"
+    else:
+        radiological_plotting = display_convention == "radiological"
+        convention_source = "forced"
+
+    plot_convention = "Radiological" if radiological_plotting else "Neurological"
+    convention_note = ""
+    if display_convention == "spm":
+        convention_note = (
+            "SPM mode enabled: plots use neurological display (left shown on left), while storage handedness is treated separately."
+        )
+    elif radiological_convention and radiological_plotting:
+        convention_note = (
+            "Detected radiological storage orientation. Plots are rendered in radiological view to match SPM-style left/right display."
+        )
+    elif radiological_convention and not radiological_plotting:
+        convention_note = (
+            "Detected radiological storage orientation, but plots are forced to neurological view. Left/right appearance may differ from SPM."
+        )
+    elif (not radiological_convention) and radiological_plotting:
+        convention_note = (
+            "Detected neurological storage orientation, but plots are forced to radiological view. Left/right appearance may differ from SPM."
+        )
+
+    if not len(glob.glob(os.path.join(results_dir, "*.gii"))):
+        print(
+            f"Plot convention: {plot_convention} ({convention_source})"
+        )
 
     # Detect if surface data
     is_surface = len(glob.glob(os.path.join(results_dir, "*.gii"))) > 0
@@ -1162,6 +1223,7 @@ def generate_report(
                             dpi=quality_settings["dpi_cluster"],
                             scale=quality_settings["scale"],
                             stat_img=stat_img,
+                            radiological=radiological_plotting,
                         )
 
                     if display_corr == "Double Threshold" and is_bidirectional:
@@ -1216,6 +1278,9 @@ def generate_report(
     print(f"Generating {len(unique_combos)} threshold-specific plots...")
     for con_num, corr_name, f_path, log_p_thresh in unique_combos:
         img_id = f"{con_num}_{corr_name}_{log_p_thresh:.2f}"
+        if not include_glassbrain:
+            # Skip expensive glass-brain rendering unless explicitly requested.
+            continue
         if not is_surface:
             try:
                 img = nib.load(f_path)
@@ -1234,6 +1299,7 @@ def generate_report(
                     figure=fig,
                     threshold=log_p_thresh,
                     plot_abs=True,  # Use absolute values for thresholding but show direction
+                    radiological=radiological_plotting,
                 )
                 tmpfile = BytesIO()
                 fig.savefig(
@@ -1262,12 +1328,21 @@ def generate_report(
             if encoded:
                 plots[img_id] = encoded
 
-    corr_priority = {"FWE": 0, "FDR": 1, "Uncorrected": 2}
+    corr_priority = {
+        "FWE (TFCE)": 0,
+        "FDR (TFCE)": 1,
+        "FWE (Voxel)": 2,
+        "FDR (Voxel)": 3,
+        "Double Threshold": 4,
+        "Effect Size": 5,
+        "Raw SPM T-maps": 6,
+        "Raw SPM F-maps": 7,
+    }
     report_data.sort(
         key=lambda x: (
-            x["p_thresh"],
-            corr_priority.get(x["correction"], 3),
             x["con_num"],
+            corr_priority.get(x["correction"], 99),
+            x["p_thresh"],
         )
     )
 
@@ -1278,12 +1353,15 @@ def generate_report(
     <meta charset="UTF-8">
     <title>CAT12 Interactive Post-Stats Report</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f8f9fa; color: #333; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; background-color: #f8f9fa; color: #333; }
+        .page { width: min(100%, 1800px); margin: 0 auto; }
         h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
         .info-container { display: flex; gap: 20px; margin-bottom: 30px; }
         .info { flex: 1; background-color: #e9ecef; padding: 15px; border-radius: 8px; }
         .plot-container { flex: 2; background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 200px; }
         .plot-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+        .plot-grid.no-main-plot { grid-template-columns: 1fr; }
         .plot-main { text-align: center; }
         .plot-side { display: grid; gap: 10px; }
         .plot-panel { background: #f8f9fa; padding: 8px; border-radius: 6px; text-align: center; }
@@ -1293,7 +1371,8 @@ def generate_report(
         .control-group { display: flex; flex-direction: column; gap: 5px; }
         select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 150px; background-color: #fff; }
         .warning-banner { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; background-color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        .table-wrap { width: 100%; overflow-x: auto; background-color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; }
+        table { width: 100%; min-width: 1250px; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background-color: #007bff; color: white; font-weight: 600; text-transform: uppercase; font-size: 0.8em; cursor: pointer; }
         tr:hover { background-color: #f8f9fa; cursor: pointer; }
@@ -1311,9 +1390,24 @@ def generate_report(
         .cluster-subrow { background-color: #f8f9fa; }
         .cluster-subrow:hover { background-color: #e9ecef; }
         .cluster-subrow.selected { background-color: #d6e9ff; }
+        .detail-row td { padding: 0; border-bottom: 1px solid #d9e2ec; }
+        .detail-panel { margin: 10px 14px 14px; padding: 14px; background: #ffffff; border: 1px solid #d9e2ec; border-left: 4px solid #007bff; border-radius: 8px; }
+        .detail-title { font-weight: 700; margin-bottom: 8px; color: #174a7e; }
+        .detail-gallery { margin-top: 12px; display: grid; gap: 12px; }
+        .detail-gallery-item { border-top: 1px solid #edf2f7; padding-top: 10px; }
+        .detail-gallery-head { font-weight: 600; margin-bottom: 6px; color: #334e68; }
+        .row-toggle { margin-left: 8px; padding: 3px 8px; border: 1px solid #b8c5d1; border-radius: 6px; background: #f4f7fb; color: #234; font-size: 0.75em; cursor: pointer; }
+        .row-toggle:hover { background: #e9f1fb; }
+        .plot-main img, .plot-panel img, .detail-gallery img { max-width: 100%; height: auto; }
+        @media (max-width: 1100px) {
+            .plot-grid { grid-template-columns: 1fr; }
+            .controls { gap: 12px; }
+            .control-group { min-width: 220px; }
+        }
     </style>
 </head>
 <body>
+    <div class="page">
     <h1>CAT12 Interactive Post-Stats Report</h1>
     
     {% if not has_tfce %}
@@ -1322,10 +1416,9 @@ def generate_report(
     </div>
     {% endif %}
     
-    {% if radiological_convention %}
-    <div class="warning-banner" style="background-color: #fff3cd; border-color: #ffc107;">
-        ⚠️ <strong>Orientation Notice:</strong> These images use RADIOLOGICAL convention (stored Left↔Right flipped).
-        Atlas labels may show opposite hemisphere. Please verify critical findings using MNI coordinates.
+    {% if convention_note %}
+    <div class="warning-banner" style="background-color: #fff3cd; border-color: #ffc107; font-weight: 500;">
+        <strong>Orientation Notice:</strong> {{ convention_note }}
     </div>
     {% endif %}
     
@@ -1334,37 +1427,8 @@ def generate_report(
             <p><strong>Results Directory:</strong> {{ results_dir }}</p>
             <p><strong>Generated on:</strong> {{ date }}</p>
             <p><strong>Mode:</strong> {{ mode }}</p>
-            <p style="margin-top: 20px;"><small>Click any row in the table to update the visualization.</small></p>
-        </div>
-        <div class="plot-container">
-            <div id="plot-title" style="font-weight: bold; margin-bottom: 10px; font-size: 1.2em; text-align: center;">Select a result to view plot</div>
-            <div class="plot-grid">
-                <div class="plot-main">
-                    <img id="main-plot" src="" class="hidden">
-                    <div id="no-plot">No visualization available for this selection</div>
-                </div>
-                <div class="plot-side">
-                    <div class="plot-panel">
-                        <h4>Design Matrix</h4>
-                        <img id="design-matrix-plot" src="" class="hidden">
-                        <div id="no-design-matrix" style="font-size: 0.85em; color: #666;">Unavailable</div>
-                        <div id="regressor-list" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
-                    </div>
-                    <div class="plot-panel">
-                        <h4>Contrast (SPM-style)</h4>
-                        <img id="contrast-plot" src="" class="hidden">
-                        <div id="no-contrast" style="font-size: 0.85em; color: #666;">Unavailable</div>
-                        <div id="contrast-vector" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="gallery-section" class="hidden">
-        <h2 style="color: #0056b3; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Cluster Gallery (Top Peaks)</h2>
-        <div id="gallery-content" style="display: flex; flex-direction: column; gap: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <!-- Clusters will be injected here -->
+            <p><strong>Plot Convention:</strong> {{ plot_convention }}</p>
+            <p style="margin-top: 20px;"><small>Click any row to open its plot panel directly below that contrast group.</small></p>
         </div>
     </div>
     
@@ -1410,6 +1474,7 @@ def generate_report(
         </div>
     </div>
     
+    <div class="table-wrap">
     <table id="results-table">
         <thead>
             <tr>
@@ -1431,13 +1496,19 @@ def generate_report(
                 data-p="{{ row.p_thresh }}" 
                 data-corr="{{ row.correction }}"
                 data-con="{{ row.con_num }}"
+                data-group-id="{{ row.group_id }}"
+                data-con-name="{{ row.con_name }}"
+                data-p-label="{{ row.p_label }}"
                 data-img-id="{{ row.con_num }}_{{ row.correction }}_{{ '%.2f'|format(row.log_p_thresh) }}"
                 data-regions='{{ row.regions | tojson | safe }}'
                 data-gallery='{{ row.cluster_gallery | tojson | safe }}'
                 onclick="selectRow(this)">
                 {% if row.is_first_cluster %}
                 <td rowspan="{{ row.total_clusters }}">{{ row.con_num }}</td>
-                <td rowspan="{{ row.total_clusters }}">{{ row.con_name }}</td>
+                <td rowspan="{{ row.total_clusters }}">
+                    {{ row.con_name }}
+                    <button class="row-toggle" onclick="toggleRowDetails(event, this.closest('tr'))">Show plots</button>
+                </td>
                 <td rowspan="{{ row.total_clusters }}">
                     <span class="badge badge-{{ row.correction.lower()[:3] }}">{{ row.correction }}</span>
                     {% if row.cluster_size %}<br><small>k > {{ row.cluster_size }}</small>{% endif %}
@@ -1452,9 +1523,42 @@ def generate_report(
                 <td class="coords">{{ row.peak_mni }}</td>
                 <td class="region-cell region">Loading...</td>
             </tr>
+            {% if row.is_last_cluster %}
+            <tr id="detail-{{ row.group_id }}" class="detail-row hidden" data-group-id="{{ row.group_id }}">
+                <td colspan="10">
+                    <div class="detail-panel">
+                        <div class="detail-title">Select a row in this contrast to load plots</div>
+                        <div class="plot-grid {% if not include_glassbrain %}no-main-plot{% endif %}">
+                            {% if include_glassbrain %}
+                            <div class="plot-main">
+                                <img class="panel-main-plot hidden" src="" alt="Main plot">
+                                <div class="panel-no-plot">No visualization available for this selection</div>
+                            </div>
+                            {% endif %}
+                            <div class="plot-side">
+                                <div class="plot-panel">
+                                    <h4>Design Matrix</h4>
+                                    <img class="panel-design-matrix hidden" src="" alt="Design matrix">
+                                    <div class="panel-no-design" style="font-size: 0.85em; color: #666;">Unavailable</div>
+                                    <div class="panel-regressor-list" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
+                                </div>
+                                <div class="plot-panel">
+                                    <h4>Contrast (SPM-style)</h4>
+                                    <img class="panel-contrast hidden" src="" alt="Contrast">
+                                    <div class="panel-no-contrast" style="font-size: 0.85em; color: #666;">Unavailable</div>
+                                    <div class="panel-contrast-vector" style="margin-top: 6px; font-size: 0.85em; color: #444;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-gallery"></div>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
+    </div>
     
     <script>
         const plots = {{ plots_json | safe }};
@@ -1462,6 +1566,29 @@ def generate_report(
         const contrastPlots = {{ contrast_plots_json | safe }};
         const regressorNames = {{ regressor_names_json | safe }};
         const contrastVectors = {{ contrast_vectors_json | safe }};
+        let activeRow = null;
+
+        function setToggleLabels(activeGroupId) {
+            document.querySelectorAll('.row-toggle').forEach(btn => {
+                const tr = btn.closest('tr');
+                if (!tr) return;
+                const g = tr.getAttribute('data-group-id');
+                btn.innerText = (activeGroupId && g === activeGroupId) ? 'Close plots' : 'Show plots';
+            });
+        }
+
+        function keepRowPositionStable(row, action) {
+            if (!row) {
+                action();
+                return;
+            }
+            const beforeTop = row.getBoundingClientRect().top;
+            action();
+            requestAnimationFrame(() => {
+                const afterTop = row.getBoundingClientRect().top;
+                window.scrollBy(0, afterTop - beforeTop);
+            });
+        }
         
         function filterTable() {
             const pVal = document.getElementById('filter-p').value;
@@ -1480,6 +1607,28 @@ def generate_report(
                     row.classList.add('hidden');
                 }
             });
+
+            document.querySelectorAll('.detail-row').forEach(detailRow => {
+                const groupId = detailRow.getAttribute('data-group-id');
+                const visibleGroupRows = Array.from(document.querySelectorAll(`.result-row[data-group-id="${groupId}"]`))
+                    .filter(r => !r.classList.contains('hidden'));
+                if (visibleGroupRows.length === 0) {
+                    detailRow.classList.add('hidden');
+                }
+            });
+
+            if (activeRow && activeRow.classList.contains('hidden')) {
+                activeRow = null;
+                document.querySelectorAll('.result-row').forEach(r => r.classList.remove('selected'));
+                setToggleLabels(null);
+            }
+
+            if (!activeRow) {
+                const firstVisible = document.querySelector('.result-row:not(.hidden)');
+                if (firstVisible) {
+                    selectRow(firstVisible);
+                }
+            }
         }
         
         function updateAtlas() {
@@ -1491,32 +1640,52 @@ def generate_report(
                 cell.innerText = regions[atlasName] || 'N/A';
             });
             
-            const selectedRow = document.querySelector('.result-row.selected');
-            if (selectedRow) selectRow(selectedRow);
+            if (activeRow && !activeRow.classList.contains('hidden')) {
+                renderDetailPanel(activeRow);
+            }
         }
-        
-        function selectRow(row) {
-            document.querySelectorAll('.result-row').forEach(r => r.classList.remove('selected'));
-            row.classList.add('selected');
-            
+
+        function closeAllDetailRows() {
+            document.querySelectorAll('.detail-row').forEach(row => row.classList.add('hidden'));
+        }
+
+        function renderDetailPanel(row) {
+            const groupId = row.getAttribute('data-group-id');
+            const detailRow = document.getElementById('detail-' + groupId);
+            if (!detailRow) return;
+
+            closeAllDetailRows();
+            detailRow.classList.remove('hidden');
+
+            const panel = detailRow.querySelector('.detail-panel');
+            const title = panel.querySelector('.detail-title');
+            const plotImg = panel.querySelector('.panel-main-plot');
+            const noPlot = panel.querySelector('.panel-no-plot');
+            const dmImg = panel.querySelector('.panel-design-matrix');
+            const dmEmpty = panel.querySelector('.panel-no-design');
+            const conImg = panel.querySelector('.panel-contrast');
+            const conEmpty = panel.querySelector('.panel-no-contrast');
+            const regressorList = panel.querySelector('.panel-regressor-list');
+            const contrastVector = panel.querySelector('.panel-contrast-vector');
+            const gallery = panel.querySelector('.detail-gallery');
+
+            const conName = row.getAttribute('data-con-name');
+            const corr = row.getAttribute('data-corr');
+            const pLabel = row.getAttribute('data-p-label');
+            title.innerText = `${conName} (${corr} @ ${pLabel})`;
+
             const imgId = row.getAttribute('data-img-id');
-            const plotImg = document.getElementById('main-plot');
-            const noPlot = document.getElementById('no-plot');
-            const plotTitle = document.getElementById('plot-title');
-            
-            if (plots[imgId]) {
-                plotImg.src = 'data:image/png;base64,' + plots[imgId];
-                plotImg.classList.remove('hidden');
-                noPlot.classList.add('hidden');
-                plotTitle.innerText = row.cells[1].innerText + ' (' + row.cells[2].innerText + ' @ ' + row.cells[3].innerText + ')';
-            } else {
-                plotImg.classList.add('hidden');
-                noPlot.classList.remove('hidden');
-                plotTitle.innerText = 'No visualization available';
+            if (plotImg && noPlot) {
+                if (plots[imgId]) {
+                    plotImg.src = 'data:image/png;base64,' + plots[imgId];
+                    plotImg.classList.remove('hidden');
+                    noPlot.classList.add('hidden');
+                } else {
+                    plotImg.classList.add('hidden');
+                    noPlot.classList.remove('hidden');
+                }
             }
 
-            const dmImg = document.getElementById('design-matrix-plot');
-            const dmEmpty = document.getElementById('no-design-matrix');
             if (designMatrixPlot) {
                 dmImg.src = 'data:image/png;base64,' + designMatrixPlot;
                 dmImg.classList.remove('hidden');
@@ -1527,10 +1696,6 @@ def generate_report(
             }
 
             const conNum = row.getAttribute('data-con');
-            const conImg = document.getElementById('contrast-plot');
-            const conEmpty = document.getElementById('no-contrast');
-            const regressorList = document.getElementById('regressor-list');
-            const contrastVector = document.getElementById('contrast-vector');
             if (contrastPlots[conNum]) {
                 conImg.src = 'data:image/png;base64,' + contrastPlots[conNum];
                 conImg.classList.remove('hidden');
@@ -1549,33 +1714,27 @@ def generate_report(
 
             if (contrastVectors[conNum]) {
                 const vec = contrastVectors[conNum];
-                contrastVector.innerHTML = '<strong>Contrast vector:</strong> [' + vec.map(v => v.toFixed(2)).join(', ') + ']';
+                contrastVector.innerHTML = '<strong>Contrast vector:</strong> [' + vec.map(v => Number(v).toFixed(2)).join(', ') + ']';
             } else {
                 contrastVector.innerHTML = '';
             }
-            
+
             const galleryData = JSON.parse(row.getAttribute('data-gallery'));
-            const gallerySection = document.getElementById('gallery-section');
-            const galleryContent = document.getElementById('gallery-content');
-            
             if (galleryData && galleryData.length > 0) {
                 const activeAtlas = document.getElementById('select-atlas').value;
-                const conName = row.cells[1].innerText;
-                const conNum = row.getAttribute('data-con');
                 const contrastPlot = contrastPlots[conNum];
-                gallerySection.classList.remove('hidden');
-                galleryContent.innerHTML = galleryData.map(c => `
-                    <div style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="font-weight: bold; margin-bottom: 5px;">
-                            ${conName} — Cluster ${c.id} - ${c.regions[activeAtlas] || 'N/A'} 
+                gallery.innerHTML = galleryData.map(c => `
+                    <div class="detail-gallery-item">
+                        <div class="detail-gallery-head">
+                            Peak ${c.rank}${c.id ? ` (component ${c.id})` : ''} - ${c.regions[activeAtlas] || 'N/A'}
                             <span style="font-weight: normal; color: #666; font-size: 0.9em; margin-left: 10px;">
                                 MNI: [${c.peak_mni.join(', ')}] | Size: ${c.size} voxels
                             </span>
                         </div>
-                        <div style="display: flex; gap: 15px; align-items: flex-start;">
-                            <img src="data:image/png;base64,${c.plot}" style="flex: 1; max-width: 65%; height: auto; border-radius: 4px;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <img src="data:image/png;base64,${c.plot}" style="flex: 1; max-width: 66%; height: auto; border-radius: 4px;">
                             ${contrastPlot ? `
-                                <div style="flex: 0 0 33%; display: flex; flex-direction: column; justify-content: center;">
+                                <div style="flex: 0 0 32%;">
                                     <div style="font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px;">Contrast Weights</div>
                                     <img src="data:image/png;base64,${contrastPlot}" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                                 </div>
@@ -1584,9 +1743,43 @@ def generate_report(
                     </div>
                 `).join('');
             } else {
-                gallerySection.classList.add('hidden');
-                galleryContent.innerHTML = '';
+                gallery.innerHTML = '';
             }
+        }
+        
+        function selectRow(row) {
+            const groupId = row.getAttribute('data-group-id');
+            keepRowPositionStable(row, () => {
+                document.querySelectorAll('.result-row').forEach(r => r.classList.remove('selected'));
+                document.querySelectorAll(`.result-row[data-group-id="${groupId}"]`)
+                    .forEach(r => r.classList.add('selected'));
+                activeRow = row;
+                renderDetailPanel(row);
+                setToggleLabels(groupId);
+            });
+        }
+
+        function toggleRowDetails(event, row) {
+            event.stopPropagation();
+            const groupId = row.getAttribute('data-group-id');
+            const detailRow = document.getElementById('detail-' + groupId);
+            const isOpen = !!activeRow &&
+                activeRow.getAttribute('data-group-id') === groupId &&
+                detailRow &&
+                !detailRow.classList.contains('hidden');
+
+            if (isOpen) {
+                keepRowPositionStable(row, () => {
+                    closeAllDetailRows();
+                    document.querySelectorAll(`.result-row[data-group-id="${groupId}"]`)
+                        .forEach(r => r.classList.remove('selected'));
+                    activeRow = null;
+                    setToggleLabels(null);
+                });
+                return;
+            }
+
+            selectRow(row);
         }
         
         window.onload = () => {
@@ -1595,6 +1788,7 @@ def generate_report(
             if (firstRow) selectRow(firstRow);
         };
     </script>
+    </div>
 </body>
 </html>"""
 
@@ -1609,10 +1803,16 @@ def generate_report(
     report_data_grouped = []
     for key in sorted(grouped_data.keys()):
         clusters = grouped_data[key]
+        con_num, correction, p_thresh = key
+        correction_slug = re.sub(r"[^a-zA-Z0-9]+", "_", correction).strip("_").lower()
+        p_slug = int(round(float(p_thresh) * 1000))
+        group_id = f"g_{con_num}_{correction_slug}_{p_slug}"
         for idx, cluster in enumerate(clusters):
             cluster["is_first_cluster"] = (idx == 0)
+            cluster["is_last_cluster"] = (idx == len(clusters) - 1)
             cluster["cluster_num"] = idx + 1
             cluster["total_clusters"] = len(clusters)
+            cluster["group_id"] = group_id
             report_data_grouped.append(cluster)
 
     template = Template(html_template)
@@ -1623,8 +1823,11 @@ def generate_report(
         is_surface=is_surface,
         has_tfce=has_tfce,
         radiological_convention=radiological_convention,
+        convention_note=convention_note,
+        plot_convention=plot_convention,
         contrast_names=contrast_names,
         report_data=report_data_grouped,
+        include_glassbrain=include_glassbrain,
         plots_json=json.dumps(plots),
         design_matrix_plot=design_matrix_plot,
         contrast_plots_json=json.dumps(contrast_plots),
@@ -1696,6 +1899,17 @@ Filter Modes:
         default=None,
         help="Path to config.json file (default: config/config.json from workspace root)",
     )
+    parser.add_argument(
+        "--display-convention",
+        choices=["spm", "auto", "radiological", "neurological"],
+        default="spm",
+        help="Plot orientation convention for volume figures (default: spm).",
+    )
+    parser.add_argument(
+        "--glassbrain",
+        action="store_true",
+        help="Enable glass-brain figure generation (disabled by default for speed/consistency).",
+    )
 
     args = parser.parse_args()
 
@@ -1713,4 +1927,6 @@ Filter Modes:
         quality=args.quality,
         max_plots=args.max_plots,
         config_file=args.config,
+        display_convention=args.display_convention,
+        include_glassbrain=args.glassbrain,
     )

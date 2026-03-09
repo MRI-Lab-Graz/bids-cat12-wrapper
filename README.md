@@ -14,25 +14,50 @@
 
 ## Quick Start
 
-### 1. Configure
-Edit `config/config.json` with your MATLAB and SPM paths.
+Practical examples for the most common workflow in this repo:
 
-### 2. Analyze & Report
+### 1. Activate environment
 ```bash
-# Generate interactive report from existing results
+cd /Volumes/Thunder/129_PK01/cat12/stats
+source .venv/bin/activate
+```
+
+### 2. Run stats + sweep + report from one config
+```bash
+python run_pipeline.py \
+  --config config/config_14_2_26.json \
+  --cat12-dir /Volumes/Thunder/129_PK01/cat12/data/cat12 \
+  --only stats,sweep,report
+```
+
+Notes:
+- `stats` runs design/estimate.
+- `sweep` runs threshold/effect-size/TFCE sweep.
+- `report` generates interactive HTML.
+
+### 3. Regenerate report from existing results (report-only)
+Use this when stats already finished and you only want a new HTML.
+
+```bash
 python scripts/reporting/post_stats_report.py \
-  ./results/vbm/analysis \
-  report.html
-
-# Or automated workflow (with MATLAB - if functions available)
-python scripts/analysis/run_stats_sweep.py ./results/vbm/analysis --use-matlab
+  results/vbm/vbm_9mm_social_2TP_tiv_sex_age \
+  results/vbm/vbm_9mm_social_2TP_tiv_sex_age/report_tfce.html \
+  --filter all \
+  --quality low \
+  --config config/config_14_2_26.json
 ```
 
-### 3. Explore
+### 4. Open report
 ```bash
-# Open interactive HTML report in browser
-open report.html
+open results/vbm/vbm_9mm_social_2TP_tiv_sex_age/report_tfce.html
 ```
+
+### 5. Quick interpretation examples
+
+- If TFCE files exist but you do not see them in HTML, regenerate with `--filter all` (or `--filter tfce`).
+- Contrast labels are not always pairwise in the way the name suggests. Check the embedded vectors in report JS:
+  - `Positive effect of Group_1` (contrast `6`) = `[1,1,-1,-1,0,0,...]` = Group1 vs Group2.
+  - `Overall: alone - control` (contrast `31`) = `[1,1,0,0,-1,-1,...]` = Group1 vs Group3.
 
 ---
 

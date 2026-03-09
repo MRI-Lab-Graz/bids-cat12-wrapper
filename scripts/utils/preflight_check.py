@@ -650,11 +650,6 @@ def main() -> None:
     )
     parser.add_argument("--participants", required=True, help="participants.tsv path")
     parser.add_argument(
-        "--config",
-        default=None,
-        help="Optional path to JSON config (used to detect standalone mode)",
-    )
-    parser.add_argument(
         "--covariates",
         default="",
         help='Comma-separated covariates to check (e.g., "age,sex,tiv")',
