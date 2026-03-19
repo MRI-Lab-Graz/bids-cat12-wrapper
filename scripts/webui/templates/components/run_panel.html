@@ -1,35 +1,27 @@
 <section class="card panel-card mb-3">
   <div class="card-header">
-    <strong><i class="fas fa-play-circle me-2"></i>Pipeline Run Options</strong>
+    <strong><i class="fas fa-play-circle me-2"></i>Run</strong>
   </div>
   <div class="card-body">
     <div class="row g-2">
       <div class="col-12">
-        <label class="form-label">Only steps</label>
-        <input id="optOnly" class="form-control" placeholder="stats,report">
-      </div>
-      <div class="col-12">
-        <label class="form-label">Skip steps</label>
-        <input id="optSkip" class="form-control" placeholder="preproc">
-      </div>
-      <div class="col-6">
-        <label class="form-label">From step</label>
-        <input id="optFromStep" class="form-control" placeholder="stats">
-      </div>
-      <div class="col-6">
-        <label class="form-label">Until step</label>
-        <input id="optUntilStep" class="form-control" placeholder="report">
+        <label class="form-label">Mode</label>
+        <select id="optMode" class="form-select">
+          <option value="stats">Statistics only (multi-modality)</option>
+          <option value="preproc">Preprocessing only</option>
+          <option value="full">Preprocessing + statistics</option>
+        </select>
       </div>
       <div class="col-12">
         <label class="form-label">CAT12 dir</label>
-        <input id="optCat12Dir" class="form-control" placeholder="/path/to/derivatives/cat12">
+        <input id="optCat12Dir" class="form-control" placeholder="derivatives/cat12">
       </div>
       <div class="col-12 d-grid">
         <button id="btnBrowseCat12Dir" type="button" class="btn btn-outline-secondary">Browse CAT12 folder...</button>
       </div>
       <div class="col-12">
         <label class="form-label">Participants file</label>
-        <input id="optParticipants" class="form-control" placeholder="results/data/participants.tsv">
+        <input id="optParticipants" class="form-control" placeholder="participants.tsv">
       </div>
       <div class="col-12 d-flex gap-2 align-items-end">
         <div class="flex-grow-1 d-grid">
@@ -40,37 +32,77 @@
         </button>
       </div>
       <div class="col-6">
-        <label class="form-label">Results dir override</label>
-        <input id="optResultsDir" class="form-control" placeholder="results/vbm/...">
+        <label class="form-label">Stats config override (optional)</label>
+        <input id="optStatsConfig" class="form-control" placeholder="projects/demo/stats_config.json">
       </div>
       <div class="col-6">
         <label class="form-label">Modality</label>
         <select id="optModality" class="form-select">
           <option value="">(from config)</option>
           <option value="vbm">vbm</option>
+          <option value="depth">depth</option>
+          <option value="gyrification">gyrification</option>
           <option value="thickness">thickness</option>
         </select>
       </div>
       <div class="col-12 d-grid">
-        <button id="btnBrowseResultsDir" type="button" class="btn btn-outline-secondary">Browse results folder...</button>
+        <button id="btnBrowseStatsConfig" type="button" class="btn btn-outline-secondary">Browse stats config...</button>
       </div>
       <div class="col-12 d-flex gap-3 mt-2">
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="optUseMatlab">
-          <label class="form-check-label" for="optUseMatlab">use_matlab</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="optForce">
-          <label class="form-check-label" for="optForce">force</label>
+          <input class="form-check-input" type="checkbox" id="optForceAll">
+          <label class="form-check-label" for="optForceAll">force all modalities</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="optDryRun">
-          <label class="form-check-label" for="optDryRun">dry_run</label>
+          <label class="form-check-label" for="optDryRun">dry run</label>
         </div>
       </div>
       <div class="col-12 d-grid gap-2 mt-2">
         <button id="btnRun" class="btn btn-primary"><i class="fas fa-play me-1"></i>Run Pipeline</button>
         <button id="btnStop" class="btn btn-outline-danger"><i class="fas fa-stop me-1"></i>Stop</button>
+      </div>
+      <div class="col-12 mt-1">
+        <hr>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Report results dir</label>
+        <input id="optReportResultsDir" class="form-control" placeholder="results/vbm/vbm_smooth6_default_analysis">
+      </div>
+      <div class="col-12 d-grid">
+        <button id="btnBrowseReportResultsDir" type="button" class="btn btn-outline-secondary">Browse report input folder...</button>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Report quality</label>
+        <select id="optReportQuality" class="form-select">
+          <option value="low">low</option>
+          <option value="standard">standard</option>
+          <option value="publication">publication</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Report filter</label>
+        <select id="optReportFilter" class="form-select">
+          <option value="no_tfce">no_tfce</option>
+          <option value="tfce">tfce</option>
+          <option value="all">all</option>
+          <option value="spmt">spmt</option>
+          <option value="double_threshold">double_threshold</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Report output html (optional)</label>
+        <input id="optReportOutputHtml" class="form-control" placeholder="results/custom_report.html">
+      </div>
+      <div class="col-12 d-grid">
+        <button id="btnGenerateReport" class="btn btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>Generate HTML Report</button>
+      </div>
+      <div class="col-12 d-grid gap-2 mt-2">
+        <button id="btnListReports" class="btn btn-outline-secondary"><i class="fas fa-file-code me-1"></i>List HTML Reports</button>
+        <select id="reportSelect" class="form-select">
+          <option value="">(no report selected)</option>
+        </select>
+        <button id="btnOpenReport" class="btn btn-outline-primary"><i class="fas fa-up-right-from-square me-1"></i>Open Selected Report</button>
       </div>
     </div>
   </div>

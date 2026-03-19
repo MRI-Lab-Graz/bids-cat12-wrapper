@@ -20,6 +20,9 @@ function prettifyKey(key) {
 
 const SECTION_META = {
   study: { title: 'Study', subtitle: 'Project identity and description' },
+  paths: { title: 'Paths', subtitle: 'Project-relative input/output paths' },
+  preprocessing: { title: 'Preprocessing', subtitle: 'BIDS source, stages, smoothing, and execution' },
+  statistics: { title: 'Statistics', subtitle: 'Multimodality design, inference, and reporting' },
   software: { title: 'Software Mode', subtitle: 'Execution backend and standalone paths' },
   matlab: { title: 'MATLAB', subtitle: 'MATLAB executable and rendering behavior' },
   spm: { title: 'SPM', subtitle: 'SPM installation path' },
@@ -36,9 +39,9 @@ const SECTION_META = {
 
 const SECTION_GROUPS = [
   {
-    title: 'Analysis Setup',
-    subtitle: 'Participants, groups, sessions, and modalities',
-    keys: ['analysis'],
+    title: 'Pipeline Setup',
+    subtitle: 'Study context plus preprocessing and statistics definitions',
+    keys: ['study', 'paths', 'preprocessing', 'statistics', 'analysis'],
   },
   {
     title: 'Technical & Software',
@@ -64,47 +67,85 @@ const ENUM_OPTIONS = {
 };
 
 function isModalityNamePath(tokens) {
-  return (
+  const isLegacy =
     tokens.length === 4 &&
     tokens[0] === 'analysis' &&
     tokens[1] === 'modalities' &&
     typeof tokens[2] === 'number' &&
-    tokens[3] === 'name'
-  );
+    tokens[3] === 'name';
+
+  const isUnified =
+    tokens.length === 5 &&
+    tokens[0] === 'statistics' &&
+    tokens[1] === 'design' &&
+    tokens[2] === 'modalities' &&
+    typeof tokens[3] === 'number' &&
+    tokens[4] === 'name';
+
+  return isLegacy || isUnified;
 }
 
 function isCovariatesPath(tokens) {
-  return (
+  const isLegacy =
     tokens.length === 4 &&
     tokens[0] === 'analysis' &&
     tokens[1] === 'modalities' &&
     typeof tokens[2] === 'number' &&
-    tokens[3] === 'covariates'
-  );
+    tokens[3] === 'covariates';
+
+  const isUnified =
+    tokens.length === 5 &&
+    tokens[0] === 'statistics' &&
+    tokens[1] === 'design' &&
+    tokens[2] === 'modalities' &&
+    typeof tokens[3] === 'number' &&
+    tokens[4] === 'covariates';
+
+  return isLegacy || isUnified;
 }
 
 function isGroupColumnPath(tokens) {
-  return tokens.length === 2 && tokens[0] === 'analysis' && tokens[1] === 'group_column';
+  const isLegacy = tokens.length === 2 && tokens[0] === 'analysis' && tokens[1] === 'group_column';
+  const isUnified = tokens.length === 3 && tokens[0] === 'statistics' && tokens[1] === 'input' && tokens[2] === 'group_column';
+  return isLegacy || isUnified;
 }
 
 function isModalityMaskPath(tokens) {
-  return (
+  const isLegacy =
     tokens.length === 4 &&
     tokens[0] === 'analysis' &&
     tokens[1] === 'modalities' &&
     typeof tokens[2] === 'number' &&
-    tokens[3] === 'mask'
-  );
+    tokens[3] === 'mask';
+
+  const isUnified =
+    tokens.length === 5 &&
+    tokens[0] === 'statistics' &&
+    tokens[1] === 'design' &&
+    tokens[2] === 'modalities' &&
+    typeof tokens[3] === 'number' &&
+    tokens[4] === 'mask';
+
+  return isLegacy || isUnified;
 }
 
 function isModalityFolderPath(tokens) {
-  return (
+  const isLegacy =
     tokens.length === 4 &&
     tokens[0] === 'analysis' &&
     tokens[1] === 'modalities' &&
     typeof tokens[2] === 'number' &&
-    tokens[3] === 'folder_name'
-  );
+    tokens[3] === 'folder_name';
+
+  const isUnified =
+    tokens.length === 5 &&
+    tokens[0] === 'statistics' &&
+    tokens[1] === 'design' &&
+    tokens[2] === 'modalities' &&
+    typeof tokens[3] === 'number' &&
+    tokens[4] === 'folder_name';
+
+  return isLegacy || isUnified;
 }
 
 function isPreprocessingBidsDirPath(tokens) {
@@ -132,6 +173,15 @@ function isPreprocessingOpenNeuroFlagPath(tokens) {
     tokens[1] === 'bids' &&
     ['openneuro', 'openneuro_download', 'openneuro_download_only_anat', 'openneuro_download_all'].includes(tokens[2])
   );
+}
+
+function isProjectFolderPath(tokens) {
+  return tokens.length === 2 && tokens[0] === 'study' && tokens[1] === 'project_folder';
+}
+
+function isManagedFolderPath(tokens) {
+  if (isProjectFolderPath(tokens)) return true;
+  return tokens.length >= 2 && tokens[0] === 'paths';
 }
 
 function normalizeFolderToken(value, fallback = 'item') {
@@ -242,6 +292,7 @@ export class ConfigEditor {
   }
 
   load(configData) {
+    const openState = this.captureOpenState();
     this.source = stripCommentKeysDeep(configData || {});
     this.fieldCount = 0;
     this.rootEl.innerHTML = '';
@@ -249,8 +300,8 @@ export class ConfigEditor {
     const topKeys = Object.keys(this.source).filter((key) => !isCommentKey(key));
 
     const groups = this.buildSectionGroups(topKeys);
-    groups.forEach((group, index) => {
-      const section = this.createSection(group.title, group.subtitle, index === 0);
+    groups.forEach((group) => {
+      const section = this.createSection(group.title, group.subtitle, false, `section:${group.title}`);
       this.rootEl.appendChild(section.wrapper);
 
       const singleKey = group.keys.length === 1;
@@ -260,6 +311,24 @@ export class ConfigEditor {
     });
 
     this.badgeEl.textContent = `${this.fieldCount} fields`;
+    this.applyOpenState(openState);
+  }
+
+  captureOpenState() {
+    const state = {};
+    this.rootEl.querySelectorAll('details[data-state-key]').forEach((node) => {
+      state[node.dataset.stateKey] = node.open;
+    });
+    return state;
+  }
+
+  applyOpenState(state = {}) {
+    this.rootEl.querySelectorAll('details[data-state-key]').forEach((node) => {
+      const key = node.dataset.stateKey;
+      if (Object.prototype.hasOwnProperty.call(state, key)) {
+        node.open = Boolean(state[key]);
+      }
+    });
   }
 
   buildSectionGroups(topKeys) {
@@ -303,7 +372,7 @@ export class ConfigEditor {
       subtitle: 'Configuration settings',
     };
 
-    const block = this.createCardBlock(meta.title, true);
+    const block = this.createCardBlock(meta.title, false, `top:${key}`);
     container.appendChild(block.wrapper);
 
     if (meta.subtitle) {
@@ -359,7 +428,7 @@ export class ConfigEditor {
             this.renderNode(listWrap, item, childTokens, depth + 1);
           } else {
             const itemTitle = `${prettifyKey(groupKey)} ${index + 1}`;
-            const block = this.createCardBlock(itemTitle, depth < 1);
+            const block = this.createCardBlock(itemTitle, false, `path:${childTokens.join('.')}`);
             listWrap.appendChild(block.wrapper);
             this.renderNode(block.content, item, childTokens, depth + 1);
           }
@@ -377,7 +446,7 @@ export class ConfigEditor {
       const contentRoot = shouldWrapAsCard
         ? (() => {
             const key = String(tokens[tokens.length - 1]);
-            const block = this.createCardBlock(prettifyKey(key), depth < 2);
+            const block = this.createCardBlock(prettifyKey(key), false, `path:${tokens.join('.')}`);
             container.appendChild(block.wrapper);
             return block.content;
           })()
@@ -400,10 +469,13 @@ export class ConfigEditor {
     }
   }
 
-  createSection(titleText, subtitleText, open = false) {
+  createSection(titleText, subtitleText, open = false, stateKey = '') {
     const wrapper = document.createElement('details');
     wrapper.className = 'ux-section';
     wrapper.open = open;
+    if (stateKey) {
+      wrapper.dataset.stateKey = stateKey;
+    }
 
     const summary = document.createElement('summary');
     summary.className = 'ux-section-summary';
@@ -428,10 +500,13 @@ export class ConfigEditor {
     return { wrapper, content };
   }
 
-  createCardBlock(titleText, open = true) {
+  createCardBlock(titleText, open = true, stateKey = '') {
     const wrapper = document.createElement('details');
     wrapper.className = 'ux-card';
     wrapper.open = open;
+    if (stateKey) {
+      wrapper.dataset.stateKey = stateKey;
+    }
 
     const summary = document.createElement('summary');
     summary.className = 'ux-card-title';
@@ -570,6 +645,42 @@ export class ConfigEditor {
         input.appendChild(opt);
       });
       input.value = String(value || 'vbm');
+    } else if (isManagedFolderPath(tokens)) {
+      const group = document.createElement('div');
+      group.className = 'input-group input-group-sm';
+
+      input = document.createElement('input');
+      input.className = 'form-control';
+      input.type = 'text';
+      input.value = value === null ? '' : String(value);
+
+      const browseBtn = document.createElement('button');
+      browseBtn.type = 'button';
+      browseBtn.className = 'btn btn-outline-secondary';
+      browseBtn.textContent = 'Browse...';
+      browseBtn.dataset.folderPicker = 'true';
+      browseBtn.dataset.folderPickerTitle = isProjectFolderPath(tokens) ? 'Pick Project Folder' : `Pick ${prettifyKey(String(tokens[tokens.length - 1]))}`;
+      browseBtn.dataset.path = JSON.stringify(tokens);
+
+      const clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'btn btn-outline-danger';
+      clearBtn.textContent = 'X';
+      clearBtn.title = 'Clear value';
+      clearBtn.dataset.clearField = 'true';
+      clearBtn.dataset.path = JSON.stringify(tokens);
+
+      input.dataset.configField = 'true';
+      input.dataset.path = JSON.stringify(tokens);
+
+      group.appendChild(input);
+      group.appendChild(browseBtn);
+      group.appendChild(clearBtn);
+
+      row.appendChild(label);
+      row.appendChild(group);
+      container.appendChild(row);
+      return;
     } else if (typeof value === 'boolean') {
       input = document.createElement('select');
       input.className = 'form-select form-select-sm';
@@ -723,9 +834,18 @@ export class ConfigEditor {
       setByPath(updated, tokens, selected);
     });
 
-    const modalities = updated?.analysis?.modalities;
-    if (Array.isArray(modalities)) {
-      modalities.forEach((modality) => {
+    const legacyModalities = updated?.analysis?.modalities;
+    if (Array.isArray(legacyModalities)) {
+      legacyModalities.forEach((modality) => {
+        if (isPlainObject(modality)) {
+          modality.folder_name = buildAutoModalityFolderName(modality);
+        }
+      });
+    }
+
+    const unifiedModalities = updated?.statistics?.design?.modalities;
+    if (Array.isArray(unifiedModalities)) {
+      unifiedModalities.forEach((modality) => {
         if (isPlainObject(modality)) {
           modality.folder_name = buildAutoModalityFolderName(modality);
         }

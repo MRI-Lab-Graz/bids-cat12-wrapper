@@ -1,3 +1,0 @@
-TODO:
-1. Update utils/generate_html_report.py to build positive and negative TFCE thumbnails per contrast.
-2. Update TFCE section of HTML report to display directional thumbnails and labels.

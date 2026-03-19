@@ -36,8 +36,11 @@ const pickerState = {
 };
 
 function currentConfigParticipantsPath() {
-  const fromConfig = editor.getValueAtPath(['analysis', 'participants_file']);
-  if (typeof fromConfig === 'string' && fromConfig.trim()) return fromConfig.trim();
+  const statsPath = editor.getValueAtPath(['statistics', 'input', 'participants_file']);
+  if (typeof statsPath === 'string' && statsPath.trim()) return statsPath.trim();
+
+  const legacyPath = editor.getValueAtPath(['analysis', 'participants_file']);
+  if (typeof legacyPath === 'string' && legacyPath.trim()) return legacyPath.trim();
 
   const fromRunOption = document.getElementById('optParticipants')?.value?.trim();
   if (fromRunOption) return fromRunOption;
@@ -117,7 +120,7 @@ async function openPathPickerAt(path) {
 
   pathPickerTitleEl.textContent = pickerState.title;
   pathPickerCurrentEl.textContent = pickerState.current || '.';
-  pathPickerUpBtn.disabled = pickerState.current === '';
+  pathPickerUpBtn.disabled = !pickerState.parent;
 
   if (pickerState.allowDirs) {
     pathPickerSelectCurrentBtn.classList.remove('d-none');
@@ -150,8 +153,82 @@ async function refreshParticipantsDerivedFields() {
 
 function applyParticipantsPath(path) {
   if (!path) return;
-  editor.setValueAtPath(['analysis', 'participants_file'], path);
+  if (editor.getValueAtPath(['statistics', 'input', 'participants_file']) !== undefined) {
+    editor.setValueAtPath(['statistics', 'input', 'participants_file'], path);
+  } else {
+    editor.setValueAtPath(['analysis', 'participants_file'], path);
+  }
   document.getElementById('optParticipants').value = path;
+}
+
+async function listReports() {
+  const payload = {
+    config_data: editor.collect(),
+    run_options: getRunOptions(),
+  };
+
+  const result = await postJSON('/api/reports/list', payload);
+  const select = document.getElementById('reportSelect');
+  select.innerHTML = '';
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '(no report selected)';
+  select.appendChild(placeholder);
+
+  const reports = result.reports || [];
+  reports.forEach((reportPath) => {
+    const option = document.createElement('option');
+    option.value = reportPath;
+    option.textContent = reportPath;
+    select.appendChild(option);
+  });
+
+  // Auto-select newest report (backend returns newest-first when sorted by mtime)
+  if (reports.length) {
+    select.value = reports[0];
+    setStatus(`Found ${reports.length} HTML report(s)`, 'success');
+  } else {
+    setStatus('No HTML reports found yet', 'warning');
+  }
+}
+
+function openSelectedReport() {
+  const selected = document.getElementById('reportSelect').value;
+  if (!selected) {
+    setStatus('Select a report first', 'warning');
+    return;
+  }
+  const url = `/api/reports/open?path=${encodeURIComponent(selected)}`;
+  window.open(url, '_blank', 'noopener');
+}
+
+async function generateReport() {
+  terminal.clear();
+  setStatus('Starting report generation...', 'info');
+
+  const payload = {
+    config_data: editor.collect(),
+    results_dir: document.getElementById('optReportResultsDir').value.trim(),
+    quality: document.getElementById('optReportQuality').value.trim(),
+    report_filter: document.getElementById('optReportFilter').value.trim(),
+    output_html: document.getElementById('optReportOutputHtml').value.trim(),
+  };
+
+  const result = await postJSON('/api/reports/generate', payload);
+  if (!result.success) {
+    setStatus(result.error || 'Failed to start report generation', 'danger');
+    return;
+  }
+
+  terminal.startStream(async (exitCode) => {
+    if (exitCode === 0) {
+      setStatus('Report generated successfully', 'success');
+      await listReports();
+    } else {
+      setStatus(`Report generation failed (exit ${exitCode})`, 'danger');
+    }
+  });
 }
 
 function setStatus(msg, kind = 'muted') {
@@ -311,7 +388,11 @@ function bindEvents() {
   document.getElementById('optParticipants').addEventListener('change', async () => {
     const entered = document.getElementById('optParticipants').value.trim();
     if (entered) {
-      editor.setValueAtPath(['analysis', 'participants_file'], entered);
+      if (editor.getValueAtPath(['statistics', 'input', 'participants_file']) !== undefined) {
+        editor.setValueAtPath(['statistics', 'input', 'participants_file'], entered);
+      } else {
+        editor.setValueAtPath(['analysis', 'participants_file'], entered);
+      }
     }
     try {
       await refreshParticipantsDerivedFields();
@@ -372,14 +453,27 @@ function bindEvents() {
     });
   });
 
-  document.getElementById('btnBrowseResultsDir').addEventListener('click', async () => {
+  document.getElementById('btnBrowseStatsConfig').addEventListener('click', async () => {
     await openPathPicker({
-      title: 'Pick Results Folder',
+      title: 'Pick Stats Config',
+      allowFiles: true,
+      allowDirs: true,
+      extensions: ['.json'],
+      startPath: dirnamePath(document.getElementById('optStatsConfig').value.trim()) || 'projects',
+      onPick: (path) => {
+        document.getElementById('optStatsConfig').value = path;
+      },
+    });
+  });
+
+  document.getElementById('btnBrowseReportResultsDir').addEventListener('click', async () => {
+    await openPathPicker({
+      title: 'Pick Report Input Folder',
       allowFiles: false,
       allowDirs: true,
-      startPath: document.getElementById('optResultsDir').value.trim() || 'results',
+      startPath: document.getElementById('optReportResultsDir').value.trim() || 'results',
       onPick: (path) => {
-        document.getElementById('optResultsDir').value = path;
+        document.getElementById('optReportResultsDir').value = path;
       },
     });
   });
@@ -412,9 +506,12 @@ function bindEvents() {
       updateOpenNeuroInputValidation(target);
     }
 
-    if (target.dataset.path === JSON.stringify(['analysis', 'participants_file'])) {
+    const statsParticipantsPath = JSON.stringify(['statistics', 'input', 'participants_file']);
+    const legacyParticipantsPath = JSON.stringify(['analysis', 'participants_file']);
+
+    if (target.dataset.path === statsParticipantsPath || target.dataset.path === legacyParticipantsPath) {
       try {
-        const picked = editor.getValueAtPath(['analysis', 'participants_file']) || '';
+        const picked = currentConfigParticipantsPath();
         document.getElementById('optParticipants').value = String(picked);
         await refreshParticipantsDerivedFields();
       } catch (error) {
@@ -485,6 +582,28 @@ function bindEvents() {
       return;
     }
 
+    if (target?.dataset?.folderPicker) {
+      const tokens = JSON.parse(target.dataset.path || '[]');
+      const currentFolder = editor.getValueAtPath(tokens) || '';
+
+      await openPathPicker({
+        title: target.dataset.folderPickerTitle || 'Pick Folder',
+        allowFiles: false,
+        allowDirs: true,
+        startPath: String(currentFolder || '') || '.',
+        onPick: (path) => {
+          editor.setValueAtPath(tokens, path);
+        },
+      });
+      return;
+    }
+
+    if (target?.dataset?.clearField) {
+      const tokens = JSON.parse(target.dataset.path || '[]');
+      editor.setValueAtPath(tokens, '');
+      return;
+    }
+
     if (!target?.dataset?.maskPicker) return;
 
     const tokens = JSON.parse(target.dataset.path || '[]');
@@ -533,8 +652,27 @@ function bindEvents() {
     }
   });
 
+  document.getElementById('btnListReports').addEventListener('click', async () => {
+    try {
+      await listReports();
+    } catch (error) {
+      setStatus(error.message, 'danger');
+    }
+  });
+
+  document.getElementById('btnOpenReport').addEventListener('click', openSelectedReport);
+
   document.getElementById('btnClearConsole').addEventListener('click', () => terminal.clear());
   document.getElementById('btnShutdown').addEventListener('click', shutdownApp);
+
+  document.getElementById('btnGenerateReport').addEventListener('click', async () => {
+    try {
+      await generateReport();
+    } catch (error) {
+      terminal.append(`[error] ${error.message}`);
+      setStatus(error.message, 'danger');
+    }
+  });
 }
 
 async function init() {

@@ -1,29 +1,29 @@
 export function getRunOptions() {
   return {
-    only: document.getElementById('optOnly').value.trim(),
-    skip: document.getElementById('optSkip').value.trim(),
-    from_step: document.getElementById('optFromStep').value.trim(),
-    until_step: document.getElementById('optUntilStep').value.trim(),
+    mode: document.getElementById('optMode').value.trim(),
     cat12_dir: document.getElementById('optCat12Dir').value.trim(),
     participants: document.getElementById('optParticipants').value.trim(),
-    results_dir: document.getElementById('optResultsDir').value.trim(),
+    stats_config: document.getElementById('optStatsConfig').value.trim(),
     modality: document.getElementById('optModality').value.trim(),
-    use_matlab: document.getElementById('optUseMatlab').checked,
-    force: document.getElementById('optForce').checked,
-    dry_run: document.getElementById('optDryRun').checked
+    force_all: document.getElementById('optForceAll').checked,
+    dry_run: document.getElementById('optDryRun').checked,
+    report_results_dir: document.getElementById('optReportResultsDir').value.trim(),
+    report_quality: document.getElementById('optReportQuality').value.trim(),
+    report_filter: document.getElementById('optReportFilter').value.trim(),
+    report_output_html: document.getElementById('optReportOutputHtml').value.trim()
   };
 }
 
 export function setRunOptions(options = {}) {
-  document.getElementById('optOnly').value = options.only || 'stats,report';
-  document.getElementById('optSkip').value = options.skip || '';
-  document.getElementById('optFromStep').value = options.from_step || '';
-  document.getElementById('optUntilStep').value = options.until_step || '';
+  document.getElementById('optMode').value = options.mode || 'stats';
   document.getElementById('optCat12Dir').value = options.cat12_dir || '';
   document.getElementById('optParticipants').value = options.participants || '';
-  document.getElementById('optResultsDir').value = options.results_dir || '';
+  document.getElementById('optStatsConfig').value = options.stats_config || '';
   document.getElementById('optModality').value = options.modality || '';
-  document.getElementById('optUseMatlab').checked = Boolean(options.use_matlab);
-  document.getElementById('optForce').checked = Boolean(options.force);
+  document.getElementById('optForceAll').checked = Boolean(options.force_all);
   document.getElementById('optDryRun').checked = Boolean(options.dry_run);
+  document.getElementById('optReportResultsDir').value = options.report_results_dir || '';
+  document.getElementById('optReportQuality').value = options.report_quality || 'low';
+  document.getElementById('optReportFilter').value = options.report_filter || 'no_tfce';
+  document.getElementById('optReportOutputHtml').value = options.report_output_html || '';
 }
